@@ -153,7 +153,7 @@ Before getting started with `ggplot2`, it is important to understand the princip
 
 The Grammar of Graphics is a general framework for data visualisation. It breaks a graph down into meaningful components, such as data, aesthetics, scales, and layers. This concept was introduced by Leland Wilkinson in *The Grammar of Graphics* (1999). The Grammar of Graphics helps answer an important question:
 
-### **What is a statistical graphic?**
+**What is a statistical graphic?**
 
 In short, the **Grammar of Graphics** defines how mathematical and visual elements can be structured to create a meaningful graph.
 
@@ -183,7 +183,11 @@ A short description of each building block are as follows:
 
 -   **Themes** modify all non-data components of a plot, such as main title, sub-title, y-aixs title, or legend background.
 
-## **1.5 Essential Grammatical Elements in ggplot2: data**
+## **1.5 Essential Grammatical Elements in ggplot2**
+
+This section focuses on how data, aesthetics, geometries, and other elements work together to create meaningful visualisations.
+
+### 1.5.1 **Essential Grammatical Elements in ggplot2: data**
 
 Let us call the `ggplot()` function using the code chunk on the right.
 
@@ -199,4 +203,21 @@ ggplot(data=exam_data)
 -   The `data` argument defines the dataset to be used for plotting.
 
 -   If the dataset is not already a data.frame, it will be converted to one by `fortify()`.
+:::
+
+### **1.5.2 Essential Grammatical Elements in ggplot2: Aesthetic mappings**
+
+Aesthetic mappings use variables from the dataset to control visual properties of a plot, such as position, colour, size, shape, and transparency. These visual properties help represent information from the data.
+
+In `ggplot2`, aesthetic mappings are defined inside the `aes()` function. Later in this lesson, we will see that each `geom` layer can also have its own aesthetic mapping.
+
+The code chunk below adds an aesthetic element to the plot.
+
+```{r}
+ggplot(data=exam_data, 
+       aes(x= MATHS))
+```
+
+::: {.callout-note title="Note" style=".callout.callout-style-default.callout-note {   border-left-color: #2A6F6F; }  .callout.callout-style-default.callout-note > .callout-header {   background-color: #2A6F6F;   color: white; }  .callout.callout-style-default.callout-note > .callout-body {   background-color: #EEF6F6; }  .callout.callout-style-default.callout-note .callout-icon {   color: white; }"}
+-   `ggplot` includes the x-axis and the axis's label.
 :::
