@@ -1,5 +1,5 @@
 ---
-title: "Hands-on Exercise 1:A Layered Grammar of Graphics - gdgplot2 methods"
+title: "Hands-on Exercise 1:A Layered Grammar of Graphics - ggplot2 methods"
 author: "Yang Yang"
 ---
 
@@ -146,3 +146,57 @@ ggplot(data = exam_data,
     shape = "Race"
   )
 ```
+
+## **1.4 Grammar of Graphics**
+
+Before getting started with `ggplot2`, it is important to understand the principles of the **Grammar of Graphics**.
+
+The Grammar of Graphics is a general framework for data visualisation. It breaks a graph down into meaningful components, such as data, aesthetics, scales, and layers. This concept was introduced by Leland Wilkinson in *The Grammar of Graphics* (1999). The Grammar of Graphics helps answer an important question:
+
+### **What is a statistical graphic?**
+
+In short, the **Grammar of Graphics** defines how mathematical and visual elements can be structured to create a meaningful graph.
+
+There are **two** key principles in the Grammar of Graphics:
+
+**1.** A graphic is built from distinct layers of grammatical elements. **2.** A meaningful plot is created through aesthetic mapping.
+
+A good grammar of graphics helps us understand how complex graphics are constructed. It can also reveal connections between different types of charts that may not seem related at first. More importantly, it provides a foundation for understanding a wide range of visualisations and helps us judge whether a graph is properly structured. However, even if a graph is grammatically correct, it may still be meaningless or misleading if the design does not support a clear analytical purpose.
+
+ggplot2 is an implementation of Leland Wilkinson’s Grammar of Graphics. Figure below shows the seven grammars of ggplot2.
+
+![Reference: Hadley Wickham (2010) “A layered grammar of graphics.” Journal of Computational and Graphical Statistics, vol. 19, no. 1, pp. 3–28.](images/clipboard-80413594.png)
+
+A short description of each building block are as follows:
+
+-   **Data**: The dataset being plotted.
+
+-   **Aesthetics** take attributes of the data and use them to influence visual characteristics, such as position, colours, size, shape, or transparency.
+
+-   **Geometrics**: The visual elements used for our data, such as point, bar or line.
+
+-   **Facets** split the data into subsets to create multiple variations of the same graph (paneling, multiple plots).
+
+-   **Statistics**, statiscal transformations that summarise data (e.g. mean, confidence intervals).
+
+-   **Coordinate systems** define the plane on which data are mapped on the graphic.
+
+-   **Themes** modify all non-data components of a plot, such as main title, sub-title, y-aixs title, or legend background.
+
+## **1.5 Essential Grammatical Elements in ggplot2: data**
+
+Let us call the `ggplot()` function using the code chunk on the right.
+
+```{r}
+ggplot(data=exam_data)
+```
+
+::: {.callout-note title="Note"}
+-   A blank canvas appears.
+
+-   `ggplot()` initializes a ggplot object.
+
+-   The `data` argument defines the dataset to be used for plotting.
+
+-   If the dataset is not already a data.frame, it will be converted to one by `fortify()`.
+:::

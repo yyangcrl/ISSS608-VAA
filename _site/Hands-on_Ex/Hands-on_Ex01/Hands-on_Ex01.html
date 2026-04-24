@@ -8,7 +8,7 @@
 
 <meta name="author" content="Yang Yang">
 
-<title>Hands-on Exercise 1:A Layered Grammar of Graphics - gdgplot2 methods – ISSS608-VAA</title>
+<title>Hands-on Exercise 1:A Layered Grammar of Graphics - ggplot2 methods – ISSS608-VAA</title>
 <style>
 /* Default styles provided by pandoc.
 ** See https://pandoc.org/MANUAL.html#variables-for-html for config info.
@@ -173,6 +173,11 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
   <li><a href="#introducing-ggplot" id="toc-introducing-ggplot" class="nav-link" data-scroll-target="#introducing-ggplot">1.3 Introducing ggplot</a></li>
   <li><a href="#plotting-a-simple-bar-chart" id="toc-plotting-a-simple-bar-chart" class="nav-link" data-scroll-target="#plotting-a-simple-bar-chart">1.3.1 Plotting a simple bar chart</a></li>
   <li><a href="#r-graphics-vs-ggplot" id="toc-r-graphics-vs-ggplot" class="nav-link" data-scroll-target="#r-graphics-vs-ggplot"><strong>1.3.2 R Graphics VS ggplot</strong></a></li>
+  <li><a href="#grammar-of-graphics" id="toc-grammar-of-graphics" class="nav-link" data-scroll-target="#grammar-of-graphics"><strong>1.4 Grammar of Graphics</strong></a>
+  <ul class="collapse">
+  <li><a href="#what-is-a-statistical-graphic" id="toc-what-is-a-statistical-graphic" class="nav-link" data-scroll-target="#what-is-a-statistical-graphic"><strong>What is a statistical graphic?</strong></a></li>
+  </ul></li>
+  <li><a href="#essential-grammatical-elements-in-ggplot2-data" id="toc-essential-grammatical-elements-in-ggplot2-data" class="nav-link" data-scroll-target="#essential-grammatical-elements-in-ggplot2-data"><strong>1.5 Essential Grammatical Elements in ggplot2: data</strong></a></li>
   </ul></li>
   </ul>
 </nav>
@@ -182,7 +187,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 
 <header id="title-block-header" class="quarto-title-block default">
 <div class="quarto-title">
-<h1 class="title">Hands-on Exercise 1:A Layered Grammar of Graphics - gdgplot2 methods</h1>
+<h1 class="title">Hands-on Exercise 1:A Layered Grammar of Graphics - ggplot2 methods</h1>
 </div>
 
 
@@ -395,6 +400,67 @@ $ SCIENCE &lt;dbl&gt; 15, 16, 16, 31, 25, 16, 25, 27, 15, 37, 42, 22, 32, 36, 35
 <p><img src="Hands-on_Ex01_files/figure-html/unnamed-chunk-9-1.png" class="img-fluid figure-img" width="672"></p>
 </figure>
 </div>
+</div>
+</div>
+</section>
+<section id="grammar-of-graphics" class="level2">
+<h2 class="anchored" data-anchor-id="grammar-of-graphics"><strong>1.4 Grammar of Graphics</strong></h2>
+<p>Before getting started with <code>ggplot2</code>, it is important to understand the principles of the <strong>Grammar of Graphics</strong>.</p>
+<p>The Grammar of Graphics is a general framework for data visualisation. It breaks a graph down into meaningful components, such as data, aesthetics, scales, and layers. This concept was introduced by Leland Wilkinson in <em>The Grammar of Graphics</em> (1999). The Grammar of Graphics helps answer an important question:</p>
+<section id="what-is-a-statistical-graphic" class="level3">
+<h3 class="anchored" data-anchor-id="what-is-a-statistical-graphic"><strong>What is a statistical graphic?</strong></h3>
+<p>In short, the <strong>Grammar of Graphics</strong> defines how mathematical and visual elements can be structured to create a meaningful graph.</p>
+<p>There are <strong>two</strong> key principles in the Grammar of Graphics:</p>
+<p><strong>1.</strong> A graphic is built from distinct layers of grammatical elements. <strong>2.</strong> A meaningful plot is created through aesthetic mapping.</p>
+<p>A good grammar of graphics helps us understand how complex graphics are constructed. It can also reveal connections between different types of charts that may not seem related at first. More importantly, it provides a foundation for understanding a wide range of visualisations and helps us judge whether a graph is properly structured. However, even if a graph is grammatically correct, it may still be meaningless or misleading if the design does not support a clear analytical purpose.</p>
+<p>ggplot2 is an implementation of Leland Wilkinson’s Grammar of Graphics. Figure below shows the seven grammars of ggplot2.</p>
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<p><img src="images/clipboard-80413594.png" class="img-fluid figure-img"></p>
+<figcaption>Reference: Hadley Wickham (2010) “A layered grammar of graphics.” Journal of Computational and Graphical Statistics, vol.&nbsp;19, no. 1, pp.&nbsp;3–28.</figcaption>
+</figure>
+</div>
+<p>A short description of each building block are as follows:</p>
+<ul>
+<li><p><strong>Data</strong>: The dataset being plotted.</p></li>
+<li><p><strong>Aesthetics</strong> take attributes of the data and use them to influence visual characteristics, such as position, colours, size, shape, or transparency.</p></li>
+<li><p><strong>Geometrics</strong>: The visual elements used for our data, such as point, bar or line.</p></li>
+<li><p><strong>Facets</strong> split the data into subsets to create multiple variations of the same graph (paneling, multiple plots).</p></li>
+<li><p><strong>Statistics</strong>, statiscal transformations that summarise data (e.g.&nbsp;mean, confidence intervals).</p></li>
+<li><p><strong>Coordinate systems</strong> define the plane on which data are mapped on the graphic.</p></li>
+<li><p><strong>Themes</strong> modify all non-data components of a plot, such as main title, sub-title, y-aixs title, or legend background.</p></li>
+</ul>
+</section>
+</section>
+<section id="essential-grammatical-elements-in-ggplot2-data" class="level2">
+<h2 class="anchored" data-anchor-id="essential-grammatical-elements-in-ggplot2-data"><strong>1.5 Essential Grammatical Elements in ggplot2: data</strong></h2>
+<p>Let us call the <code>ggplot()</code> function using the code chunk on the right.</p>
+<div class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb14"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb14-1"><a href="#cb14-1" aria-hidden="true" tabindex="-1"></a><span class="fu">ggplot</span>(<span class="at">data=</span>exam_data)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output-display">
+<div>
+<figure class="figure">
+<p><img src="Hands-on_Ex01_files/figure-html/unnamed-chunk-10-1.png" class="img-fluid figure-img" width="672"></p>
+</figure>
+</div>
+</div>
+</div>
+<div class="callout callout-style-default callout-note callout-titled" title="Note">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Note</span>Note
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<ul>
+<li><p>A blank canvas appears.</p></li>
+<li><p><code>ggplot()</code> initializes a ggplot object.</p></li>
+<li><p>The <code>data</code> argument defines the dataset to be used for plotting.</p></li>
+<li><p>If the dataset is not already a data.frame, it will be converted to one by <code>fortify()</code>.</p></li>
+</ul>
 </div>
 </div>
 
