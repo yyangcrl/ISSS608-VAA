@@ -170,8 +170,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
    
   <ul>
   <li><a href="#overview" id="toc-overview" class="nav-link active" data-scroll-target="#overview">1.1 Overview</a></li>
-  <li><a href="#getting-started" id="toc-getting-started" class="nav-link" data-scroll-target="#getting-started">1.2 Getting Started</a>
-  <ul class="collapse">
+  <li><a href="#getting-started" id="toc-getting-started" class="nav-link" data-scroll-target="#getting-started">1.2 Getting Started</a></li>
   <li><a href="#install-and-launching-r-packages" id="toc-install-and-launching-r-packages" class="nav-link" data-scroll-target="#install-and-launching-r-packages">1.2.1 Install and launching R packages</a></li>
   <li><a href="#importing-the-data" id="toc-importing-the-data" class="nav-link" data-scroll-target="#importing-the-data">1.2.2 Importing the data</a></li>
   <li><a href="#introducing-ggplot" id="toc-introducing-ggplot" class="nav-link" data-scroll-target="#introducing-ggplot">1.3 Introducing ggplot</a></li>
@@ -201,7 +200,6 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
   <li><a href="#working-with-stat---the-stat_summary-method" id="toc-working-with-stat---the-stat_summary-method" class="nav-link" data-scroll-target="#working-with-stat---the-stat_summary-method">1.7.3 <strong>Working with stat - the <em>stat_summary()</em> method</strong></a></li>
   <li><a href="#working-with-stat---the-geom-method" id="toc-working-with-stat---the-geom-method" class="nav-link" data-scroll-target="#working-with-stat---the-geom-method">1.7.4 <strong>Working with stat - the <code>geom()</code> method</strong></a></li>
   <li><a href="#adding-a-best-fit-curve-on-a-scatterplot" id="toc-adding-a-best-fit-curve-on-a-scatterplot" class="nav-link" data-scroll-target="#adding-a-best-fit-curve-on-a-scatterplot"><strong>1.7.4 Adding a best fit curve on a scatterplot?</strong></a></li>
-  </ul></li>
   </ul></li>
   <li><a href="#install.packagesggpmisc-run-this-once-in-the-console-if-ggpmisc-is-not-installed" id="toc-install.packagesggpmisc-run-this-once-in-the-console-if-ggpmisc-is-not-installed" class="nav-link" data-scroll-target="#install.packagesggpmisc-run-this-once-in-the-console-if-ggpmisc-is-not-installed">install.packages(“ggpmisc”) # Run this once in the Console if ggpmisc is not installed</a>
   <ul class="collapse">
@@ -251,12 +249,13 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 </header>
 
 
-<section id="overview" class="level1">
-<h1>1.1 Overview</h1>
+<section id="overview" class="level2">
+<h2 class="anchored" data-anchor-id="overview">1.1 Overview</h2>
 <p>In this chapter, you will learn the fundamental principles and key components of ggplot2. You will also gain practical experience in using these components to create statistical graphics based on the Layered Grammar of Graphics. By the end of this chapter, you should be able to apply the main graphical elements in ggplot2 to produce statistical charts that are both visually clear and functionally effective.</p>
 </section>
-<section id="getting-started" class="level1">
-<h1>1.2 Getting Started</h1>
+<section id="getting-started" class="level2">
+<h2 class="anchored" data-anchor-id="getting-started">1.2 Getting Started</h2>
+</section>
 <section id="install-and-launching-r-packages" class="level2">
 <h2 class="anchored" data-anchor-id="install-and-launching-r-packages">1.2.1 Install and launching R packages</h2>
 <p>The code chunk below uses p_load() of pacman package to check if tidyverse packages are installed in the computer. If the are, then they will be launched into R.</p>
@@ -959,7 +958,6 @@ Notches</strong></a> are used in box plots to help visually assess whether the m
 </div>
 </div>
 <p>#Before using <code>stat_poly_line()</code> and <code>stat_poly_eq()</code>, the <code>ggpmisc</code> package must be installed and loaded. The package only needs to be installed once, but it must be loaded with <code>library()</code> each time a new R session starts.</p>
-</section>
 </section>
 </section>
 <section id="install.packagesggpmisc-run-this-once-in-the-console-if-ggpmisc-is-not-installed" class="level1">

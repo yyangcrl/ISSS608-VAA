@@ -1,5 +1,108 @@
 ---
-title: "Hands-on_Ex02"
-format: html
+title: "Hands-on Exercise 2 - Beyond ggplot2 Fundamentals"
+author: "Yang Yang"
 ---
 
+## 2.1 Overview
+
+This chapter introduces several ggplot2 extensions that enhance the clarity and visual quality of statistical graphics. By the end of this exercise, you will be able to:
+
+-   Manage annotation placement on graphs using the **ggrepel** package,
+
+-   Design publication-ready figures with the **ggthemes** and **hrbrthemes** packages,
+
+-   Combine multiple ggplot2 graphs into a single composite figure using the **patchwork** package.
+
+## 2.2 Getting started
+
+### 2.2.1 Installing and loading the required libraries
+
+In this exercise, beside tidyverse, four R packages will be used. They are:
+
+-   ggrepel: an R package provides geoms for ggplot2 to repel overlapping text labels.
+
+-   ggthemes: an R package provides some extra themes, geoms, and scales for ‘ggplot2’.
+
+-   hrbrthemes: an R package provides typography-centric themes and theme components for ggplot2.
+
+-   patchwork: an R package for preparing composite figure created using ggplot2.
+
+The code chunk below checks whether the required packages are already installed and loads them into your working R environment.
+
+```{r}
+pacman::p_load(ggrepel, patchwork, 
+               ggthemes, hrbrthemes,
+               tidyverse) 
+```
+
+### 2.2.2 Importing data
+
+For the purpose of this exercise, a data file called *Exam_data* will be used. It consists of year end examination grades of a cohort of primary 3 students from a local school. It is in csv file format.
+
+The code chunk below imports *exam_data.csv* into R environment by using [*read_csv()*](https://readr.tidyverse.org/reference/read_delim.html) function of [**readr**](https://readr.tidyverse.org/) package. **readr** is one of the tidyverse package.
+
+```{r}
+exam_data <- read_csv("Exam_data.csv")
+```
+
+The **exam_data** tibble contains seven attributes in total — four categorical and three continuous.
+
+-   The categorical attributes are: **ID, CLASS, GENDER** and **RACE**.
+
+-   The continuous attributes are: **MATHS, ENGLISH** and **SCIENCE**.
+
+## 2.2.3 Understanding the Data
+
+Before diving into the visualisations, it is good practice to get a quick overview of the dataset.
+
+::: panel-tabset
+## Structure
+
+```{r}
+glimpse(exam_data)
+```
+
+## Maths
+
+```{r}
+ggplot(data = exam_data,
+       aes(x = MATHS)) +
+  geom_histogram(bins = 20,
+                 fill = "steelblue",
+                 color = "white") +
+  labs(title = "Distribution of Maths Scores",
+       x = "Maths Score",
+       y = "Count") +
+  theme_minimal()
+```
+
+## English
+
+```{r}
+ggplot(data = exam_data,
+       aes(x = ENGLISH)) +
+  geom_histogram(bins = 20,
+                 fill = "salmon",
+                 color = "white") +
+  labs(title = "Distribution of English Scores",
+       x = "English Score",
+       y = "Count") +
+  theme_minimal()
+```
+
+## Science
+
+```{r}
+ggplot(data = exam_data,
+       aes(x = SCIENCE)) +
+  geom_histogram(bins = 20,
+                 fill = "seagreen",
+                 color = "white") +
+  labs(title = "Distribution of Science Scores",
+       x = "Science Score",
+       y = "Count") +
+  theme_minimal()
+```
+:::
+
+This keeps it short and purposeful — `glimpse()` gives a structural overview, and the histogram gives an immediate sense of the score distribution before any advanced plotting begins. You can swap `MATHS` for `ENGLISH` or `SCIENCE` to explore the other subjects too.
