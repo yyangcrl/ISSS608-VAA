@@ -496,9 +496,11 @@ ggplot(data = exam_data,
 ::: {.callout-note title="Note"}
 The default method used is `loess`.
 :::
+
 #Before using `stat_poly_line()` and `stat_poly_eq()`, the `ggpmisc` package must be installed and loaded. The package only needs to be installed once, but it must be loaded with `library()` each time a new R session starts.
 
-# install.packages("ggpmisc")  # Run this once in the Console if ggpmisc is not installed
+# install.packages("ggpmisc") \# Run this once in the Console if ggpmisc is not installed
+
 library(ggpmisc)
 
 The default smoothing method can be overridden as shown below.
