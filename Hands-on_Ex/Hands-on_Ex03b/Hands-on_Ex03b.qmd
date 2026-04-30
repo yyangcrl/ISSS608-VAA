@@ -1,0 +1,689 @@
+---
+title: "Hands-on Exercise 3b - Programming Animated Statistical Graphics with R"
+author: "Yang Yang"
+format:
+  html:
+    theme: sketchy
+    toc: true
+    toc-depth: 3
+    number-sections: false
+    code-copy: true
+    code-overflow: wrap
+editor: visual
+execute:
+  warning: false
+  message: false
+---
+
+## 4.1 Overview
+
+Animated graphics can make a data story easier to follow because the viewer can see how values change over time instead of comparing many separate static charts. In this exercise, we will use `gganimate` and `plotly` to create animated statistical graphics in R.
+
+At the same time, we will also practise basic data preparation skills, including importing Excel data, converting data types, and reshaping variables with modern `dplyr` syntax.
+
+By the end of this exercise, we will be able to:
+
+- explain how animation works in statistical graphics,
+- prepare population data for animated visualisation,
+- create static and animated bubble plots,
+- use `gganimate` to animate ggplot2 graphics,
+- use `plotly` to create interactive animated charts.
+
+### 4.1.1 Basic concepts of animation
+
+An animated chart does not really “move” by itself. It is created from many individual plots, where each plot represents one moment in time. When these plots are shown quickly in sequence, the viewer sees motion.
+
+This is similar to a flipbook: each page is static, but the sequence creates the feeling of movement. In data visualisation, each frame usually represents a year, a category, or a time period.
+
+::: {.callout-tip}
+## Small note
+
+Animation is useful when time is part of the story. If the data does not change meaningfully across time, a static chart may be clearer and faster to read.
+:::
+
+### 4.1.2 Terminology
+
+Before creating animated charts, it is useful to understand a few basic terms.
+
+A **frame** is one still image inside the animation. For example, in a population animation, each year can become one frame.
+
+**Animation attributes** control how the animation behaves. These include the speed of movement, how smoothly one frame changes into another, and whether the animation starts from the beginning or continues from the current frame.
+
+::: {.callout-warning}
+## Warning
+
+Animated graphics should not be used only because they look interesting. If the movement does not help the reader understand the data, the animation becomes decoration rather than analysis.
+:::
+
+## 4.2 Getting Started
+
+Before building the charts, we need to load the required R packages.
+
+### 4.2.1 Loading the R packages
+
+The packages used in this exercise are:
+
+- `readxl` for importing Excel files,
+- `gganimate` for creating animated ggplot2 graphics,
+- `gifski` for rendering animations as GIFs,
+- `gapminder` for using the `country_colors` palette,
+- `plotly` for interactive animated charts,
+- `tidyverse` for data import, wrangling, and static graphics.
+
+```{r}
+#| label: setup
+#| include: false
+
+if (!require(pacman)) {
+  install.packages("pacman")
+}
+
+pacman::p_load(
+  readxl, gifski, gapminder,
+  plotly, gganimate, tidyverse,
+  scales
+)
+
+my_teal <- "#2A6F6F"
+my_dark <- "#1F1F1F"
+my_soft_teal <- "#8AA6A3"
+my_light_teal <- "#D8E8E6"
+my_grey <- "#F2F2F2"
+```
+
+::: {.callout-warning}
+## Warning
+
+`gganimate` may take longer to render than normal ggplot2 charts because it needs to generate many frames. If the render feels slow, this is normal.
+:::
+
+### 4.2.2 Importing the data
+
+In this exercise, we use the `Data` worksheet from the `GlobalPopulation.xls` workbook.
+
+Place `GlobalPopulation.xls` in the same folder as this file:
+
+```text
+Hands-on_Ex03b/
+  Hands-on_Ex03b.qmd
+  GlobalPopulation.xls
+```
+
+::: {.panel-tabset}
+
+## View
+
+```{r}
+#| echo: false
+
+col <- c("Country", "Continent")
+
+globalPop <- read_xls("GlobalPopulation.xls",
+                      sheet = "Data") %>%
+  mutate(across(all_of(col), as.factor)) %>%
+  mutate(Year = as.integer(Year))
+
+country_palette <- setNames(
+  rep(country_colors, length.out = nlevels(globalPop$Country)),
+  levels(globalPop$Country)
+)
+
+glimpse(globalPop)
+```
+
+## Code
+
+```{r}
+#| eval: false
+
+globalPop <- read_xls("GlobalPopulation.xls",
+                      sheet = "Data") %>%
+  mutate(across(all_of(col), as.factor)) %>%
+  mutate(Year = as.integer(Year))
+
+country_palette <- setNames(
+  rep(country_colors, length.out = nlevels(globalPop$Country)),
+  levels(globalPop$Country)
+)
+
+glimpse(globalPop)
+```
+
+:::
+
+The code above imports the Excel worksheet and cleans the key variable types. `Country` and `Continent` are converted into factor variables, while `Year` is converted into an integer. This makes the data easier to use for grouping, colouring, and animation.
+
+::: {.callout-tip}
+## What can we learn?
+
+The original tutorial shows older `dplyr` functions such as `mutate_each_()` and `mutate_at()`. In this version, `across()` is used because it is the modern and recommended way to apply the same transformation to multiple columns.
+:::
+
+## 4.2.3 A quick static summary before animation
+
+Before creating an animation, it is useful to inspect the overall pattern with a simple static chart. This small summary compares the average share of young and old population by continent.
+
+This is not the main chart of the chapter, but it helps us understand what the animation will later show: population structure differs across continents.
+
+::: {.panel-tabset}
+
+## View
+
+```{r}
+#| echo: false
+
+continent_summary <- globalPop %>%
+  group_by(Continent) %>%
+  summarise(
+    Avg_Young = mean(Young, na.rm = TRUE),
+    Avg_Old = mean(Old, na.rm = TRUE),
+    .groups = "drop"
+  ) %>%
+  pivot_longer(
+    cols = c(Avg_Young, Avg_Old),
+    names_to = "Age_Group",
+    values_to = "Average_Percentage"
+  ) %>%
+  mutate(
+    Age_Group = recode(
+      Age_Group,
+      "Avg_Young" = "Young population",
+      "Avg_Old" = "Old population"
+    )
+  )
+
+ggplot(continent_summary,
+       aes(x = Continent,
+           y = Average_Percentage,
+           fill = Age_Group)) +
+  geom_col(position = "dodge",
+           color = my_dark,
+           linewidth = 0.35,
+           alpha = 0.9) +
+  scale_fill_manual(values = c(my_teal, my_soft_teal)) +
+  labs(title = "Average Young and Old Population by Continent",
+       subtitle = "A quick static view before creating the animation",
+       x = "Continent",
+       y = "Average percentage",
+       fill = "Age group") +
+  theme_minimal(base_size = 13) +
+  theme(plot.title = element_text(face = "bold"),
+        legend.position = "top")
+```
+
+## Code
+
+```{r}
+#| eval: false
+
+continent_summary <- globalPop %>%
+  group_by(Continent) %>%
+  summarise(
+    Avg_Young = mean(Young, na.rm = TRUE),
+    Avg_Old = mean(Old, na.rm = TRUE),
+    .groups = "drop"
+  ) %>%
+  pivot_longer(
+    cols = c(Avg_Young, Avg_Old),
+    names_to = "Age_Group",
+    values_to = "Average_Percentage"
+  ) %>%
+  mutate(
+    Age_Group = recode(
+      Age_Group,
+      "Avg_Young" = "Young population",
+      "Avg_Old" = "Old population"
+    )
+  )
+
+ggplot(continent_summary,
+       aes(x = Continent,
+           y = Average_Percentage,
+           fill = Age_Group)) +
+  geom_col(position = "dodge",
+           color = my_dark,
+           linewidth = 0.35,
+           alpha = 0.9) +
+  scale_fill_manual(values = c(my_teal, my_soft_teal)) +
+  labs(title = "Average Young and Old Population by Continent",
+       subtitle = "A quick static view before creating the animation",
+       x = "Continent",
+       y = "Average percentage",
+       fill = "Age group") +
+  theme_minimal(base_size = 13) +
+  theme(plot.title = element_text(face = "bold"),
+        legend.position = "top")
+```
+
+:::
+
+::: {.callout-tip}
+## What can we learn?
+
+This chart is a small checkpoint. Before animating the data, we first check whether the key variables have meaningful differences across continents.
+:::
+
+## 4.3 Animated Data Visualisation: gganimate methods
+
+`gganimate` extends ggplot2 by adding animation grammar. Instead of only describing the static appearance of a chart, we can also describe how the chart changes across time.
+
+Important animation components include:
+
+- `transition_*()` defines how the animation moves across states or time.
+- `view_*()` controls how the plot window changes during the animation.
+- `shadow_*()` shows data from earlier or later frames.
+- `enter_*()` and `exit_*()` control how objects appear or disappear.
+- `ease_aes()` controls how smoothly values move between frames.
+
+### 4.3.1 Building a static population bubble plot
+
+Before creating an animated chart, we first build a static bubble plot. Each point represents a country. The x-axis shows the percentage of old population, the y-axis shows the percentage of young population, and bubble size represents total population.
+
+::: {.panel-tabset}
+
+## View
+
+```{r}
+#| echo: false
+
+ggplot(globalPop,
+       aes(x = Old,
+           y = Young,
+           size = Population,
+           colour = Country)) +
+  geom_point(alpha = 0.7,
+             show.legend = FALSE) +
+  scale_colour_manual(values = country_colors,
+                      na.value = my_teal) +
+  scale_size(range = c(2, 12)) +
+  labs(title = "Static Population Bubble Plot",
+       subtitle = "Each bubble represents a country",
+       x = "% Aged",
+       y = "% Young",
+       size = "Population") +
+  theme_minimal(base_size = 13) +
+  theme(plot.title = element_text(face = "bold"),
+        panel.grid.minor = element_blank())
+```
+
+## Code
+
+```{r}
+#| eval: false
+
+ggplot(globalPop,
+       aes(x = Old,
+           y = Young,
+           size = Population,
+           colour = Country)) +
+  geom_point(alpha = 0.7,
+             show.legend = FALSE) +
+  scale_colour_manual(values = country_colors,
+                      na.value = my_teal) +
+  scale_size(range = c(2, 12)) +
+  labs(title = "Static Population Bubble Plot",
+       subtitle = "Each bubble represents a country",
+       x = "% Aged",
+       y = "% Young",
+       size = "Population") +
+  theme_minimal(base_size = 13) +
+  theme(plot.title = element_text(face = "bold"),
+        panel.grid.minor = element_blank())
+```
+
+:::
+
+This static version is useful because it checks whether the base chart works before animation is added. If the static chart is unclear, the animated version will usually be even harder to understand.
+
+### 4.3.2 Building the animated bubble plot
+
+Now we add animation by using `transition_time(Year)`. This tells `gganimate` to create frames according to the `Year` variable.
+
+The animation shows how the relationship between old population share, young population share, and population size changes over time.
+
+::: {.panel-tabset}
+
+## View
+
+```{r}
+#| label: gganimate-bubble-view
+#| echo: false
+#| eval: false
+#| fig-width: 8
+#| fig-height: 5
+
+animated_bubble <- ggplot(globalPop,
+                          aes(x = Old,
+                              y = Young,
+                              size = Population,
+                              colour = Country)) +
+  geom_point(alpha = 0.7,
+             show.legend = FALSE) +
+  scale_colour_manual(values = country_palette,
+                    na.value = my_teal) +
+  scale_size(range = c(2, 12)) +
+  labs(title = "Year: {frame_time}",
+       subtitle = "Population structure changes over time",
+       x = "% Aged",
+       y = "% Young",
+       size = "Population") +
+  theme_minimal(base_size = 13) +
+  theme(plot.title = element_text(face = "bold", color = my_dark),
+        plot.subtitle = element_text(color = my_teal),
+        panel.grid.minor = element_blank()) +
+  transition_time(Year) +
+  ease_aes("linear")
+
+anim <- animate(animated_bubble,
+                nframes = 40,
+                fps = 8,
+                width = 700,
+                height = 450,
+                renderer = gifski_renderer())
+
+anim_save("animated_bubble.gif", animation = anim)
+
+```
+
+![](animated_bubble.gif)
+
+## Code
+
+```{r}
+#| eval: false
+
+animated_bubble <- ggplot(globalPop,
+                          aes(x = Old,
+                              y = Young,
+                              size = Population,
+                              colour = Country)) +
+  geom_point(alpha = 0.7,
+             show.legend = FALSE) +
+  scale_colour_manual(values = country_colors,
+                      na.value = my_teal) +
+  scale_size(range = c(2, 12)) +
+  labs(title = "Year: {frame_time}",
+       subtitle = "Population structure changes over time",
+       x = "% Aged",
+       y = "% Young",
+       size = "Population") +
+  theme_minimal(base_size = 13) +
+  theme(plot.title = element_text(face = "bold", color = my_dark),
+        plot.subtitle = element_text(color = my_teal),
+        panel.grid.minor = element_blank()) +
+  transition_time(Year) +
+  ease_aes("linear")
+
+animate(animated_bubble,
+        nframes = 80,
+        fps = 10,
+        width = 800,
+        height = 500,
+        renderer = gifski_renderer())
+```
+
+:::
+
+::: {.callout-tip}
+## What can we learn?
+
+`transition_time(Year)` creates the time-based animation, while `ease_aes("linear")` makes the movement between years steady. The title uses `{frame_time}`, so the displayed year updates automatically.
+:::
+
+::: {.callout-warning}
+## Warning
+
+If this chunk takes time to render, do not panic. Animated plots are heavier than normal static plots because many frames are generated before the final GIF appears.
+:::
+
+## 4.4 Animated Data Visualisation: plotly
+
+`plotly` can also create animated bubble plots. The difference is that plotly animations are interactive. Readers can play, pause, drag the slider, hover over points, and zoom into the chart.
+
+There are two ways to create animated plotly graphics in this section:
+
+- use `ggplotly()` to convert a ggplot object,
+- use `plot_ly()` to build the animated chart directly.
+
+### 4.4.1 Building an animated bubble plot: ggplotly() method
+
+The first plotly method starts with a ggplot object. The `frame = Year` aesthetic tells plotly that the chart should animate by year.
+
+::: {.panel-tabset}
+
+## View
+
+```{r}
+#| echo: false
+
+gg <- ggplot(globalPop,
+             aes(x = Old,
+                 y = Young,
+                 size = Population,
+                 colour = Country)) +
+  geom_point(aes(frame = Year),
+             alpha = 0.7,
+             show.legend = FALSE) +
+  scale_colour_manual(values = country_colors,
+                      na.value = my_teal) +
+  scale_size(range = c(2, 12)) +
+  labs(x = "% Aged",
+       y = "% Young",
+       title = "Animated Bubble Plot with ggplotly") +
+  theme_minimal(base_size = 13) +
+  theme(plot.title = element_text(face = "bold"))
+
+ggplotly(gg)
+```
+
+## Code
+
+```{r}
+#| eval: false
+
+gg <- ggplot(globalPop,
+             aes(x = Old,
+                 y = Young,
+                 size = Population,
+                 colour = Country)) +
+  geom_point(aes(frame = Year),
+             alpha = 0.7,
+             show.legend = FALSE) +
+  scale_colour_manual(values = country_colors,
+                      na.value = my_teal) +
+  scale_size(range = c(2, 12)) +
+  labs(x = "% Aged",
+       y = "% Young",
+       title = "Animated Bubble Plot with ggplotly") +
+  theme_minimal(base_size = 13) +
+  theme(plot.title = element_text(face = "bold"))
+
+ggplotly(gg)
+```
+
+:::
+
+The chart now includes a play button and a time slider. This makes the animation easier to control compared with a fixed GIF.
+
+However, `show.legend = FALSE` may not always remove the legend after conversion to plotly. To handle this more reliably, we can use `theme(legend.position = "none")`.
+
+::: {.panel-tabset}
+
+## View
+
+```{r}
+#| echo: false
+
+gg_clean <- ggplot(globalPop,
+                   aes(x = Old,
+                       y = Young,
+                       size = Population,
+                       colour = Country)) +
+  geom_point(aes(frame = Year),
+             alpha = 0.7) +
+  scale_colour_manual(values = country_colors,
+                      na.value = my_teal) +
+  scale_size(range = c(2, 12)) +
+  labs(x = "% Aged",
+       y = "% Young",
+       title = "Animated Bubble Plot without Legend") +
+  theme_minimal(base_size = 13) +
+  theme(plot.title = element_text(face = "bold"),
+        legend.position = "none")
+
+ggplotly(gg_clean)
+```
+
+## Code
+
+```{r}
+#| eval: false
+
+gg_clean <- ggplot(globalPop,
+                   aes(x = Old,
+                       y = Young,
+                       size = Population,
+                       colour = Country)) +
+  geom_point(aes(frame = Year),
+             alpha = 0.7) +
+  scale_colour_manual(values = country_colors,
+                      na.value = my_teal) +
+  scale_size(range = c(2, 12)) +
+  labs(x = "% Aged",
+       y = "% Young",
+       title = "Animated Bubble Plot without Legend") +
+  theme_minimal(base_size = 13) +
+  theme(plot.title = element_text(face = "bold"),
+        legend.position = "none")
+
+ggplotly(gg_clean)
+```
+
+:::
+
+::: {.callout-tip}
+## What can we learn?
+
+`ggplotly()` is useful when we already know how to build the chart with ggplot2. We create the ggplot first, then convert it into an interactive animated chart.
+:::
+
+### 4.4.2 Building an animated bubble plot: plot_ly() method
+
+The second method uses `plot_ly()` directly. This gives more direct control over plotly-specific features such as frame, hover text, marker size, and legend display.
+
+::: {.panel-tabset}
+
+## View
+
+```{r}
+#| echo: false
+
+bp <- globalPop %>%
+  plot_ly(
+    x = ~Old,
+    y = ~Young,
+    size = ~Population,
+    color = ~Continent,
+    sizes = c(2, 100),
+    frame = ~Year,
+    text = ~paste0(
+      "Country: ", Country,
+      "<br>Continent: ", Continent,
+      "<br>Year: ", Year,
+      "<br>% Aged: ", Old,
+      "<br>% Young: ", Young,
+      "<br>Population: ", comma(Population)
+    ),
+    hoverinfo = "text",
+    type = "scatter",
+    mode = "markers",
+    marker = list(
+      opacity = 0.75,
+      line = list(color = my_dark, width = 0.5)
+    )
+  ) %>%
+  layout(
+    title = "Animated Population Bubble Plot with plot_ly",
+    xaxis = list(title = "% Aged"),
+    yaxis = list(title = "% Young"),
+    showlegend = FALSE
+  )
+
+bp
+```
+
+## Code
+
+```{r}
+#| eval: false
+
+bp <- globalPop %>%
+  plot_ly(
+    x = ~Old,
+    y = ~Young,
+    size = ~Population,
+    color = ~Continent,
+    sizes = c(2, 100),
+    frame = ~Year,
+    text = ~paste0(
+      "Country: ", Country,
+      "<br>Continent: ", Continent,
+      "<br>Year: ", Year,
+      "<br>% Aged: ", Old,
+      "<br>% Young: ", Young,
+      "<br>Population: ", comma(Population)
+    ),
+    hoverinfo = "text",
+    type = "scatter",
+    mode = "markers",
+    marker = list(
+      opacity = 0.75,
+      line = list(color = my_dark, width = 0.5)
+    )
+  ) %>%
+  layout(
+    title = "Animated Population Bubble Plot with plot_ly",
+    xaxis = list(title = "% Aged"),
+    yaxis = list(title = "% Young"),
+    showlegend = FALSE
+  )
+
+bp
+```
+
+:::
+
+This version is built directly with plotly syntax. The hover text is more detailed, so readers can inspect each country, continent, year, age structure, and population value.
+
+::: {.callout-tip}
+## What can we learn?
+
+`plot_ly()` is more direct than `ggplotly()`. It is useful when the final output is intended to be an interactive plotly chart from the start.
+:::
+
+::: {.callout-warning}
+## Warning
+
+Because the data contains many countries and many years, the plotly animation may take some time to load in the browser. This is normal for animated interactive charts.
+:::
+
+## 4.5 Reference
+
+This exercise introduced animated statistical graphics using two main approaches.
+
+`gganimate` is useful when we want to keep the ggplot2 workflow and produce a smooth animated GIF. It works well for presentation-style storytelling.
+
+`plotly` is useful when we want the viewer to control the animation with play buttons, sliders, zooming, and hover labels. It works better for web-based exploration.
+
+Useful references:
+
+- `gganimate` documentation for animation grammar and transitions,
+- `plotly` documentation for interactive animated charts,
+- `readxl` documentation for importing Excel worksheets,
+- `dplyr` documentation for modern data transformation with `across()`.
+
+::: {.callout-tip}
+## Final takeaway
+
+Use animation when change over time is the main message. Use `gganimate` for smooth presentation-style motion, and use `plotly` when the reader should be able to explore the animated chart interactively.
+:::
