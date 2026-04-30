@@ -160,7 +160,7 @@ ggplot(data = exam_data,
 We simply replace `geom_text()` by [`geom_text_repel()`](https://ggrepel.slowkow.com/reference/geom_text_repel.html) and `geom_label()` by [`geom_label_repel`](https://ggrepel.slowkow.com/reference/geom_text_repel.html).
 
 ::: panel-tabset
-The plot
+## The plot
 
 ```{r}
 #| echo: false
