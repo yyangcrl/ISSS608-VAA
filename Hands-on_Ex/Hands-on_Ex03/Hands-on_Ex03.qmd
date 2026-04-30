@@ -21,22 +21,22 @@ In this hands-on exercise, we will learn how to create interactive data visualis
 
 By the end of this exercise, we will be able to:
 
-- create interactive ggplot graphics with `ggiraph`,
-- add tooltip, hover, and click effects,
-- create interactive scatter plots with `plotly`,
-- convert ggplot charts into interactive charts,
-- build coordinated views across multiple charts and tables.
+-   create interactive ggplot graphics with `ggiraph`,
+-   add tooltip, hover, and click effects,
+-   create interactive scatter plots with `plotly`,
+-   convert ggplot charts into interactive charts,
+-   build coordinated views across multiple charts and tables.
 
 ## 3.2 Getting Started
 
 Before creating the interactive charts, the required R packages need to be loaded. These packages support interactive graphics, data manipulation, interactive tables, and linked visualisation.
 
-- `ggiraph` is used to make ggplot graphics interactive.
-- `plotly` is used to create interactive web-based statistical charts.
-- `DT` is used to display interactive data tables.
-- `tidyverse` is used for data import, wrangling, and ggplot2 graphics.
-- `patchwork` is used to combine several ggplot2 charts into one layout.
-- `crosstalk` is used for linked interactions between widgets.
+-   `ggiraph` is used to make ggplot graphics interactive.
+-   `plotly` is used to create interactive web-based statistical charts.
+-   `DT` is used to display interactive data tables.
+-   `tidyverse` is used for data import, wrangling, and ggplot2 graphics.
+-   `patchwork` is used to combine several ggplot2 charts into one layout.
+-   `crosstalk` is used for linked interactions between widgets.
 
 ```{r}
 #| label: setup
@@ -84,7 +84,7 @@ The dataset used in this exercise is `Exam_data.csv`. It contains student-level 
 exam_data <- read_csv("Exam_data.csv")
 ```
 
-::: {.callout-tip}
+::: callout-tip
 ## Small note
 
 The file `Exam_data.csv` must be placed in the same folder as `Hands-on_Ex03.qmd`. If the file is stored somewhere else, the path inside `read_csv()` must be changed.
@@ -96,16 +96,15 @@ The file `Exam_data.csv` must be placed in the same folder as `Hands-on_Ex03.qmd
 
 The main interactive features are:
 
-- `tooltip`: shows information when the mouse hovers over a data point.
-- `onclick`: runs a JavaScript action when an element is clicked.
-- `data_id`: links graphic elements to an identifier, which is useful for hover and coordinated highlighting.
+-   `tooltip`: shows information when the mouse hovers over a data point.
+-   `onclick`: runs a JavaScript action when an element is clicked.
+-   `data_id`: links graphic elements to an identifier, which is useful for hover and coordinated highlighting.
 
 ### 3.4.1 Tooltip effect with tooltip aesthetic
 
 This first example creates an interactive dot plot of Maths scores. Each dot represents a student, and the tooltip shows the student ID when the reader hovers over the dot.
 
-::: {.panel-tabset}
-
+::: panel-tabset
 ## View
 
 ```{r}
@@ -169,7 +168,6 @@ girafe(
   )
 )
 ```
-
 :::
 
 The chart is created in two steps. First, `geom_dotplot_interactive()` builds the interactive ggplot object. Then, `girafe()` converts the ggplot object into an interactive visual that can be displayed on an HTML page.
@@ -182,8 +180,7 @@ The simplest form of interactivity is a tooltip. When the reader hovers over a d
 
 A tooltip can also show more than one piece of information. In this example, the tooltip combines student ID and class into one text field.
 
-::: {.panel-tabset}
-
+::: panel-tabset
 ## View
 
 ```{r}
@@ -263,7 +260,6 @@ girafe(
   )
 )
 ```
-
 :::
 
 Here, a new column called `tooltip_basic` is created. This column stores the text that will appear in the tooltip. This is cleaner than writing long tooltip logic directly inside `aes()`.
@@ -276,8 +272,7 @@ This section expands the use of `ggiraph` by adding customised tooltip styles, s
 
 The tooltip does not have to use the default style. We can use CSS to control its background colour, text colour, font weight, padding, and shape.
 
-::: {.panel-tabset}
-
+::: panel-tabset
 ## View
 
 ```{r}
@@ -350,10 +345,9 @@ girafe(
   )
 )
 ```
-
 :::
 
-::: {.callout-tip}
+::: callout-tip
 ## What can we learn?
 
 `opts_tooltip()` controls how the tooltip looks. This is useful when the chart needs to match a website or report colour style. Here, the tooltip uses a dark background with white text to match the muted teal visual design.
@@ -363,8 +357,7 @@ girafe(
 
 Tooltips can also show calculated statistics. In this example, the chart summarises Maths scores by race and displays the mean with the standard error range in the tooltip.
 
-::: {.panel-tabset}
-
+::: panel-tabset
 ## View
 
 ```{r}
@@ -462,7 +455,6 @@ girafe(
   )
 )
 ```
-
 :::
 
 This example is more advanced because the tooltip is not taken directly from the raw dataset. Instead, it is built from summary statistics calculated by `stat_summary()`.
@@ -471,8 +463,7 @@ This example is more advanced because the tooltip is not taken directly from the
 
 The `data_id` aesthetic is used to connect visual elements to an identifier. When the mouse moves over one element, related elements with the same `data_id` can be highlighted.
 
-::: {.panel-tabset}
-
+::: panel-tabset
 ## View
 
 ```{r}
@@ -538,7 +529,6 @@ girafe(
   )
 )
 ```
-
 :::
 
 When the reader hovers over one dot, dots from the same class are highlighted. This makes class-level grouping easier to notice.
@@ -547,8 +537,7 @@ When the reader hovers over one dot, dots from the same class are highlighted. T
 
 The hover effect can be styled with CSS. Here, the selected dots become stronger, while the non-selected dots become faded.
 
-::: {.panel-tabset}
-
+::: panel-tabset
 ## View
 
 ```{r}
@@ -616,10 +605,9 @@ girafe(
   )
 )
 ```
-
 :::
 
-::: {.callout-tip}
+::: callout-tip
 ## What can we learn?
 
 `opts_hover()` controls the selected item, while `opts_hover_inv()` controls the non-selected items. This is useful because interactivity should guide attention, not just decorate the chart.
@@ -629,8 +617,7 @@ girafe(
 
 Tooltip and hover effects can be used together. The tooltip gives detailed information, while the hover effect highlights related points.
 
-::: {.panel-tabset}
-
+::: panel-tabset
 ## View
 
 ```{r}
@@ -704,7 +691,6 @@ girafe(
   )
 )
 ```
-
 :::
 
 In this chart, the tooltip shows the class, and the hover effect highlights students from the same class. This gives both detail and pattern recognition in the same visual.
@@ -713,14 +699,13 @@ In this chart, the tooltip shows the class, and the hover effect highlights stud
 
 The `onclick` aesthetic allows an action to happen when the reader clicks on a chart element. In web-based visualisation, this can be used to open a link or trigger another action.
 
-::: {.callout-warning}
+::: callout-warning
 ## Warning
 
 Click actions must be stored as valid JavaScript strings. If the JavaScript syntax is wrong, the chart may still render, but the click action will not work correctly.
 :::
 
-::: {.panel-tabset}
-
+::: panel-tabset
 ## View
 
 ```{r}
@@ -802,7 +787,6 @@ girafe(
   )
 )
 ```
-
 :::
 
 This example shows how interactive charts can connect the visual object to an external web action. The chart is no longer just for viewing; it can also become a navigation tool.
@@ -811,8 +795,7 @@ This example shows how interactive charts can connect the visual object to an ex
 
 Coordinated multiple views allow different charts to respond to the same interaction. In this example, Maths and English dot plots are placed side by side. Because both charts use the same student ID as `data_id`, hovering over a student in one chart highlights the same student in the other chart.
 
-::: {.panel-tabset}
-
+::: panel-tabset
 ## View
 
 ```{r}
@@ -922,10 +905,9 @@ girafe(
   )
 )
 ```
-
 :::
 
-::: {.callout-tip}
+::: callout-tip
 ## What can we learn?
 
 The key argument is `data_id = ID`. Because the same student ID is used in both plots, `ggiraph` can recognise that the two points refer to the same observation.
@@ -937,15 +919,14 @@ The key argument is `data_id = ID`. Because the same student ID is used in both 
 
 There are two common ways to use plotly:
 
-- `plot_ly()` creates an interactive chart directly.
-- `ggplotly()` converts a ggplot chart into an interactive plotly chart.
+-   `plot_ly()` creates an interactive chart directly.
+-   `ggplotly()` converts a ggplot chart into an interactive plotly chart.
 
 ### 3.7.1 Creating an interactive scatter plot: plot_ly() method
 
 This example creates a basic interactive scatter plot using `plot_ly()`. The x-axis shows Maths scores, while the y-axis shows English scores.
 
-::: {.panel-tabset}
-
+::: panel-tabset
 ## View
 
 ```{r}
@@ -1009,7 +990,6 @@ plot_ly(
     yaxis = list(title = "English score", range = c(0, 100))
   )
 ```
-
 :::
 
 This chart is interactive immediately. The reader can hover, zoom, pan, and inspect exact values without extra ggplot layers.
@@ -1018,8 +998,7 @@ This chart is interactive immediately. The reader can hover, zoom, pan, and insp
 
 A visual variable can be mapped to a data field. Here, `RACE` is mapped to colour, allowing the reader to compare score patterns across groups.
 
-::: {.panel-tabset}
-
+::: panel-tabset
 ## View
 
 ```{r}
@@ -1085,10 +1064,9 @@ plot_ly(
     yaxis = list(title = "Maths score", range = c(0, 100))
   )
 ```
-
 :::
 
-::: {.callout-tip}
+::: callout-tip
 ## Interaction to try
 
 Click one race category in the legend. Plotly will hide or show that group, making it easier to compare one group at a time.
@@ -1098,8 +1076,7 @@ Click one race category in the legend. Plotly will hide or show that group, maki
 
 If a chart has already been created with ggplot2, `ggplotly()` can convert it into an interactive chart. This is useful when we want to keep ggplot2 syntax but still add web interactivity.
 
-::: {.panel-tabset}
-
+::: panel-tabset
 ## View
 
 ```{r}
@@ -1163,7 +1140,6 @@ p <- ggplot(data = exam_data,
 
 ggplotly(p, tooltip = "text")
 ```
-
 :::
 
 Only one extra function, `ggplotly()`, is needed to turn the ggplot object into an interactive plotly chart.
@@ -1172,8 +1148,7 @@ Only one extra function, `ggplotly()`, is needed to turn the ggplot object into 
 
 Plotly can also create coordinated views. The idea is to build two related charts and link them through shared data. When a point is selected in one chart, the related point can be highlighted in another chart.
 
-::: {.panel-tabset}
-
+::: panel-tabset
 ## View
 
 ```{r}
@@ -1271,10 +1246,9 @@ subplot(
     persistent = TRUE
   )
 ```
-
 :::
 
-::: {.callout-tip}
+::: callout-tip
 ## What can we learn?
 
 `highlight_key()` creates shared data. This shared data allows the two plotly charts to recognise that selected points refer to the same student.
@@ -1288,8 +1262,7 @@ subplot(
 
 The `DT` package displays an R data frame as an interactive table. Readers can search, sort, and browse the data directly on the web page.
 
-::: {.panel-tabset}
-
+::: panel-tabset
 ## View
 
 ```{r}
@@ -1321,7 +1294,6 @@ DT::datatable(
   )
 )
 ```
-
 :::
 
 The table gives readers a direct way to inspect the dataset. This is useful because interactive charts show patterns, while tables allow checking exact records.
@@ -1330,8 +1302,7 @@ The table gives readers a direct way to inspect the dataset. This is useful beca
 
 Linked brushing connects a chart and a table. Selecting data points in the chart can highlight or filter the corresponding records in the table.
 
-::: {.panel-tabset}
-
+::: panel-tabset
 ## View
 
 ```{r}
@@ -1417,16 +1388,15 @@ crosstalk::bscols(
   )
 )
 ```
-
 :::
 
-::: {.callout-warning}
+::: callout-warning
 ## Warning
 
 `bscols()` may load Bootstrap styling into the page. This is normal, but it can slightly affect the visual appearance of surrounding page elements.
 :::
 
-::: {.callout-tip}
+::: callout-tip
 ## What can we learn?
 
 The chart and table are linked through the same shared data object. This makes it possible to move from visual exploration to exact record checking without leaving the page.
@@ -1440,10 +1410,10 @@ The chart and table are linked through the same shared data object. This makes i
 
 Useful topics to review:
 
-- interactive geoms such as `geom_point_interactive()` and `geom_dotplot_interactive()`,
-- tooltip styling with `opts_tooltip()`,
-- hover styling with `opts_hover()` and `opts_hover_inv()`,
-- linking observations with `data_id`.
+-   interactive geoms such as `geom_point_interactive()` and `geom_dotplot_interactive()`,
+-   tooltip styling with `opts_tooltip()`,
+-   hover styling with `opts_hover()` and `opts_hover_inv()`,
+-   linking observations with `data_id`.
 
 ### 3.9.2 plotly for R
 
@@ -1451,12 +1421,12 @@ Useful topics to review:
 
 Useful topics to review:
 
-- `plot_ly()` for direct plotly charts,
-- `ggplotly()` for converting ggplot charts,
-- `subplot()` for placing multiple plotly charts together,
-- `highlight_key()` and `highlight()` for coordinated interactions.
+-   `plot_ly()` for direct plotly charts,
+-   `ggplotly()` for converting ggplot charts,
+-   `subplot()` for placing multiple plotly charts together,
+-   `highlight_key()` and `highlight()` for coordinated interactions.
 
-::: {.callout-tip}
+::: callout-tip
 ## Final takeaway
 
 `ggiraph` is closer to ggplot2 and is useful for controlled tooltip and hover design. `plotly` is stronger for zooming, selecting, and building interactive web charts quickly. `DT` and `crosstalk` are useful when the reader needs to connect charts with exact data records.
