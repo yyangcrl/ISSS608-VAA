@@ -23,11 +23,11 @@ At the same time, we will also practise basic data preparation skills, including
 
 By the end of this exercise, we will be able to:
 
-- explain how animation works in statistical graphics,
-- prepare population data for animated visualisation,
-- create static and animated bubble plots,
-- use `gganimate` to animate ggplot2 graphics,
-- use `plotly` to create interactive animated charts.
+-   explain how animation works in statistical graphics,
+-   prepare population data for animated visualisation,
+-   create static and animated bubble plots,
+-   use `gganimate` to animate ggplot2 graphics,
+-   use `plotly` to create interactive animated charts.
 
 ### 4.1.1 Basic concepts of animation
 
@@ -35,7 +35,7 @@ An animated chart does not really “move” by itself. It is created from many 
 
 This is similar to a flipbook: each page is static, but the sequence creates the feeling of movement. In data visualisation, each frame usually represents a year, a category, or a time period.
 
-::: {.callout-tip}
+::: callout-tip
 ## Small note
 
 Animation is useful when time is part of the story. If the data does not change meaningfully across time, a static chart may be clearer and faster to read.
@@ -49,7 +49,7 @@ A **frame** is one still image inside the animation. For example, in a populatio
 
 **Animation attributes** control how the animation behaves. These include the speed of movement, how smoothly one frame changes into another, and whether the animation starts from the beginning or continues from the current frame.
 
-::: {.callout-warning}
+::: callout-warning
 ## Warning
 
 Animated graphics should not be used only because they look interesting. If the movement does not help the reader understand the data, the animation becomes decoration rather than analysis.
@@ -63,12 +63,12 @@ Before building the charts, we need to load the required R packages.
 
 The packages used in this exercise are:
 
-- `readxl` for importing Excel files,
-- `gganimate` for creating animated ggplot2 graphics,
-- `gifski` for rendering animations as GIFs,
-- `gapminder` for using the `country_colors` palette,
-- `plotly` for interactive animated charts,
-- `tidyverse` for data import, wrangling, and static graphics.
+-   `readxl` for importing Excel files,
+-   `gganimate` for creating animated ggplot2 graphics,
+-   `gifski` for rendering animations as GIFs,
+-   `gapminder` for using the `country_colors` palette,
+-   `plotly` for interactive animated charts,
+-   `tidyverse` for data import, wrangling, and static graphics.
 
 ```{r}
 #| label: setup
@@ -91,7 +91,7 @@ my_light_teal <- "#D8E8E6"
 my_grey <- "#F2F2F2"
 ```
 
-::: {.callout-warning}
+::: callout-warning
 ## Warning
 
 `gganimate` may take longer to render than normal ggplot2 charts because it needs to generate many frames. If the render feels slow, this is normal.
@@ -103,14 +103,13 @@ In this exercise, we use the `Data` worksheet from the `GlobalPopulation.xls` wo
 
 Place `GlobalPopulation.xls` in the same folder as this file:
 
-```text
+``` text
 Hands-on_Ex03b/
   Hands-on_Ex03b.qmd
   GlobalPopulation.xls
 ```
 
-::: {.panel-tabset}
-
+::: panel-tabset
 ## View
 
 ```{r}
@@ -148,12 +147,11 @@ country_palette <- setNames(
 
 glimpse(globalPop)
 ```
-
 :::
 
 The code above imports the Excel worksheet and cleans the key variable types. `Country` and `Continent` are converted into factor variables, while `Year` is converted into an integer. This makes the data easier to use for grouping, colouring, and animation.
 
-::: {.callout-tip}
+::: callout-tip
 ## What can we learn?
 
 The original tutorial shows older `dplyr` functions such as `mutate_each_()` and `mutate_at()`. In this version, `across()` is used because it is the modern and recommended way to apply the same transformation to multiple columns.
@@ -165,8 +163,7 @@ Before creating an animation, it is useful to inspect the overall pattern with a
 
 This is not the main chart of the chapter, but it helps us understand what the animation will later show: population structure differs across continents.
 
-::: {.panel-tabset}
-
+::: panel-tabset
 ## View
 
 ```{r}
@@ -254,10 +251,9 @@ ggplot(continent_summary,
   theme(plot.title = element_text(face = "bold"),
         legend.position = "top")
 ```
-
 :::
 
-::: {.callout-tip}
+::: callout-tip
 ## What can we learn?
 
 This chart is a small checkpoint. Before animating the data, we first check whether the key variables have meaningful differences across continents.
@@ -269,18 +265,17 @@ This chart is a small checkpoint. Before animating the data, we first check whet
 
 Important animation components include:
 
-- `transition_*()` defines how the animation moves across states or time.
-- `view_*()` controls how the plot window changes during the animation.
-- `shadow_*()` shows data from earlier or later frames.
-- `enter_*()` and `exit_*()` control how objects appear or disappear.
-- `ease_aes()` controls how smoothly values move between frames.
+-   `transition_*()` defines how the animation moves across states or time.
+-   `view_*()` controls how the plot window changes during the animation.
+-   `shadow_*()` shows data from earlier or later frames.
+-   `enter_*()` and `exit_*()` control how objects appear or disappear.
+-   `ease_aes()` controls how smoothly values move between frames.
 
 ### 4.3.1 Building a static population bubble plot
 
 Before creating an animated chart, we first build a static bubble plot. Each point represents a country. The x-axis shows the percentage of old population, the y-axis shows the percentage of young population, and bubble size represents total population.
 
-::: {.panel-tabset}
-
+::: panel-tabset
 ## View
 
 ```{r}
@@ -330,7 +325,6 @@ ggplot(globalPop,
   theme(plot.title = element_text(face = "bold"),
         panel.grid.minor = element_blank())
 ```
-
 :::
 
 This static version is useful because it checks whether the base chart works before animation is added. If the static chart is unclear, the animated version will usually be even harder to understand.
@@ -341,8 +335,7 @@ Now we add animation by using `transition_time(Year)`. This tells `gganimate` to
 
 The animation shows how the relationship between old population share, young population share, and population size changes over time.
 
-::: {.panel-tabset}
-
+::: panel-tabset
 ## View
 
 ```{r}
@@ -421,16 +414,15 @@ animate(animated_bubble,
         height = 500,
         renderer = gifski_renderer())
 ```
-
 :::
 
-::: {.callout-tip}
+::: callout-tip
 ## What can we learn?
 
 `transition_time(Year)` creates the time-based animation, while `ease_aes("linear")` makes the movement between years steady. The title uses `{frame_time}`, so the displayed year updates automatically.
 :::
 
-::: {.callout-warning}
+::: callout-warning
 ## Warning
 
 If this chunk takes time to render, do not panic. Animated plots are heavier than normal static plots because many frames are generated before the final GIF appears.
@@ -442,15 +434,14 @@ If this chunk takes time to render, do not panic. Animated plots are heavier tha
 
 There are two ways to create animated plotly graphics in this section:
 
-- use `ggplotly()` to convert a ggplot object,
-- use `plot_ly()` to build the animated chart directly.
+-   use `ggplotly()` to convert a ggplot object,
+-   use `plot_ly()` to build the animated chart directly.
 
 ### 4.4.1 Building an animated bubble plot: ggplotly() method
 
 The first plotly method starts with a ggplot object. The `frame = Year` aesthetic tells plotly that the chart should animate by year.
 
-::: {.panel-tabset}
-
+::: panel-tabset
 ## View
 
 ```{r}
@@ -500,15 +491,13 @@ gg <- ggplot(globalPop,
 
 ggplotly(gg)
 ```
-
 :::
 
 The chart now includes a play button and a time slider. This makes the animation easier to control compared with a fixed GIF.
 
 However, `show.legend = FALSE` may not always remove the legend after conversion to plotly. To handle this more reliably, we can use `theme(legend.position = "none")`.
 
-::: {.panel-tabset}
-
+::: panel-tabset
 ## View
 
 ```{r}
@@ -558,10 +547,9 @@ gg_clean <- ggplot(globalPop,
 
 ggplotly(gg_clean)
 ```
-
 :::
 
-::: {.callout-tip}
+::: callout-tip
 ## What can we learn?
 
 `ggplotly()` is useful when we already know how to build the chart with ggplot2. We create the ggplot first, then convert it into an interactive animated chart.
@@ -571,8 +559,7 @@ ggplotly(gg_clean)
 
 The second method uses `plot_ly()` directly. This gives more direct control over plotly-specific features such as frame, hover text, marker size, and legend display.
 
-::: {.panel-tabset}
-
+::: panel-tabset
 ## View
 
 ```{r}
@@ -650,18 +637,17 @@ bp <- globalPop %>%
 
 bp
 ```
-
 :::
 
 This version is built directly with plotly syntax. The hover text is more detailed, so readers can inspect each country, continent, year, age structure, and population value.
 
-::: {.callout-tip}
+::: callout-tip
 ## What can we learn?
 
 `plot_ly()` is more direct than `ggplotly()`. It is useful when the final output is intended to be an interactive plotly chart from the start.
 :::
 
-::: {.callout-warning}
+::: callout-warning
 ## Warning
 
 Because the data contains many countries and many years, the plotly animation may take some time to load in the browser. This is normal for animated interactive charts.
@@ -677,12 +663,12 @@ This exercise introduced animated statistical graphics using two main approaches
 
 Useful references:
 
-- `gganimate` documentation for animation grammar and transitions,
-- `plotly` documentation for interactive animated charts,
-- `readxl` documentation for importing Excel worksheets,
-- `dplyr` documentation for modern data transformation with `across()`.
+-   `gganimate` documentation for animation grammar and transitions,
+-   `plotly` documentation for interactive animated charts,
+-   `readxl` documentation for importing Excel worksheets,
+-   `dplyr` documentation for modern data transformation with `across()`.
 
-::: {.callout-tip}
+::: callout-tip
 ## Final takeaway
 
 Use animation when change over time is the main message. Use `gganimate` for smooth presentation-style motion, and use `plotly` when the reader should be able to explore the animated chart interactively.
