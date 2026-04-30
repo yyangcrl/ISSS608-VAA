@@ -56,13 +56,13 @@ The **exam_data** tibble contains seven attributes in total — four categorical
 Before diving into the visualisations, it is good practice to get a quick overview of the dataset.
 
 ::: panel-tabset
-**Structure**
+## **Structure**
 
 ```{r}
 glimpse(exam_data)
 ```
 
-**Maths**
+## **Maths**
 
 ```{r}
 ggplot(data = exam_data,
@@ -76,7 +76,7 @@ ggplot(data = exam_data,
   theme_minimal()
 ```
 
-**English**
+## **English**
 
 ```{r}
 ggplot(data = exam_data,
@@ -90,7 +90,7 @@ ggplot(data = exam_data,
   theme_minimal()
 ```
 
-**Science**
+## **Science**
 
 ```{r}
 ggplot(data = exam_data,
@@ -112,7 +112,7 @@ This keeps it short and purposeful — `glimpse()` gives a structural overview, 
 One problem with this graph is that there are too many student labels crowded together, making the plot look messy and difficult to read. Instead of helping the viewer identify the data points, the annotations overlap and hide part of the pattern in the graph.
 
 ::: panel-tabset
-The plot
+## The plot
 
 ```{r}
 #| echo: false
@@ -133,7 +133,7 @@ ggplot(data = exam_data,
   ggtitle("English scores versus Maths scores for Primary 3")
 ```
 
-The code
+## The code
 
 ```{r}
 #| eval: false
@@ -178,7 +178,7 @@ ggplot(data = exam_data,
   ggtitle("English scores versus Maths scores for Primary 3")
 ```
 
-The code
+## The code
 
 ```{r}
 #| eval: false
@@ -202,7 +202,7 @@ ggplot(data = exam_data,
 ggplot2 comes with eight [built-in themes](https://ggplot2.tidyverse.org/reference/ggtheme.html), they are: `theme_gray()`, `theme_bw()`, `theme_classic()`, `theme_dark()`, `theme_light()`, `theme_linedraw()`, `theme_minimal()`, and `theme_void()`.
 
 ::: panel-tabset
-The plot
+## The plot
 
 ```{r}
 ggplot(data = exam_data, 
@@ -216,7 +216,7 @@ ggplot(data = exam_data,
   ggtitle("Distribution of Maths scores")
 ```
 
-The code
+## The code
 
 ```{r}
 #| eval: false
@@ -242,7 +242,7 @@ Refer to this [link](https://ggplot2.tidyverse.org/reference/index.html#themes) 
 The example below, *The Tufte* theme is used.
 
 ::: panel-tabset
-The Plot
+## The Plot
 
 ```{r}
 #| echo: false
@@ -257,7 +257,7 @@ ggplot(data = exam_data,
   theme_tufte()
 ```
 
-The Code
+## The Code
 
 ```{r}
 #| eval: false
@@ -281,7 +281,7 @@ It also provides some extra geoms and scales for ‘ggplot2’. Consult [this vi
 [**hrbrthemes**](https://cran.r-project.org/web/packages/hrbrthemes/index.html) package provides a base theme that focuses on typographic elements, including where various labels are placed as well as the fonts that are used.
 
 ::: panel-tabset
-The plot
+## The plot
 
 ```{r}
 #| echo: false
@@ -303,7 +303,7 @@ ggplot(data = exam_data,
         plot.subtitle = element_text(size = 11))
 ```
 
-The code
+## The code
 
 ```{r}
 #| eval: false
@@ -331,7 +331,7 @@ The second goal is about making chart production faster and more consistent. In 
 The second goal of `hrbrthemes` is to make chart production faster and more consistent. Instead of manually adjusting every small design detail, `theme_ipsum()` gives the plot cleaner typography, better spacing, and a more report-ready layout. This is useful when the same visual style needs to be reused across many charts.
 
 ::: panel-tabset
-The plot
+## The plot
 
 ```{r}
 #| echo: false
@@ -357,7 +357,7 @@ ggplot(data = exam_data,
         plot.subtitle = element_text(color = "#555555"))
 ```
 
-The code
+## The code
 
 ```{r}
 #| eval: false
@@ -403,7 +403,7 @@ A single chart is useful, but it rarely tells the whole story. For example, one 
 To make the analysis easier to compare, we can place several ggplot2 graphs into one combined figure. In this section, I will first create three separate plots, then use a ggplot2 extension to arrange them into one visual layout.
 
 ::: panel-tabset
-Maths graph
+## Maths graph
 
 ```{r}
 #| echo: false
@@ -421,7 +421,7 @@ p1 <- ggplot(data = exam_data,
 p1
 ```
 
-English graph
+## English graph
 
 ```{r}
 #| echo: false
@@ -439,7 +439,7 @@ p2 <- ggplot(data = exam_data,
 p2
 ```
 
-Relationship graph
+## Relationship graph
 
 ```{r}
 #| echo: false
@@ -458,7 +458,7 @@ p3 <- ggplot(data = exam_data,
 p3
 ```
 
-R code
+## R code
 
 ```{r}
 #| eval: false
@@ -515,7 +515,7 @@ This makes \`patchwork\` useful when we want to build a clear visual story using
 Figure in the tabset below shows a composite of two histograms created using patchwork. Note how simple the syntax used to create the plot!
 
 ::: panel-tabset
-Graph
+## Graph
 
 ```{r}
 #| echo: false
@@ -527,7 +527,7 @@ p1 + p2 +
   )
 ```
 
-R code
+## R code
 
 ```{r}
 #| eval: false
@@ -547,7 +547,7 @@ Now we can combine three ggplot2 graphs into a more useful layout.
 In this example, the two histograms are stacked on the left, while the scatter plot is placed on the right. This layout works better than showing three separate charts because we can compare the Maths and English score distributions first, then look at their relationship in the larger plot.
 
 ::: panel-tabset
-View
+## View
 
 ```{r}
 #| echo: false
@@ -559,7 +559,7 @@ View
   )
 ```
 
-Code
+## Code
 
 ```{r}
 #| eval: false
@@ -581,7 +581,7 @@ When a composite figure contains several plots, it can become hard to refer to e
 This is useful in reports because we can write things like “Plot A shows the Maths distribution” or “Plot C shows the relationship between Maths and English scores” without confusing the reader.
 
 ::: panel-tabset
-View
+## View
 
 ```{r}
 #| echo: false
@@ -594,7 +594,7 @@ View
   )
 ```
 
-Code
+## Code
 
 ```{r}
 #| eval: false
@@ -615,7 +615,7 @@ Sometimes we do not want every plot to take equal space in a composite figure. A
 In this example, the scatter plot remains the main graph because it shows the relationship between Maths and English scores. The English score histogram is inserted inside the scatter plot, so the viewer can also see the distribution of English scores without moving to a separate figure.
 
 ::: panel-tabset
-View
+## View
 
 ```{r}
 #| echo: false
@@ -659,7 +659,7 @@ This example combines two ideas from earlier sections: `patchwork` for layout an
 Instead of only placing the three plots together, we also apply a consistent theme across the whole composite figure. This makes the final output look more unified, as if the charts belong to the same report instead of being three separate graphics pasted together.
 
 ::: panel-tabset
-View
+## View
 
 ```{r}
 #| echo: false
@@ -674,7 +674,7 @@ View
         plot.subtitle = element_text(size = 10))
 ```
 
-Code
+## Code
 
 ```{r}
 #| eval: false
