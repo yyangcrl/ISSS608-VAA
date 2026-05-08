@@ -1,0 +1,16 @@
+---
+title: "Hands-on Exercise 4c - Programming Animated Statistical Graphics with R"
+author: "Yang Yang"
+format:
+  html:
+    theme: sketchy
+    toc: true
+    toc-depth: 3
+    number-sections: false
+    code-copy: true
+    code-overflow: wrap
+editor: visual
+execute:
+  warning: false
+  message: false
+---

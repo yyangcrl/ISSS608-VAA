@@ -15,7 +15,7 @@ execute:
   message: false
 ---
 
-## 4.1 Overview
+## 3.1 Overview
 
 Animated graphics can make a data story easier to follow because the viewer can see how values change over time instead of comparing many separate static charts. In this exercise, we will use `gganimate` and `plotly` to create animated statistical graphics in R.
 
@@ -29,7 +29,7 @@ By the end of this exercise, we will be able to:
 -   use `gganimate` to animate ggplot2 graphics,
 -   use `plotly` to create interactive animated charts.
 
-### 4.1.1 Basic concepts of animation
+### 3.1.1 Basic concepts of animation
 
 An animated chart does not really “move” by itself. It is created from many individual plots, where each plot represents one moment in time. When these plots are shown quickly in sequence, the viewer sees motion.
 
@@ -41,7 +41,7 @@ This is similar to a flipbook: each page is static, but the sequence creates the
 Animation is useful when time is part of the story. If the data does not change meaningfully across time, a static chart may be clearer and faster to read.
 :::
 
-### 4.1.2 Terminology
+### 3.1.2 Terminology
 
 Before creating animated charts, it is useful to understand a few basic terms.
 
@@ -55,11 +55,11 @@ A **frame** is one still image inside the animation. For example, in a populatio
 Animated graphics should not be used only because they look interesting. If the movement does not help the reader understand the data, the animation becomes decoration rather than analysis.
 :::
 
-## 4.2 Getting Started
+## 3.2 Getting Started
 
 Before building the charts, we need to load the required R packages.
 
-### 4.2.1 Loading the R packages
+### 3.2.1 Loading the R packages
 
 The packages used in this exercise are:
 
@@ -97,7 +97,7 @@ my_grey <- "#F2F2F2"
 `gganimate` may take longer to render than normal ggplot2 charts because it needs to generate many frames. If the render feels slow, this is normal.
 :::
 
-### 4.2.2 Importing the data
+### 3.2.2 Importing the data
 
 In this exercise, we use the `Data` worksheet from the `GlobalPopulation.xls` workbook.
 
@@ -157,7 +157,7 @@ The code above imports the Excel worksheet and cleans the key variable types. `C
 The original tutorial shows older `dplyr` functions such as `mutate_each_()` and `mutate_at()`. In this version, `across()` is used because it is the modern and recommended way to apply the same transformation to multiple columns.
 :::
 
-## 4.2.3 A quick static summary before animation
+## 3.2.3 A quick static summary before animation
 
 Before creating an animation, it is useful to inspect the overall pattern with a simple static chart. This small summary compares the average share of young and old population by continent.
 
@@ -259,7 +259,7 @@ ggplot(continent_summary,
 This chart is a small checkpoint. Before animating the data, we first check whether the key variables have meaningful differences across continents.
 :::
 
-## 4.3 Animated Data Visualisation: gganimate methods
+## 3.3 Animated Data Visualisation: gganimate methods
 
 `gganimate` extends ggplot2 by adding animation grammar. Instead of only describing the static appearance of a chart, we can also describe how the chart changes across time.
 
@@ -271,7 +271,7 @@ Important animation components include:
 -   `enter_*()` and `exit_*()` control how objects appear or disappear.
 -   `ease_aes()` controls how smoothly values move between frames.
 
-### 4.3.1 Building a static population bubble plot
+### 3.3.1 Building a static population bubble plot
 
 Before creating an animated chart, we first build a static bubble plot. Each point represents a country. The x-axis shows the percentage of old population, the y-axis shows the percentage of young population, and bubble size represents total population.
 
@@ -329,7 +329,7 @@ ggplot(globalPop,
 
 This static version is useful because it checks whether the base chart works before animation is added. If the static chart is unclear, the animated version will usually be even harder to understand.
 
-### 4.3.2 Building the animated bubble plot
+### 3.3.2 Building the animated bubble plot
 
 Now we add animation by using `transition_time(Year)`. This tells `gganimate` to create frames according to the `Year` variable.
 
@@ -428,7 +428,7 @@ animate(animated_bubble,
 If this chunk takes time to render, do not panic. Animated plots are heavier than normal static plots because many frames are generated before the final GIF appears.
 :::
 
-## 4.4 Animated Data Visualisation: plotly
+## 3.4 Animated Data Visualisation: plotly
 
 `plotly` can also create animated bubble plots. The difference is that plotly animations are interactive. Readers can play, pause, drag the slider, hover over points, and zoom into the chart.
 
@@ -437,7 +437,7 @@ There are two ways to create animated plotly graphics in this section:
 -   use `ggplotly()` to convert a ggplot object,
 -   use `plot_ly()` to build the animated chart directly.
 
-### 4.4.1 Building an animated bubble plot: ggplotly() method
+### 3.4.1 Building an animated bubble plot: ggplotly() method
 
 The first plotly method starts with a ggplot object. The `frame = Year` aesthetic tells plotly that the chart should animate by year.
 
@@ -555,7 +555,7 @@ ggplotly(gg_clean)
 `ggplotly()` is useful when we already know how to build the chart with ggplot2. We create the ggplot first, then convert it into an interactive animated chart.
 :::
 
-### 4.4.2 Building an animated bubble plot: plot_ly() method
+### 3.4.2 Building an animated bubble plot: plot_ly() method
 
 The second method uses `plot_ly()` directly. This gives more direct control over plotly-specific features such as frame, hover text, marker size, and legend display.
 
@@ -653,7 +653,7 @@ This version is built directly with plotly syntax. The hover text is more detail
 Because the data contains many countries and many years, the plotly animation may take some time to load in the browser. This is normal for animated interactive charts.
 :::
 
-## 4.5 Reference
+## 3.5 Reference
 
 This exercise introduced animated statistical graphics using two main approaches.
 
