@@ -18,11 +18,11 @@ website:
           - text: "Hands-on Exercise 4a"
             href: "Hands-on_Ex/Hands-on_Ex04a/Hands-on_Ex04a.html"
           - text: "Hands-on Exercise 4b"
-            href: "Hands-on_Ex/Hands-on_Ex04a/Hands-on_Ex04b.html"
+            href: "Hands-on_Ex/Hands-on_Ex04b/Hands-on_Ex04b.html"
           - text: "Hands-on Exercise 4c"
-            href: "Hands-on_Ex/Hands-on_Ex04a/Hands-on_Ex04c.html"
+            href: "Hands-on_Ex/Hands-on_Ex04c/Hands-on_Ex04c.html"
           - text: "Hands-on Exercise 4d"
-            href: "Hands-on_Ex/Hands-on_Ex04a/Hands-on_Ex04d.html"
+            href: "Hands-on_Ex/Hands-on_Ex04d/Hands-on_Ex04d.html"
     right:
       - href: index.qmd
         text: Home
