@@ -1,5 +1,5 @@
 ---
-title: "Hands-on Exercise 5c - Visualising Correlation Matrix"
+title: "Hands-on Exercise 5c - Heatmap for Visualising and Analysing Multivariate Data"
 author: "Yang Yang"
 format:
   html:
@@ -25,9 +25,13 @@ if (!require(pacman)) {
 
 pacman::p_load(
   tidyverse,
+  heatmaply,
+  dendextend,
+  seriation,
   DT,
   janitor,
   scales,
+  cluster,
   plotly,
   knitr
 )
@@ -39,6 +43,10 @@ my_light_teal <- "#D8E8E6"
 my_grey <- "#F3F4F4"
 my_warning <- "#B07C3E"
 my_red <- "#9A4B4B"
+
+heat_cols <- colorRampPalette(
+  c(my_light_teal, my_soft_teal, my_teal, my_dark)
+)(256)
 
 theme_yy <- theme_minimal(base_size = 13) +
   theme(
@@ -53,31 +61,30 @@ theme_yy <- theme_minimal(base_size = 13) +
 
 ## 5.1 Overview
 
-Correlation analysis is useful when we want to understand how several numerical variables are related to each other. Instead of checking many scatter plots one by one, a correlation matrix summarises the strength and direction of relationships between variable pairs.
+Heatmaps visualise data through colour intensity. When applied to a table, heatmaps are useful for comparing many observations across many variables at the same time.
 
-In this exercise, we will use the `WHData-2018.csv` dataset. The dataset contains country-level indicators from the World Happiness data, including happiness score, GDP per capita, social support, healthy life expectancy, freedom, generosity, and perceptions of corruption.
+In this hands-on exercise, we use the World Happiness 2018 dataset. Each row represents a country, while the columns represent happiness-related indicators such as happiness score, GDP per capita, social support, healthy life expectancy, freedom, generosity, and perceptions of corruption.
 
 By the end of this exercise, we will be able to:
 
-- import and prepare World Happiness data,
-- compute a correlation matrix,
-- visualise correlation values using a heatmap,
-- identify strong positive and negative relationships,
-- use scatter plots to inspect selected relationships,
-- create a small extra ranking chart to support interpretation.
+- import and prepare World Happiness 2018 data,
+- transform a data frame into a matrix for heatmap analysis,
+- plot static heatmaps using base R,
+- create interactive heatmaps using `heatmaply`,
+- apply scaling, normalising, and percentising transformations,
+- compare clustering and seriation methods,
+- add small extensions using regional averages and correlation heatmaps.
 
 ::: {.callout-important}
 ## Important
 
-Correlation measures association, not causation.  
-A high correlation means two variables move together, but it does not prove that one variable causes the other.
+Heatmaps are most useful when the variables are comparable.  
+If variables have very different ranges, transformation is needed before interpretation.
 :::
 
-## 5.2 Getting Started
+## 5.2 Installing and Launching R Packages
 
-### 5.2.1 Installing and launching R packages
-
-This exercise uses `tidyverse` for data preparation, `DT` for interactive tables, `plotly` for interactive charts, and `janitor` for cleaning column names.
+The main packages used in this exercise are `heatmaply`, `seriation`, `dendextend`, and `tidyverse`.
 
 ::: {.panel-tabset}
 
@@ -87,13 +94,14 @@ This exercise uses `tidyverse` for data preparation, `DT` for interactive tables
 #| echo: false
 
 package_table <- tibble(
-  Package = c("tidyverse", "DT", "janitor", "plotly", "scales"),
+  Package = c("tidyverse", "heatmaply", "dendextend", "seriation", "DT", "cluster"),
   Purpose = c(
     "Data import, wrangling, and plotting",
+    "Interactive heatmap and clustering heatmap",
+    "Dendrogram and clustering helper functions",
+    "Optimal row and column ordering",
     "Interactive HTML tables",
-    "Cleaning column names",
-    "Interactive visualisation",
-    "Formatting numbers and labels"
+    "Silhouette analysis for cluster checking"
   )
 )
 
@@ -101,7 +109,7 @@ DT::datatable(
   package_table,
   rownames = FALSE,
   class = "compact stripe hover",
-  options = list(dom = "t", pageLength = 5),
+  options = list(dom = "t", pageLength = 6),
   width = "100%"
 )
 ```
@@ -113,19 +121,22 @@ DT::datatable(
 
 pacman::p_load(
   tidyverse,
+  heatmaply,
+  dendextend,
+  seriation,
   DT,
-  janitor,
-  plotly,
-  scales
+  cluster
 )
 ```
 
 :::
 
-### 5.2.2 Importing data
+## 5.3 Importing and Preparing the Data Set
 
 The dataset used in this exercise is `WHData-2018.csv`.
 
+### 5.3.1 Importing the data set
+
 ::: {.panel-tabset}
 
 ## View
@@ -135,30 +146,28 @@ The dataset used in this exercise is `WHData-2018.csv`.
 
 csv_file <- list.files(pattern = "WHData-2018.*\\.csv$")[1]
 
-wh_raw <- read_csv(csv_file, show_col_types = FALSE)
+wh <- read_csv(csv_file, show_col_types = FALSE)
 
-glimpse(wh_raw)
+glimpse(wh)
 ```
 
 ## Code
 
 ```{r}
-#| eval: false
-
 csv_file <- list.files(pattern = "WHData-2018.*\\.csv$")[1]
 
-wh_raw <- read_csv(csv_file, show_col_types = FALSE)
+wh <- read_csv(csv_file, show_col_types = FALSE)
 
-glimpse(wh_raw)
+glimpse(wh)
 ```
 
 :::
 
-The dataset is read from the current exercise folder. Using `list.files()` makes the render more stable because the code does not depend on manually typing the full file path.
+Using `list.files()` makes the code safer because it can still read a file name such as `WHData-2018(3).csv`.
 
-### 5.2.3 Cleaning column names
+### 5.3.2 Preparing the data
 
-The original dataset contains names such as `Happiness score`, `GDP per capita`, and `Healthy life expectancy`. These names are cleaned to make them easier to use in R.
+For heatmap analysis, the country name should become the row name. The numerical variables are then selected for analysis.
 
 ::: {.panel-tabset}
 
@@ -167,89 +176,27 @@ The original dataset contains names such as `Happiness score`, `GDP per capita`,
 ```{r}
 #| echo: false
 
-wh <- wh_raw %>%
-  janitor::clean_names()
-
-names(wh)
-```
-
-## Code
-
-```{r}
-wh <- wh_raw %>%
-  janitor::clean_names()
-
-names(wh)
-```
-
-:::
-
-After cleaning, names such as `Happiness score` become `happiness_score`, and `GDP per capita` becomes `gdp_per_capita`.
-
-### 5.2.4 Quick data preview
-
-::: {.panel-tabset}
-
-## View
-
-```{r}
-#| echo: false
-
-DT::datatable(
-  head(wh, 12),
-  rownames = FALSE,
-  class = "compact stripe hover",
-  options = list(pageLength = 12, scrollX = TRUE),
-  width = "100%"
+heatmap_vars <- c(
+  "Happiness score",
+  "Dystopia",
+  "GDP per capita",
+  "Social support",
+  "Healthy life expectancy",
+  "Freedom to make life choices",
+  "Generosity",
+  "Perceptions of corruption"
 )
-```
 
-## Code
-
-```{r}
-#| eval: false
-
-DT::datatable(
-  head(wh, 12),
-  rownames = FALSE,
-  class = "compact stripe hover",
-  options = list(pageLength = 12, scrollX = TRUE),
-  width = "100%"
-)
-```
-
-:::
-
-## 5.3 Preparing Data for Correlation Analysis
-
-Only numerical variables should be included in the correlation matrix. Text variables such as country and region are useful for labelling, but they should not be used inside the correlation calculation.
-
-### 5.3.1 Selecting numerical variables
-
-::: {.panel-tabset}
-
-## View
-
-```{r}
-#| echo: false
-
-wh_numeric <- wh %>%
+wh_selected <- wh %>%
   select(
-    happiness_score,
-    whisker_high,
-    whisker_low,
-    dystopia,
-    gdp_per_capita,
-    social_support,
-    healthy_life_expectancy,
-    freedom_to_make_life_choices,
-    generosity,
-    perceptions_of_corruption
+    Country,
+    Region,
+    all_of(heatmap_vars)
   ) %>%
   drop_na()
 
 DT::datatable(
-  head(wh_numeric, 12),
+  head(wh_selected, 12),
   rownames = FALSE,
   class = "compact stripe hover",
   options = list(pageLength = 12, scrollX = TRUE),
@@ -260,40 +207,750 @@ DT::datatable(
 ## Code
 
 ```{r}
-wh_numeric <- wh %>%
+heatmap_vars <- c(
+  "Happiness score",
+  "Dystopia",
+  "GDP per capita",
+  "Social support",
+  "Healthy life expectancy",
+  "Freedom to make life choices",
+  "Generosity",
+  "Perceptions of corruption"
+)
+
+wh_selected <- wh %>%
   select(
-    happiness_score,
-    whisker_high,
-    whisker_low,
-    dystopia,
-    gdp_per_capita,
-    social_support,
-    healthy_life_expectancy,
-    freedom_to_make_life_choices,
-    generosity,
-    perceptions_of_corruption
+    Country,
+    Region,
+    all_of(heatmap_vars)
   ) %>%
   drop_na()
+```
 
-DT::datatable(
-  head(wh_numeric, 12),
-  rownames = FALSE,
-  class = "compact stripe hover",
-  options = list(pageLength = 12, scrollX = TRUE),
-  width = "100%"
+:::
+
+### 5.3.3 Transforming the data frame into a matrix
+
+A heatmap needs a numerical matrix. Therefore, the selected numerical columns are converted into matrix format.
+
+::: {.panel-tabset}
+
+## View
+
+```{r}
+#| echo: false
+
+wh_matrix_df <- wh_selected %>%
+  select(all_of(heatmap_vars)) %>%
+  as.data.frame()
+
+row.names(wh_matrix_df) <- make.unique(wh_selected$Country)
+
+wh_matrix <- as.matrix(wh_matrix_df)
+
+class(wh_matrix)
+dim(wh_matrix)
+```
+
+## Code
+
+```{r}
+wh_matrix_df <- wh_selected %>%
+  select(all_of(heatmap_vars)) %>%
+  as.data.frame()
+
+row.names(wh_matrix_df) <- make.unique(wh_selected$Country)
+
+wh_matrix <- as.matrix(wh_matrix_df)
+
+class(wh_matrix)
+dim(wh_matrix)
+```
+
+:::
+
+The matrix contains countries as rows and happiness-related indicators as columns.
+
+## 5.4 Static Heatmap
+
+Static heatmaps can be created using the base R `heatmap()` function.
+
+### 5.4.1 heatmap() without clustering
+
+::: {.panel-tabset}
+
+## View
+
+```{r}
+#| echo: false
+#| fig-width: 8
+#| fig-height: 9
+
+heatmap(
+  wh_matrix,
+  Rowv = NA,
+  Colv = NA,
+  col = heat_cols,
+  scale = "none",
+  margins = c(10, 4),
+  cexRow = 0.45,
+  cexCol = 0.8,
+  main = "Static heatmap without clustering"
+)
+```
+
+## Code
+
+```{r}
+heatmap(
+  wh_matrix,
+  Rowv = NA,
+  Colv = NA,
+  col = heat_cols,
+  scale = "none",
+  margins = c(10, 4),
+  cexRow = 0.45,
+  cexCol = 0.8,
+  main = "Static heatmap without clustering"
 )
 ```
 
 :::
+
+This heatmap follows the original row and column order. However, because the variables have different ranges, the larger-scale variables dominate the colour pattern.
+
+### 5.4.2 Cluster heatmap
+
+::: {.panel-tabset}
+
+## View
+
+```{r}
+#| echo: false
+#| fig-width: 8
+#| fig-height: 9
+
+heatmap(
+  wh_matrix,
+  col = heat_cols,
+  scale = "none",
+  margins = c(10, 4),
+  cexRow = 0.45,
+  cexCol = 0.8,
+  main = "Cluster heatmap of World Happiness indicators"
+)
+```
+
+## Code
+
+```{r}
+heatmap(
+  wh_matrix,
+  col = heat_cols,
+  scale = "none",
+  margins = c(10, 4),
+  cexRow = 0.45,
+  cexCol = 0.8,
+  main = "Cluster heatmap of World Happiness indicators"
+)
+```
+
+:::
+
+By default, `heatmap()` performs hierarchical clustering. The row and column order changes because similar countries and similar variables are placed closer together.
+
+### 5.4.3 Column-scaled heatmap
+
+::: {.panel-tabset}
+
+## View
+
+```{r}
+#| echo: false
+#| fig-width: 8
+#| fig-height: 9
+
+heatmap(
+  wh_matrix,
+  col = heat_cols,
+  scale = "column",
+  margins = c(10, 4),
+  cexRow = 0.45,
+  cexCol = 0.8,
+  main = "Column-scaled heatmap of World Happiness indicators"
+)
+```
+
+## Code
+
+```{r}
+heatmap(
+  wh_matrix,
+  col = heat_cols,
+  scale = "column",
+  margins = c(10, 4),
+  cexRow = 0.45,
+  cexCol = 0.8,
+  main = "Column-scaled heatmap of World Happiness indicators"
+)
+```
+
+:::
+
+Column scaling makes each variable more comparable by standardising values within each column.
 
 ::: {.callout-tip}
 ## What can we learn?
 
-Correlation analysis should use numerical variables only.  
-If categorical variables such as country or region are included, the calculation will not be meaningful.
+Without scaling, variables with larger numerical ranges can dominate the heatmap.  
+Column scaling reduces this issue and makes cross-variable comparison more meaningful.
 :::
 
-### 5.3.2 Computing correlation matrix
+## 5.5 Creating Interactive Heatmap
+
+The `heatmaply` package creates interactive cluster heatmaps that can be embedded in an HTML page.
+
+### 5.5.1 Working with heatmaply
+
+::: {.panel-tabset}
+
+## View
+
+```{r}
+#| echo: false
+
+heatmaply::heatmaply(
+  wh_matrix,
+  colors = heat_cols,
+  main = "Interactive heatmap of World Happiness indicators",
+  xlab = "Variables",
+  ylab = "Countries"
+)
+```
+
+## Code
+
+```{r}
+heatmaply::heatmaply(
+  wh_matrix,
+  colors = heat_cols,
+  main = "Interactive heatmap of World Happiness indicators",
+  xlab = "Variables",
+  ylab = "Countries"
+)
+```
+
+:::
+
+Unlike the base heatmap, `heatmaply()` creates an interactive output. Users can hover over cells and inspect the values.
+
+## 5.6 Data Transformation
+
+When the variables have different measurement ranges, transformation is needed before clustering and interpretation.
+
+### 5.6.1 Scaling method
+
+::: {.panel-tabset}
+
+## View
+
+```{r}
+#| echo: false
+
+heatmaply::heatmaply(
+  wh_matrix,
+  scale = "column",
+  colors = heat_cols,
+  main = "Interactive heatmap with column scaling",
+  xlab = "Variables",
+  ylab = "Countries"
+)
+```
+
+## Code
+
+```{r}
+heatmaply::heatmaply(
+  wh_matrix,
+  scale = "column",
+  colors = heat_cols,
+  main = "Interactive heatmap with column scaling",
+  xlab = "Variables",
+  ylab = "Countries"
+)
+```
+
+:::
+
+Scaling subtracts the mean and divides by the standard deviation. It is useful when variables are assumed to be roughly comparable after standardisation.
+
+### 5.6.2 Normalising method
+
+::: {.panel-tabset}
+
+## View
+
+```{r}
+#| echo: false
+
+wh_normalised <- heatmaply::normalize(wh_matrix)
+
+heatmaply::heatmaply(
+  wh_normalised,
+  colors = heat_cols,
+  main = "Interactive heatmap with normalised values",
+  xlab = "Variables",
+  ylab = "Countries"
+)
+```
+
+## Code
+
+```{r}
+wh_normalised <- heatmaply::normalize(wh_matrix)
+
+heatmaply::heatmaply(
+  wh_normalised,
+  colors = heat_cols,
+  main = "Interactive heatmap with normalised values",
+  xlab = "Variables",
+  ylab = "Countries"
+)
+```
+
+:::
+
+Normalising brings each variable into a 0 to 1 range. This preserves the relative shape of each variable while making the variables easier to compare.
+
+### 5.6.3 Percentising method
+
+::: {.panel-tabset}
+
+## View
+
+```{r}
+#| echo: false
+
+wh_percentised <- heatmaply::percentize(wh_matrix)
+
+heatmaply::heatmaply(
+  wh_percentised,
+  colors = heat_cols,
+  main = "Interactive heatmap with percentised values",
+  xlab = "Variables",
+  ylab = "Countries"
+)
+```
+
+## Code
+
+```{r}
+wh_percentised <- heatmaply::percentize(wh_matrix)
+
+heatmaply::heatmaply(
+  wh_percentised,
+  colors = heat_cols,
+  main = "Interactive heatmap with percentised values",
+  xlab = "Variables",
+  ylab = "Countries"
+)
+```
+
+:::
+
+Percentising converts values into empirical percentiles. This makes each cell easier to interpret as a relative position within its variable.
+
+## 5.7 Clustering Algorithm
+
+Hierarchical clustering groups similar countries and variables together. The result depends on the distance method and clustering method selected.
+
+### 5.7.1 Manual approach
+
+::: {.panel-tabset}
+
+## View
+
+```{r}
+#| echo: false
+
+heatmaply::heatmaply(
+  wh_normalised,
+  dist_method = "euclidean",
+  hclust_method = "ward.D",
+  colors = heat_cols,
+  main = "Manual clustering: Euclidean distance and ward.D method",
+  xlab = "Variables",
+  ylab = "Countries"
+)
+```
+
+## Code
+
+```{r}
+heatmaply::heatmaply(
+  wh_normalised,
+  dist_method = "euclidean",
+  hclust_method = "ward.D",
+  colors = heat_cols,
+  main = "Manual clustering: Euclidean distance and ward.D method",
+  xlab = "Variables",
+  ylab = "Countries"
+)
+```
+
+:::
+
+The manual approach fixes the distance method and clustering method directly.
+
+### 5.7.2 Statistical approach
+
+Instead of choosing the number of clusters by guessing, we can use average silhouette width as a simple diagnostic.
+
+::: {.panel-tabset}
+
+## View
+
+```{r}
+#| echo: false
+
+wh_dist <- dist(wh_normalised, method = "euclidean")
+wh_clust <- hclust(wh_dist, method = "average")
+
+silhouette_result <- map_dfr(
+  2:8,
+  function(k_value) {
+    cluster_group <- cutree(wh_clust, k = k_value)
+    silhouette_score <- mean(cluster::silhouette(cluster_group, wh_dist)[, 3])
+    
+    tibble(
+      k = k_value,
+      average_silhouette_width = silhouette_score
+    )
+  }
+)
+
+best_k <- silhouette_result$k[which.max(silhouette_result$average_silhouette_width)]
+
+DT::datatable(
+  silhouette_result %>%
+    mutate(average_silhouette_width = round(average_silhouette_width, 3)),
+  rownames = FALSE,
+  class = "compact stripe hover",
+  options = list(dom = "t", pageLength = 7),
+  width = "100%"
+)
+```
+
+## Code
+
+```{r}
+wh_dist <- dist(wh_normalised, method = "euclidean")
+wh_clust <- hclust(wh_dist, method = "average")
+
+silhouette_result <- map_dfr(
+  2:8,
+  function(k_value) {
+    cluster_group <- cutree(wh_clust, k = k_value)
+    silhouette_score <- mean(cluster::silhouette(cluster_group, wh_dist)[, 3])
+    
+    tibble(
+      k = k_value,
+      average_silhouette_width = silhouette_score
+    )
+  }
+)
+
+best_k <- silhouette_result$k[which.max(silhouette_result$average_silhouette_width)]
+```
+
+:::
+
+### 5.7.3 Plotting the silhouette result
+
+::: {.panel-tabset}
+
+## View
+
+```{r}
+#| echo: false
+#| fig-width: 7
+#| fig-height: 4
+
+ggplot(
+  silhouette_result,
+  aes(
+    x = k,
+    y = average_silhouette_width
+  )
+) +
+  geom_line(colour = my_teal, linewidth = 0.8) +
+  geom_point(size = 2.5, colour = my_dark) +
+  geom_point(
+    data = silhouette_result %>% filter(k == best_k),
+    aes(x = k, y = average_silhouette_width),
+    colour = my_warning,
+    size = 4
+  ) +
+  scale_x_continuous(breaks = 2:8) +
+  labs(
+    title = "Estimating the number of clusters",
+    subtitle = "Higher average silhouette width suggests a better cluster separation",
+    x = "Number of clusters",
+    y = "Average silhouette width"
+  ) +
+  theme_yy
+```
+
+## Code
+
+```{r}
+ggplot(
+  silhouette_result,
+  aes(
+    x = k,
+    y = average_silhouette_width
+  )
+) +
+  geom_line(colour = my_teal, linewidth = 0.8) +
+  geom_point(size = 2.5, colour = my_dark) +
+  geom_point(
+    data = silhouette_result %>% filter(k == best_k),
+    aes(x = k, y = average_silhouette_width),
+    colour = my_warning,
+    size = 4
+  ) +
+  scale_x_continuous(breaks = 2:8) +
+  labs(
+    title = "Estimating the number of clusters",
+    subtitle = "Higher average silhouette width suggests a better cluster separation",
+    x = "Number of clusters",
+    y = "Average silhouette width"
+  ) +
+  theme_yy
+```
+
+:::
+
+### 5.7.4 Heatmap with selected number of clusters
+
+::: {.panel-tabset}
+
+## View
+
+```{r}
+#| echo: false
+
+heatmaply::heatmaply(
+  wh_normalised,
+  dist_method = "euclidean",
+  hclust_method = "average",
+  k_row = best_k,
+  colors = heat_cols,
+  main = paste("Interactive heatmap with", best_k, "country clusters"),
+  xlab = "Variables",
+  ylab = "Countries"
+)
+```
+
+## Code
+
+```{r}
+heatmaply::heatmaply(
+  wh_normalised,
+  dist_method = "euclidean",
+  hclust_method = "average",
+  k_row = best_k,
+  colors = heat_cols,
+  main = paste("Interactive heatmap with", best_k, "country clusters"),
+  xlab = "Variables",
+  ylab = "Countries"
+)
+```
+
+:::
+
+This version uses the selected number of clusters from the silhouette check.
+
+## 5.8 Seriation
+
+Seriation changes the ordering of rows and columns so that similar items are placed closer together. It can make the heatmap easier to read.
+
+### 5.8.1 Optimal Leaf Ordering
+
+::: {.panel-tabset}
+
+## View
+
+```{r}
+#| echo: false
+
+heatmaply::heatmaply(
+  wh_normalised,
+  seriate = "OLO",
+  colors = heat_cols,
+  main = "Heatmap using Optimal Leaf Ordering",
+  xlab = "Variables",
+  ylab = "Countries"
+)
+```
+
+## Code
+
+```{r}
+heatmaply::heatmaply(
+  wh_normalised,
+  seriate = "OLO",
+  colors = heat_cols,
+  main = "Heatmap using Optimal Leaf Ordering",
+  xlab = "Variables",
+  ylab = "Countries"
+)
+```
+
+:::
+
+`OLO` stands for Optimal Leaf Ordering. It aims to arrange the leaves of the dendrogram in a clearer sequence.
+
+### 5.8.2 Gruvaeus and Wainer ordering
+
+::: {.panel-tabset}
+
+## View
+
+```{r}
+#| echo: false
+
+heatmaply::heatmaply(
+  wh_normalised,
+  seriate = "GW",
+  colors = heat_cols,
+  main = "Heatmap using Gruvaeus and Wainer ordering",
+  xlab = "Variables",
+  ylab = "Countries"
+)
+```
+
+## Code
+
+```{r}
+heatmaply::heatmaply(
+  wh_normalised,
+  seriate = "GW",
+  colors = heat_cols,
+  main = "Heatmap using Gruvaeus and Wainer ordering",
+  xlab = "Variables",
+  ylab = "Countries"
+)
+```
+
+:::
+
+`GW` is a faster heuristic ordering method. It is useful when the dataset is larger and optimal ordering becomes more expensive.
+
+## 5.9 Extra Analysis: Regional Average Heatmap
+
+This small extension summarises the indicators by region. It reduces country-level noise and gives a clearer comparison between regions.
+
+### 5.9.1 Preparing regional averages
+
+::: {.panel-tabset}
+
+## View
+
+```{r}
+#| echo: false
+
+region_average <- wh_selected %>%
+  group_by(Region) %>%
+  summarise(
+    across(
+      all_of(heatmap_vars),
+      ~ mean(.x, na.rm = TRUE)
+    ),
+    .groups = "drop"
+  )
+
+region_matrix_df <- region_average %>%
+  select(all_of(heatmap_vars)) %>%
+  as.data.frame()
+
+row.names(region_matrix_df) <- make.unique(region_average$Region)
+
+region_matrix <- as.matrix(region_matrix_df)
+
+DT::datatable(
+  region_average %>%
+    mutate(across(where(is.numeric), ~ round(.x, 3))),
+  rownames = FALSE,
+  class = "compact stripe hover",
+  options = list(pageLength = 10, scrollX = TRUE),
+  width = "100%"
+)
+```
+
+## Code
+
+```{r}
+region_average <- wh_selected %>%
+  group_by(Region) %>%
+  summarise(
+    across(
+      all_of(heatmap_vars),
+      ~ mean(.x, na.rm = TRUE)
+    ),
+    .groups = "drop"
+  )
+
+region_matrix_df <- region_average %>%
+  select(all_of(heatmap_vars)) %>%
+  as.data.frame()
+
+row.names(region_matrix_df) <- make.unique(region_average$Region)
+
+region_matrix <- as.matrix(region_matrix_df)
+```
+
+:::
+
+### 5.9.2 Regional average heatmap
+
+::: {.panel-tabset}
+
+## View
+
+```{r}
+#| echo: false
+
+heatmaply::heatmaply(
+  heatmaply::normalize(region_matrix),
+  colors = heat_cols,
+  main = "Regional average heatmap of World Happiness indicators",
+  xlab = "Variables",
+  ylab = "Regions"
+)
+```
+
+## Code
+
+```{r}
+heatmaply::heatmaply(
+  heatmaply::normalize(region_matrix),
+  colors = heat_cols,
+  main = "Regional average heatmap of World Happiness indicators",
+  xlab = "Variables",
+  ylab = "Regions"
+)
+```
+
+:::
+
+The regional heatmap is easier to interpret because it has fewer rows than the country-level heatmap.
+
+## 5.10 Extra Analysis: Correlation Heatmap
+
+A heatmap can also be used to visualise correlation between variables.
+
+### 5.10.1 Computing correlation matrix
 
 ::: {.panel-tabset}
 
@@ -303,71 +960,27 @@ If categorical variables such as country or region are included, the calculation
 #| echo: false
 
 cor_matrix <- cor(
-  wh_numeric,
-  use = "pairwise.complete.obs",
-  method = "pearson"
+  wh_matrix,
+  use = "pairwise.complete.obs"
 )
 
-cor_long <- as.data.frame(as.table(cor_matrix)) %>%
-  rename(
-    variable_x = Var1,
-    variable_y = Var2,
-    correlation = Freq
-  ) %>%
-  mutate(
-    variable_x = as.character(variable_x),
-    variable_y = as.character(variable_y)
-  )
-
-DT::datatable(
-  cor_long %>%
-    mutate(correlation = round(correlation, 3)),
-  rownames = FALSE,
-  class = "compact stripe hover",
-  options = list(pageLength = 12, scrollX = TRUE),
-  width = "100%"
-)
+round(cor_matrix, 3)
 ```
 
 ## Code
 
 ```{r}
 cor_matrix <- cor(
-  wh_numeric,
-  use = "pairwise.complete.obs",
-  method = "pearson"
+  wh_matrix,
+  use = "pairwise.complete.obs"
 )
 
-cor_long <- as.data.frame(as.table(cor_matrix)) %>%
-  rename(
-    variable_x = Var1,
-    variable_y = Var2,
-    correlation = Freq
-  ) %>%
-  mutate(
-    variable_x = as.character(variable_x),
-    variable_y = as.character(variable_y)
-  )
-
-DT::datatable(
-  cor_long %>%
-    mutate(correlation = round(correlation, 3)),
-  rownames = FALSE,
-  class = "compact stripe hover",
-  options = list(pageLength = 12, scrollX = TRUE),
-  width = "100%"
-)
+round(cor_matrix, 3)
 ```
 
 :::
 
-The correlation values range from -1 to 1. A value close to 1 indicates a strong positive relationship. A value close to -1 indicates a strong negative relationship.
-
-## 5.4 Visualising Correlation Matrix
-
-A correlation heatmap makes the matrix easier to read. Strong positive and negative relationships can be identified quickly using colour.
-
-### 5.4.1 Basic correlation heatmap
+### 5.10.2 Plotting correlation heatmap
 
 ::: {.panel-tabset}
 
@@ -375,368 +988,95 @@ A correlation heatmap makes the matrix easier to read. Strong positive and negat
 
 ```{r}
 #| echo: false
-#| fig-width: 9
-#| fig-height: 7
-
-ggplot(
-  cor_long,
-  aes(
-    x = variable_x,
-    y = variable_y,
-    fill = correlation
-  )
-) +
-  geom_tile(colour = "white", linewidth = 0.4) +
-  geom_text(
-    aes(label = round(correlation, 2)),
-    size = 2.8,
-    colour = my_dark
-  ) +
-  scale_fill_gradient2(
-    low = my_red,
-    mid = "white",
-    high = my_teal,
-    midpoint = 0,
-    limits = c(-1, 1)
-  ) +
-  labs(
-    title = "Correlation matrix of World Happiness indicators",
-    subtitle = "Teal shows positive correlation, while red shows negative correlation",
-    x = NULL,
-    y = NULL,
-    fill = "Correlation"
-  ) +
-  theme_yy +
-  theme(
-    axis.text.x = element_text(angle = 45, hjust = 1),
-    panel.grid = element_blank()
-  )
-```
-
-## Code
-
-```{r}
-ggplot(
-  cor_long,
-  aes(
-    x = variable_x,
-    y = variable_y,
-    fill = correlation
-  )
-) +
-  geom_tile(colour = "white", linewidth = 0.4) +
-  geom_text(
-    aes(label = round(correlation, 2)),
-    size = 2.8,
-    colour = my_dark
-  ) +
-  scale_fill_gradient2(
-    low = my_red,
-    mid = "white",
-    high = my_teal,
-    midpoint = 0,
-    limits = c(-1, 1)
-  ) +
-  labs(
-    title = "Correlation matrix of World Happiness indicators",
-    subtitle = "Teal shows positive correlation, while red shows negative correlation",
-    x = NULL,
-    y = NULL,
-    fill = "Correlation"
-  ) +
-  theme_yy +
-  theme(
-    axis.text.x = element_text(angle = 45, hjust = 1),
-    panel.grid = element_blank()
-  )
-```
-
-:::
-
-The heatmap provides a compact overview of the relationships between happiness indicators. It is especially useful when many variables need to be compared at once.
-
-### 5.4.2 Reordering the correlation heatmap
-
-The first heatmap follows the original column order. To make the pattern clearer, the next heatmap reorders variables using hierarchical clustering.
-
-::: {.panel-tabset}
-
-## View
-
-```{r}
-#| echo: false
-#| fig-width: 9
-#| fig-height: 7
-
-cor_dist <- as.dist(1 - abs(cor_matrix))
-cor_order <- hclust(cor_dist)$order
-ordered_vars <- colnames(cor_matrix)[cor_order]
-
-cor_long_ordered <- cor_long %>%
-  mutate(
-    variable_x = factor(variable_x, levels = ordered_vars),
-    variable_y = factor(variable_y, levels = ordered_vars)
-  )
-
-ggplot(
-  cor_long_ordered,
-  aes(
-    x = variable_x,
-    y = variable_y,
-    fill = correlation
-  )
-) +
-  geom_tile(colour = "white", linewidth = 0.4) +
-  geom_text(
-    aes(label = round(correlation, 2)),
-    size = 2.8,
-    colour = my_dark
-  ) +
-  scale_fill_gradient2(
-    low = my_red,
-    mid = "white",
-    high = my_teal,
-    midpoint = 0,
-    limits = c(-1, 1)
-  ) +
-  labs(
-    title = "Reordered correlation heatmap",
-    subtitle = "Similar variables are placed closer together using hierarchical clustering",
-    x = NULL,
-    y = NULL,
-    fill = "Correlation"
-  ) +
-  theme_yy +
-  theme(
-    axis.text.x = element_text(angle = 45, hjust = 1),
-    panel.grid = element_blank()
-  )
-```
-
-## Code
-
-```{r}
-cor_dist <- as.dist(1 - abs(cor_matrix))
-cor_order <- hclust(cor_dist)$order
-ordered_vars <- colnames(cor_matrix)[cor_order]
-
-cor_long_ordered <- cor_long %>%
-  mutate(
-    variable_x = factor(variable_x, levels = ordered_vars),
-    variable_y = factor(variable_y, levels = ordered_vars)
-  )
-
-ggplot(
-  cor_long_ordered,
-  aes(
-    x = variable_x,
-    y = variable_y,
-    fill = correlation
-  )
-) +
-  geom_tile(colour = "white", linewidth = 0.4) +
-  geom_text(
-    aes(label = round(correlation, 2)),
-    size = 2.8,
-    colour = my_dark
-  ) +
-  scale_fill_gradient2(
-    low = my_red,
-    mid = "white",
-    high = my_teal,
-    midpoint = 0,
-    limits = c(-1, 1)
-  ) +
-  labs(
-    title = "Reordered correlation heatmap",
-    subtitle = "Similar variables are placed closer together using hierarchical clustering",
-    x = NULL,
-    y = NULL,
-    fill = "Correlation"
-  ) +
-  theme_yy +
-  theme(
-    axis.text.x = element_text(angle = 45, hjust = 1),
-    panel.grid = element_blank()
-  )
-```
-
-:::
-
-Reordering the matrix helps the reader find clusters of related indicators. This is useful when the original variable order does not reveal a clear structure.
-
-::: {.callout-note}
-## Reading the reordered matrix
-
-Variables placed close together are not automatically causal.  
-They are simply more similar in terms of their correlation pattern.
-:::
-
-## 5.5 Identifying Strong Correlations
-
-The matrix gives a full overview, but sometimes we want to list the strongest relationships directly.
-
-### 5.5.1 Strongest positive and negative correlations
-
-::: {.panel-tabset}
-
-## View
-
-```{r}
-#| echo: false
-
-strong_cor <- cor_long %>%
-  filter(variable_x != variable_y) %>%
-  mutate(
-    pair_id = map2_chr(
-      variable_x,
-      variable_y,
-      ~ paste(sort(c(.x, .y)), collapse = " | ")
-    )
-  ) %>%
-  distinct(pair_id, .keep_all = TRUE) %>%
-  arrange(desc(abs(correlation))) %>%
-  mutate(
-    correlation = round(correlation, 3)
-  )
-
-DT::datatable(
-  head(strong_cor, 15) %>%
-    select(variable_x, variable_y, correlation),
-  rownames = FALSE,
-  class = "compact stripe hover",
-  options = list(dom = "t", scrollX = TRUE),
-  width = "100%"
-)
-```
-
-## Code
-
-```{r}
-strong_cor <- cor_long %>%
-  filter(variable_x != variable_y) %>%
-  mutate(
-    pair_id = map2_chr(
-      variable_x,
-      variable_y,
-      ~ paste(sort(c(.x, .y)), collapse = " | ")
-    )
-  ) %>%
-  distinct(pair_id, .keep_all = TRUE) %>%
-  arrange(desc(abs(correlation))) %>%
-  mutate(
-    correlation = round(correlation, 3)
-  )
-
-DT::datatable(
-  head(strong_cor, 15) %>%
-    select(variable_x, variable_y, correlation),
-  rownames = FALSE,
-  class = "compact stripe hover",
-  options = list(dom = "t", scrollX = TRUE),
-  width = "100%"
-)
-```
-
-:::
-
-This table removes duplicated pairs and keeps only the strongest relationships. It helps turn the heatmap into a more direct interpretation.
-
-### 5.5.2 Bar chart of strongest correlations
-
-::: {.panel-tabset}
-
-## View
-
-```{r}
-#| echo: false
-#| fig-width: 9
+#| fig-width: 8
 #| fig-height: 6
 
-top_cor_plot <- strong_cor %>%
-  slice_head(n = 12) %>%
-  mutate(
-    pair = paste(variable_x, "vs", variable_y),
-    pair = fct_reorder(pair, abs(correlation))
+cor_long <- as.data.frame(as.table(cor_matrix)) %>%
+  rename(
+    Variable_1 = Var1,
+    Variable_2 = Var2,
+    Correlation = Freq
   )
 
 ggplot(
-  top_cor_plot,
+  cor_long,
   aes(
-    x = pair,
-    y = correlation,
-    fill = correlation > 0
+    x = Variable_1,
+    y = Variable_2,
+    fill = Correlation
   )
 ) +
-  geom_col(
-    colour = my_dark,
-    linewidth = 0.25
-  ) +
-  coord_flip() +
-  scale_fill_manual(
-    values = c(
-      "TRUE" = my_teal,
-      "FALSE" = my_red
-    ),
-    guide = "none"
+  geom_tile(colour = "white", linewidth = 0.35) +
+  scale_fill_gradient2(
+    low = my_red,
+    mid = my_light_teal,
+    high = my_teal,
+    midpoint = 0,
+    limits = c(-1, 1)
   ) +
   labs(
-    title = "Strongest correlation pairs",
-    subtitle = "The chart highlights the largest absolute correlations",
+    title = "Correlation heatmap of World Happiness indicators",
+    subtitle = "This extension shows similarity between variables",
     x = NULL,
-    y = "Correlation"
+    y = NULL,
+    fill = "Correlation"
   ) +
-  theme_yy
+  theme_yy +
+  theme(
+    axis.text.x = element_text(angle = 35, hjust = 1),
+    panel.grid = element_blank()
+  )
 ```
 
 ## Code
 
 ```{r}
-top_cor_plot <- strong_cor %>%
-  slice_head(n = 12) %>%
-  mutate(
-    pair = paste(variable_x, "vs", variable_y),
-    pair = fct_reorder(pair, abs(correlation))
+cor_long <- as.data.frame(as.table(cor_matrix)) %>%
+  rename(
+    Variable_1 = Var1,
+    Variable_2 = Var2,
+    Correlation = Freq
   )
 
 ggplot(
-  top_cor_plot,
+  cor_long,
   aes(
-    x = pair,
-    y = correlation,
-    fill = correlation > 0
+    x = Variable_1,
+    y = Variable_2,
+    fill = Correlation
   )
 ) +
-  geom_col(
-    colour = my_dark,
-    linewidth = 0.25
-  ) +
-  coord_flip() +
-  scale_fill_manual(
-    values = c(
-      "TRUE" = my_teal,
-      "FALSE" = my_red
-    ),
-    guide = "none"
+  geom_tile(colour = "white", linewidth = 0.35) +
+  scale_fill_gradient2(
+    low = my_red,
+    mid = my_light_teal,
+    high = my_teal,
+    midpoint = 0,
+    limits = c(-1, 1)
   ) +
   labs(
-    title = "Strongest correlation pairs",
-    subtitle = "The chart highlights the largest absolute correlations",
+    title = "Correlation heatmap of World Happiness indicators",
+    subtitle = "This extension shows similarity between variables",
     x = NULL,
-    y = "Correlation"
+    y = NULL,
+    fill = "Correlation"
   ) +
-  theme_yy
+  theme_yy +
+  theme(
+    axis.text.x = element_text(angle = 35, hjust = 1),
+    panel.grid = element_blank()
+  )
 ```
 
 :::
 
-This section adds a simple ranked view. It is easier to read than scanning the full matrix when the goal is to find the strongest relationships quickly.
+The correlation heatmap helps identify which indicators move together. It supports the main heatmap analysis by showing variable similarity directly.
 
-## 5.6 Correlation with Happiness Score
+## 5.11 Extra Analysis: Top and Bottom Happiness Countries
 
-Since the dataset focuses on happiness, it is useful to isolate the variables most related to `happiness_score`.
+This extension compares the highest and lowest happiness score countries using a smaller heatmap.
 
-### 5.6.1 Ranking correlations with happiness score
+### 5.11.1 Preparing top and bottom countries
 
 ::: {.panel-tabset}
 
@@ -745,21 +1085,33 @@ Since the dataset focuses on happiness, it is useful to isolate the variables mo
 ```{r}
 #| echo: false
 
-happiness_cor <- cor_long %>%
-  filter(
-    variable_x == "happiness_score",
-    variable_y != "happiness_score"
-  ) %>%
-  arrange(desc(correlation)) %>%
-  mutate(
-    correlation = round(correlation, 3)
-  )
+top_bottom_heatmap_data <- bind_rows(
+  wh_selected %>%
+    arrange(desc(`Happiness score`)) %>%
+    slice_head(n = 10) %>%
+    mutate(Group = "Top 10"),
+  wh_selected %>%
+    arrange(`Happiness score`) %>%
+    slice_head(n = 10) %>%
+    mutate(Group = "Bottom 10")
+)
+
+top_bottom_matrix_df <- top_bottom_heatmap_data %>%
+  select(all_of(heatmap_vars)) %>%
+  as.data.frame()
+
+row.names(top_bottom_matrix_df) <- make.unique(
+  paste(top_bottom_heatmap_data$Group, top_bottom_heatmap_data$Country, sep = " - ")
+)
+
+top_bottom_matrix <- as.matrix(top_bottom_matrix_df)
 
 DT::datatable(
-  happiness_cor,
+  top_bottom_heatmap_data %>%
+    select(Group, Country, Region, all_of(heatmap_vars)),
   rownames = FALSE,
   class = "compact stripe hover",
-  options = list(dom = "t", scrollX = TRUE),
+  options = list(pageLength = 20, scrollX = TRUE),
   width = "100%"
 )
 ```
@@ -767,183 +1119,31 @@ DT::datatable(
 ## Code
 
 ```{r}
-happiness_cor <- cor_long %>%
-  filter(
-    variable_x == "happiness_score",
-    variable_y != "happiness_score"
-  ) %>%
-  arrange(desc(correlation)) %>%
-  mutate(
-    correlation = round(correlation, 3)
-  )
-
-DT::datatable(
-  happiness_cor,
-  rownames = FALSE,
-  class = "compact stripe hover",
-  options = list(dom = "t", scrollX = TRUE),
-  width = "100%"
+top_bottom_heatmap_data <- bind_rows(
+  wh_selected %>%
+    arrange(desc(`Happiness score`)) %>%
+    slice_head(n = 10) %>%
+    mutate(Group = "Top 10"),
+  wh_selected %>%
+    arrange(`Happiness score`) %>%
+    slice_head(n = 10) %>%
+    mutate(Group = "Bottom 10")
 )
+
+top_bottom_matrix_df <- top_bottom_heatmap_data %>%
+  select(all_of(heatmap_vars)) %>%
+  as.data.frame()
+
+row.names(top_bottom_matrix_df) <- make.unique(
+  paste(top_bottom_heatmap_data$Group, top_bottom_heatmap_data$Country, sep = " - ")
+)
+
+top_bottom_matrix <- as.matrix(top_bottom_matrix_df)
 ```
 
 :::
 
-### 5.6.2 Plotting correlations with happiness score
-
-::: {.panel-tabset}
-
-## View
-
-```{r}
-#| echo: false
-#| fig-width: 8
-#| fig-height: 5
-
-ggplot(
-  happiness_cor,
-  aes(
-    x = fct_reorder(variable_y, correlation),
-    y = correlation,
-    fill = correlation > 0
-  )
-) +
-  geom_col(
-    colour = my_dark,
-    linewidth = 0.25
-  ) +
-  coord_flip() +
-  scale_fill_manual(
-    values = c(
-      "TRUE" = my_teal,
-      "FALSE" = my_red
-    ),
-    guide = "none"
-  ) +
-  labs(
-    title = "Variables correlated with happiness score",
-    subtitle = "This chart isolates the relationships linked to happiness score",
-    x = NULL,
-    y = "Correlation with happiness score"
-  ) +
-  theme_yy
-```
-
-## Code
-
-```{r}
-ggplot(
-  happiness_cor,
-  aes(
-    x = fct_reorder(variable_y, correlation),
-    y = correlation,
-    fill = correlation > 0
-  )
-) +
-  geom_col(
-    colour = my_dark,
-    linewidth = 0.25
-  ) +
-  coord_flip() +
-  scale_fill_manual(
-    values = c(
-      "TRUE" = my_teal,
-      "FALSE" = my_red
-    ),
-    guide = "none"
-  ) +
-  labs(
-    title = "Variables correlated with happiness score",
-    subtitle = "This chart isolates the relationships linked to happiness score",
-    x = NULL,
-    y = "Correlation with happiness score"
-  ) +
-  theme_yy
-```
-
-:::
-
-This chart makes the interpretation more focused. Instead of reading the whole matrix, we can directly see which indicators are most closely associated with happiness score.
-
-::: {.callout-tip}
-## What can we learn?
-
-This chart should be read as an exploratory view.  
-It tells us which variables move with happiness score, but it does not prove causal impact.
-:::
-
-## 5.7 Checking Selected Relationships with Scatter Plots
-
-A correlation number is useful, but it hides the shape of the relationship. Scatter plots help us check whether the relationship is linear, clustered, or affected by outliers.
-
-### 5.7.1 Happiness score and GDP per capita
-
-::: {.panel-tabset}
-
-## View
-
-```{r}
-#| echo: false
-#| fig-width: 8
-#| fig-height: 5
-
-ggplot(
-  wh,
-  aes(
-    x = gdp_per_capita,
-    y = happiness_score,
-    colour = region
-  )
-) +
-  geom_point(size = 2.3, alpha = 0.8) +
-  geom_smooth(
-    method = "lm",
-    se = FALSE,
-    colour = my_dark,
-    linewidth = 0.7
-  ) +
-  labs(
-    title = "Happiness score and GDP per capita",
-    subtitle = "Scatter plots help verify the relationship shown in the correlation matrix",
-    x = "GDP per capita",
-    y = "Happiness score",
-    colour = "Region"
-  ) +
-  theme_yy
-```
-
-## Code
-
-```{r}
-ggplot(
-  wh,
-  aes(
-    x = gdp_per_capita,
-    y = happiness_score,
-    colour = region
-  )
-) +
-  geom_point(size = 2.3, alpha = 0.8) +
-  geom_smooth(
-    method = "lm",
-    se = FALSE,
-    colour = my_dark,
-    linewidth = 0.7
-  ) +
-  labs(
-    title = "Happiness score and GDP per capita",
-    subtitle = "Scatter plots help verify the relationship shown in the correlation matrix",
-    x = "GDP per capita",
-    y = "Happiness score",
-    colour = "Region"
-  ) +
-  theme_yy
-```
-
-:::
-
-The scatter plot gives a more concrete view of the relationship. It shows whether countries with higher GDP per capita also tend to have higher happiness scores.
-
-### 5.7.2 Interactive scatter plot
+### 5.11.2 Heatmap of top and bottom countries
 
 ::: {.panel-tabset}
 
@@ -952,224 +1152,55 @@ The scatter plot gives a more concrete view of the relationship. It shows whethe
 ```{r}
 #| echo: false
 
-p_interactive <- ggplot(
-  wh,
-  aes(
-    x = gdp_per_capita,
-    y = happiness_score,
-    colour = region,
-    text = paste0(
-      "Country: ", country,
-      "<br>Region: ", region,
-      "<br>Happiness score: ", happiness_score,
-      "<br>GDP per capita: ", gdp_per_capita,
-      "<br>Social support: ", social_support,
-      "<br>Healthy life expectancy: ", healthy_life_expectancy
-    )
-  )
-) +
-  geom_point(size = 2.3, alpha = 0.85) +
-  labs(
-    title = "Interactive happiness and GDP relationship",
-    subtitle = "Hover over each point to inspect country-level details",
-    x = "GDP per capita",
-    y = "Happiness score",
-    colour = "Region"
-  ) +
-  theme_yy
-
-ggplotly(p_interactive, tooltip = "text")
-```
-
-## Code
-
-```{r}
-p_interactive <- ggplot(
-  wh,
-  aes(
-    x = gdp_per_capita,
-    y = happiness_score,
-    colour = region,
-    text = paste0(
-      "Country: ", country,
-      "<br>Region: ", region,
-      "<br>Happiness score: ", happiness_score,
-      "<br>GDP per capita: ", gdp_per_capita,
-      "<br>Social support: ", social_support,
-      "<br>Healthy life expectancy: ", healthy_life_expectancy
-    )
-  )
-) +
-  geom_point(size = 2.3, alpha = 0.85) +
-  labs(
-    title = "Interactive happiness and GDP relationship",
-    subtitle = "Hover over each point to inspect country-level details",
-    x = "GDP per capita",
-    y = "Happiness score",
-    colour = "Region"
-  ) +
-  theme_yy
-
-ggplotly(p_interactive, tooltip = "text")
-```
-
-:::
-
-The interactive version is useful because it allows country-level inspection without adding many text labels to the static chart.
-
-## 5.8 Extra Check: Regional Happiness Profile
-
-As a small extension, we compare average happiness score by region. This gives context before interpreting country-level correlations.
-
-### 5.8.1 Regional average happiness score
-
-::: {.panel-tabset}
-
-## View
-
-```{r}
-#| echo: false
-
-region_summary <- wh %>%
-  group_by(region) %>%
-  summarise(
-    countries = n(),
-    mean_happiness = mean(happiness_score, na.rm = TRUE),
-    mean_gdp = mean(gdp_per_capita, na.rm = TRUE),
-    mean_social_support = mean(social_support, na.rm = TRUE),
-    .groups = "drop"
-  ) %>%
-  arrange(desc(mean_happiness))
-
-DT::datatable(
-  region_summary %>%
-    mutate(
-      mean_happiness = round(mean_happiness, 2),
-      mean_gdp = round(mean_gdp, 2),
-      mean_social_support = round(mean_social_support, 2)
-    ),
-  rownames = FALSE,
-  class = "compact stripe hover",
-  options = list(dom = "t", scrollX = TRUE),
-  width = "100%"
+heatmaply::heatmaply(
+  heatmaply::normalize(top_bottom_matrix),
+  colors = heat_cols,
+  main = "Heatmap comparison of top and bottom happiness countries",
+  xlab = "Variables",
+  ylab = "Countries"
 )
 ```
 
 ## Code
 
 ```{r}
-region_summary <- wh %>%
-  group_by(region) %>%
-  summarise(
-    countries = n(),
-    mean_happiness = mean(happiness_score, na.rm = TRUE),
-    mean_gdp = mean(gdp_per_capita, na.rm = TRUE),
-    mean_social_support = mean(social_support, na.rm = TRUE),
-    .groups = "drop"
-  ) %>%
-  arrange(desc(mean_happiness))
-
-DT::datatable(
-  region_summary %>%
-    mutate(
-      mean_happiness = round(mean_happiness, 2),
-      mean_gdp = round(mean_gdp, 2),
-      mean_social_support = round(mean_social_support, 2)
-    ),
-  rownames = FALSE,
-  class = "compact stripe hover",
-  options = list(dom = "t", scrollX = TRUE),
-  width = "100%"
+heatmaply::heatmaply(
+  heatmaply::normalize(top_bottom_matrix),
+  colors = heat_cols,
+  main = "Heatmap comparison of top and bottom happiness countries",
+  xlab = "Variables",
+  ylab = "Countries"
 )
 ```
 
 :::
 
-### 5.8.2 Plotting regional average happiness score
+This smaller heatmap is easier to read than the full country-level heatmap. It highlights how the strongest and weakest happiness-score countries differ across multiple indicators.
 
-::: {.panel-tabset}
+## 5.12 Final Takeaway
 
-## View
+Heatmaps are useful for exploring multivariate data because they show many observations and variables in one compact view. However, interpretation depends heavily on transformation, clustering, and row-column ordering.
 
-```{r}
-#| echo: false
-#| fig-width: 9
-#| fig-height: 5
-
-ggplot(
-  region_summary,
-  aes(
-    x = fct_reorder(region, mean_happiness),
-    y = mean_happiness
-  )
-) +
-  geom_col(
-    fill = my_teal,
-    colour = my_dark,
-    linewidth = 0.25
-  ) +
-  coord_flip() +
-  labs(
-    title = "Average happiness score by region",
-    subtitle = "This extension adds regional context to the correlation analysis",
-    x = NULL,
-    y = "Average happiness score"
-  ) +
-  theme_yy
-```
-
-## Code
-
-```{r}
-ggplot(
-  region_summary,
-  aes(
-    x = fct_reorder(region, mean_happiness),
-    y = mean_happiness
-  )
-) +
-  geom_col(
-    fill = my_teal,
-    colour = my_dark,
-    linewidth = 0.25
-  ) +
-  coord_flip() +
-  labs(
-    title = "Average happiness score by region",
-    subtitle = "This extension adds regional context to the correlation analysis",
-    x = NULL,
-    y = "Average happiness score"
-  ) +
-  theme_yy
-```
-
-:::
-
-This extra section does not replace the correlation matrix. It adds a simple descriptive layer to help readers understand the regional pattern behind the country-level data.
-
-## 5.9 Final Takeaway
-
-Correlation matrices are useful for exploring relationships among many numerical variables. The heatmap provides a compact overview, the reordered matrix makes related variables easier to see, and the scatter plot helps verify the shape of selected relationships.
-
-For the World Happiness data, correlation analysis helps identify which indicators move closely with happiness score. However, the results should be interpreted as association, not causal evidence.
+In this exercise, static heatmaps provide the basic structure, while `heatmaply` adds interactivity. Scaling, normalising, and percentising help make variables comparable. Clustering and seriation improve pattern detection.
 
 ::: {.callout-tip}
 ## Final takeaway
 
-Use correlation visualisation as an exploratory tool.  
-It is good for finding patterns, but follow-up analysis is needed before making causal claims.
+Use heatmaps when the main task is to compare many observations across many variables.  
+For World Happiness data, heatmaps help reveal country clusters, regional profiles, and relationships between happiness-related indicators.
 :::
 
-## 5.10 Reference
+## 5.13 References
 
 This exercise covered:
 
-- importing and preparing World Happiness data,
-- selecting numerical variables,
-- computing Pearson correlation,
-- creating a correlation heatmap,
-- reordering a correlation matrix,
-- ranking strong correlation pairs,
-- focusing on variables related to happiness score,
-- checking selected relationships with scatter plots,
-- adding regional context as a small extension.
+- static heatmaps using base R `heatmap()`,
+- interactive heatmaps using `heatmaply`,
+- column scaling,
+- normalising,
+- percentising,
+- manual and silhouette-based clustering,
+- seriation using `OLO` and `GW`,
+- regional average heatmaps,
+- correlation heatmaps,
+- top-bottom country comparison heatmaps.
