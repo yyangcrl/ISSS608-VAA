@@ -1,0 +1,999 @@
+---
+title: "Hands-on Exercise 5a - Creating Ternary Plot with R"
+author: "Yang Yang"
+format:
+  html:
+    theme: sketchy
+    toc: true
+    toc-depth: 3
+    number-sections: false
+    code-copy: true
+    code-overflow: wrap
+editor: visual
+execute:
+  warning: false
+  message: false
+---
+
+```{r}
+#| label: setup
+#| include: false
+
+if (!require(pacman)) {
+  install.packages("pacman")
+}
+
+pacman::p_load(
+  tidyverse,
+  ggtern,
+  DT,
+  janitor,
+  scales,
+  knitr
+)
+
+my_teal <- "#2A6F6F"
+my_soft_teal <- "#8AA6A3"
+my_dark <- "#1F1F1F"
+my_light_teal <- "#D8E8E6"
+my_grey <- "#F3F4F4"
+my_warning <- "#B07C3E"
+
+theme_tern_yy <- theme_rgbw(base_size = 12) +
+  theme(
+    plot.title = element_text(face = "bold", colour = my_dark),
+    plot.subtitle = element_text(colour = my_teal),
+    legend.position = "bottom",
+    legend.title = element_text(colour = my_dark),
+    legend.text = element_text(colour = my_dark)
+  )
+
+theme_yy <- theme_minimal(base_size = 13) +
+  theme(
+    plot.title = element_text(face = "bold", colour = my_dark),
+    plot.subtitle = element_text(colour = my_teal),
+    axis.title = element_text(colour = my_dark),
+    axis.text = element_text(colour = my_dark),
+    panel.grid.minor = element_blank(),
+    panel.grid.major.x = element_blank()
+  )
+```
+
+## 5.1 Overview
+
+A ternary plot is useful when the data contains three components that form one complete whole. In this exercise, we use Singapore resident population data to study the balance between three age groups:
+
+- young population,
+- economically active population,
+- aged population.
+
+Each point in a ternary plot represents one composition. The position of the point depends on how much of the total population belongs to each of the three groups.
+
+By the end of this exercise, we will be able to:
+
+- prepare population data for ternary plotting,
+- classify detailed age groups into three broad age components,
+- calculate the percentage share of each component,
+- create ternary plots using the `ggtern` package,
+- compare population structure across planning areas and years,
+- use supporting charts to explain the ternary plot more clearly.
+
+::: {.callout-important}
+## Important
+
+A ternary plot should only be used when the three variables are parts of a whole.  
+In this exercise, the three shares must add up to approximately 100%.
+:::
+
+## 5.2 Getting Started
+
+### 5.2.1 Installing and launching R packages
+
+This exercise mainly uses `ggtern`, an extension of `ggplot2` for creating ternary diagrams. The other packages are used for data cleaning, wrangling, and displaying tables.
+
+::: {.panel-tabset}
+
+## View
+
+```{r}
+#| echo: false
+
+package_table <- tibble(
+  Package = c("tidyverse", "ggtern", "DT", "janitor", "scales"),
+  Purpose = c(
+    "Data import, wrangling, and plotting",
+    "Creating ternary plots",
+    "Displaying interactive HTML tables",
+    "Cleaning column names",
+    "Formatting numbers and percentages"
+  )
+)
+
+DT::datatable(
+  package_table,
+  rownames = FALSE,
+  class = "compact stripe hover",
+  options = list(dom = "t", pageLength = 5),
+  width = "100%"
+)
+```
+
+## Code
+
+```{r}
+#| eval: false
+
+pacman::p_load(
+  tidyverse,
+  ggtern,
+  DT,
+  janitor,
+  scales
+)
+```
+
+:::
+
+::: {.callout-note}
+## Package note
+
+If `ggtern` is not installed, run this once in the Console:
+
+```r
+install.packages("ggtern")
+```
+:::
+
+### 5.2.2 Importing data
+
+The dataset used in this exercise is `respopagsex2000to2018_tidy.csv`.
+
+::: {.panel-tabset}
+
+## View
+
+```{r}
+#| echo: false
+
+csv_file <- list.files(pattern = "\\.csv$")[1]
+
+pop_raw <- read_csv(csv_file, show_col_types = FALSE)
+
+glimpse(pop_raw)
+```
+
+## Code
+
+```{r}
+#| eval: false
+
+csv_file <- list.files(pattern = "\\.csv$")[1]
+
+pop_raw <- read_csv(csv_file, show_col_types = FALSE)
+
+glimpse(pop_raw)
+```
+
+:::
+
+The code uses `list.files()` to read the CSV file in the folder. This avoids render errors caused by small filename differences.
+
+### 5.2.3 Cleaning column names
+
+The raw dataset contains the following key variables:
+
+- `PA`: Planning Area,
+- `SZ`: Subzone,
+- `AG`: Age Group,
+- `Year`: Year,
+- `Population`: Resident population count.
+
+::: {.panel-tabset}
+
+## View
+
+```{r}
+#| echo: false
+
+pop_clean <- pop_raw %>%
+  janitor::clean_names()
+
+names(pop_clean)
+```
+
+## Code
+
+```{r}
+#| eval: false
+
+pop_clean <- pop_raw %>%
+  janitor::clean_names()
+
+names(pop_clean)
+```
+
+:::
+
+After cleaning, the column names become easier to use in R:
+
+```text
+pa, sz, ag, year, population
+```
+
+## 5.3 Preparing Data for Ternary Plot
+
+A ternary plot needs three numeric variables. Here, detailed age groups are collapsed into three demographic components:
+
+- **Young**: age 0–14,
+- **Economically active**: age 15–64,
+- **Aged**: age 65 and above.
+
+### 5.3.1 Standardising the data
+
+::: {.panel-tabset}
+
+## View
+
+```{r}
+#| echo: false
+
+pop_data <- pop_clean %>%
+  transmute(
+    planning_area = as.character(pa),
+    subzone = as.character(sz),
+    age_group = as.character(ag),
+    year = as.integer(year),
+    population = as.numeric(population)
+  ) %>%
+  filter(
+    !is.na(planning_area),
+    !is.na(subzone),
+    !is.na(age_group),
+    !is.na(year),
+    !is.na(population)
+  )
+
+DT::datatable(
+  head(pop_data, 12),
+  rownames = FALSE,
+  class = "compact stripe hover",
+  options = list(pageLength = 12, scrollX = TRUE),
+  width = "100%"
+)
+```
+
+## Code
+
+```{r}
+#| eval: false
+
+pop_data <- pop_clean %>%
+  transmute(
+    planning_area = as.character(pa),
+    subzone = as.character(sz),
+    age_group = as.character(ag),
+    year = as.integer(year),
+    population = as.numeric(population)
+  ) %>%
+  filter(
+    !is.na(planning_area),
+    !is.na(subzone),
+    !is.na(age_group),
+    !is.na(year),
+    !is.na(population)
+  )
+
+DT::datatable(
+  head(pop_data, 12),
+  rownames = FALSE,
+  class = "compact stripe hover",
+  options = list(pageLength = 12, scrollX = TRUE),
+  width = "100%"
+)
+```
+
+:::
+
+The dataset is now standardised into readable names. The key fields are planning area, subzone, age group, year, and population.
+
+### 5.3.2 Creating three age components
+
+The `AG` variable is converted into a numeric lower-bound age. This allows each age group to be classified into one of the three age components.
+
+::: {.panel-tabset}
+
+## View
+
+```{r}
+#| echo: false
+
+pop_grouped <- pop_data %>%
+  mutate(
+    age_lower = parse_number(age_group),
+    age_component = case_when(
+      age_lower < 15 ~ "Young",
+      age_lower >= 15 & age_lower < 65 ~ "Economically active",
+      age_lower >= 65 ~ "Aged",
+      TRUE ~ NA_character_
+    )
+  ) %>%
+  filter(!is.na(age_component)) %>%
+  group_by(year, planning_area, age_component) %>%
+  summarise(
+    population = sum(population, na.rm = TRUE),
+    .groups = "drop"
+  )
+
+DT::datatable(
+  head(pop_grouped, 12),
+  rownames = FALSE,
+  class = "compact stripe hover",
+  options = list(pageLength = 12, scrollX = TRUE),
+  width = "100%"
+)
+```
+
+## Code
+
+```{r}
+#| eval: false
+
+pop_grouped <- pop_data %>%
+  mutate(
+    age_lower = parse_number(age_group),
+    age_component = case_when(
+      age_lower < 15 ~ "Young",
+      age_lower >= 15 & age_lower < 65 ~ "Economically active",
+      age_lower >= 65 ~ "Aged",
+      TRUE ~ NA_character_
+    )
+  ) %>%
+  filter(!is.na(age_component)) %>%
+  group_by(year, planning_area, age_component) %>%
+  summarise(
+    population = sum(population, na.rm = TRUE),
+    .groups = "drop"
+  )
+
+DT::datatable(
+  head(pop_grouped, 12),
+  rownames = FALSE,
+  class = "compact stripe hover",
+  options = list(pageLength = 12, scrollX = TRUE),
+  width = "100%"
+)
+```
+
+:::
+
+::: {.callout-tip}
+## What can we learn?
+
+The original dataset has many detailed age groups.  
+For a ternary plot, these detailed groups must first be summarised into exactly three meaningful components.
+:::
+
+### 5.3.3 Converting to ternary format
+
+Each planning area and year is converted into one row. The three age components are then converted into percentage shares.
+
+::: {.panel-tabset}
+
+## View
+
+```{r}
+#| echo: false
+
+ternary_data <- pop_grouped %>%
+  pivot_wider(
+    names_from = age_component,
+    values_from = population,
+    values_fill = 0
+  ) %>%
+  mutate(
+    total_population = Young + `Economically active` + Aged,
+    young_share = Young / total_population * 100,
+    active_share = `Economically active` / total_population * 100,
+    aged_share = Aged / total_population * 100,
+    check_total = young_share + active_share + aged_share
+  ) %>%
+  filter(total_population > 0)
+
+DT::datatable(
+  ternary_data %>%
+    mutate(
+      across(
+        c(young_share, active_share, aged_share, check_total),
+        ~ round(.x, 2)
+      )
+    ),
+  rownames = FALSE,
+  class = "compact stripe hover",
+  options = list(pageLength = 10, scrollX = TRUE),
+  width = "100%"
+)
+```
+
+## Code
+
+```{r}
+#| eval: false
+
+ternary_data <- pop_grouped %>%
+  pivot_wider(
+    names_from = age_component,
+    values_from = population,
+    values_fill = 0
+  ) %>%
+  mutate(
+    total_population = Young + `Economically active` + Aged,
+    young_share = Young / total_population * 100,
+    active_share = `Economically active` / total_population * 100,
+    aged_share = Aged / total_population * 100,
+    check_total = young_share + active_share + aged_share
+  ) %>%
+  filter(total_population > 0)
+
+DT::datatable(
+  ternary_data %>%
+    mutate(
+      across(
+        c(young_share, active_share, aged_share, check_total),
+        ~ round(.x, 2)
+      )
+    ),
+  rownames = FALSE,
+  class = "compact stripe hover",
+  options = list(pageLength = 10, scrollX = TRUE),
+  width = "100%"
+)
+```
+
+:::
+
+The `check_total` column should be close to 100. This confirms that the data is suitable for ternary plotting.
+
+## 5.4 Creating Ternary Plot with `ggtern`
+
+`ggtern` extends `ggplot2` by allowing three-axis plots. Instead of x and y only, a ternary plot uses x, y, and z components.
+
+In this exercise:
+
+- x-axis represents young population share,
+- y-axis represents economically active population share,
+- z-axis represents aged population share.
+
+### 5.4.1 Basic ternary plot
+
+The first ternary plot shows the population structure of all planning areas across all years.
+
+::: {.panel-tabset}
+
+## View
+
+```{r}
+#| echo: false
+#| fig-width: 8
+#| fig-height: 7
+
+ggtern(
+  data = ternary_data,
+  aes(
+    x = young_share,
+    y = active_share,
+    z = aged_share
+  )
+) +
+  geom_point(
+    aes(colour = year),
+    size = 1.8,
+    alpha = 0.75
+  ) +
+  scale_colour_gradient(
+    low = my_soft_teal,
+    high = my_dark
+  ) +
+  labs(
+    title = "Ternary plot of resident population structure",
+    subtitle = "Each point represents one planning area in one year",
+    x = "Young (%)",
+    y = "Economically active (%)",
+    z = "Aged (%)",
+    colour = "Year"
+  ) +
+  theme_tern_yy
+```
+
+## Code
+
+```{r}
+#| eval: false
+
+ggtern(
+  data = ternary_data,
+  aes(
+    x = young_share,
+    y = active_share,
+    z = aged_share
+  )
+) +
+  geom_point(
+    aes(colour = year),
+    size = 1.8,
+    alpha = 0.75
+  ) +
+  scale_colour_gradient(
+    low = my_soft_teal,
+    high = my_dark
+  ) +
+  labs(
+    title = "Ternary plot of resident population structure",
+    subtitle = "Each point represents one planning area in one year",
+    x = "Young (%)",
+    y = "Economically active (%)",
+    z = "Aged (%)",
+    colour = "Year"
+  ) +
+  theme_tern_yy
+```
+
+:::
+
+A point closer to the aged corner means the planning area has a larger aged population share. A point closer to the young corner means the planning area has a larger young population share.
+
+::: {.callout-tip}
+## What can we learn?
+
+The ternary plot helps us compare three population shares at the same time.  
+This is useful because demographic structure is about balance, not only one variable.
+:::
+
+### 5.4.2 Ternary plot for latest year
+
+To reduce visual clutter, the next plot focuses only on the latest year in the dataset.
+
+::: {.panel-tabset}
+
+## View
+
+```{r}
+#| echo: false
+#| fig-width: 8
+#| fig-height: 7
+
+latest_year <- max(ternary_data$year, na.rm = TRUE)
+
+ternary_latest <- ternary_data %>%
+  filter(year == latest_year)
+
+ggtern(
+  data = ternary_latest,
+  aes(
+    x = young_share,
+    y = active_share,
+    z = aged_share
+  )
+) +
+  geom_point(
+    colour = my_teal,
+    fill = my_light_teal,
+    shape = 21,
+    size = 2.8,
+    alpha = 0.85
+  ) +
+  labs(
+    title = paste0("Population structure by planning area in ", latest_year),
+    subtitle = "Each point represents one planning area",
+    x = "Young (%)",
+    y = "Economically active (%)",
+    z = "Aged (%)"
+  ) +
+  theme_tern_yy
+```
+
+## Code
+
+```{r}
+#| eval: false
+
+latest_year <- max(ternary_data$year, na.rm = TRUE)
+
+ternary_latest <- ternary_data %>%
+  filter(year == latest_year)
+
+ggtern(
+  data = ternary_latest,
+  aes(
+    x = young_share,
+    y = active_share,
+    z = aged_share
+  )
+) +
+  geom_point(
+    colour = my_teal,
+    fill = my_light_teal,
+    shape = 21,
+    size = 2.8,
+    alpha = 0.85
+  ) +
+  labs(
+    title = paste0("Population structure by planning area in ", latest_year),
+    subtitle = "Each point represents one planning area",
+    x = "Young (%)",
+    y = "Economically active (%)",
+    z = "Aged (%)"
+  ) +
+  theme_tern_yy
+```
+
+:::
+
+This plot is easier to read because it removes year-to-year overlap and focuses on cross-sectional comparison.
+
+### 5.4.3 Highlighting selected planning areas
+
+The full dataset contains many planning areas. To make the movement clearer, the next chart highlights several large planning areas and connects their changes over time.
+
+::: {.panel-tabset}
+
+## View
+
+```{r}
+#| echo: false
+#| fig-width: 9
+#| fig-height: 7
+
+top_pa <- ternary_latest %>%
+  arrange(desc(total_population)) %>%
+  slice_head(n = 6) %>%
+  pull(planning_area)
+
+selected_ternary <- ternary_data %>%
+  filter(planning_area %in% top_pa)
+
+ggtern(
+  data = selected_ternary,
+  aes(
+    x = young_share,
+    y = active_share,
+    z = aged_share
+  )
+) +
+  geom_path(
+    aes(group = planning_area, colour = planning_area),
+    linewidth = 0.65,
+    alpha = 0.75
+  ) +
+  geom_point(
+    aes(colour = planning_area),
+    size = 2.2,
+    alpha = 0.9
+  ) +
+  labs(
+    title = "Population composition trajectory of selected planning areas",
+    subtitle = "Connected points show how the age structure moves over time",
+    x = "Young (%)",
+    y = "Economically active (%)",
+    z = "Aged (%)",
+    colour = "Planning area"
+  ) +
+  theme_tern_yy
+```
+
+## Code
+
+```{r}
+#| eval: false
+
+top_pa <- ternary_latest %>%
+  arrange(desc(total_population)) %>%
+  slice_head(n = 6) %>%
+  pull(planning_area)
+
+selected_ternary <- ternary_data %>%
+  filter(planning_area %in% top_pa)
+
+ggtern(
+  data = selected_ternary,
+  aes(
+    x = young_share,
+    y = active_share,
+    z = aged_share
+  )
+) +
+  geom_path(
+    aes(group = planning_area, colour = planning_area),
+    linewidth = 0.65,
+    alpha = 0.75
+  ) +
+  geom_point(
+    aes(colour = planning_area),
+    size = 2.2,
+    alpha = 0.9
+  ) +
+  labs(
+    title = "Population composition trajectory of selected planning areas",
+    subtitle = "Connected points show how the age structure moves over time",
+    x = "Young (%)",
+    y = "Economically active (%)",
+    z = "Aged (%)",
+    colour = "Planning area"
+  ) +
+  theme_tern_yy
+```
+
+:::
+
+The line paths show the direction of demographic change. If a planning area moves closer to the aged corner, it suggests a stronger ageing pattern.
+
+## 5.5 Supporting Interpretation with Normal Charts
+
+A ternary plot is compact, but some readers may not be familiar with triangular charts. A supporting line chart can make the same pattern easier to verify.
+
+### 5.5.1 Supporting line chart of population shares
+
+::: {.panel-tabset}
+
+## View
+
+```{r}
+#| echo: false
+#| fig-width: 9
+#| fig-height: 5
+
+share_long <- selected_ternary %>%
+  select(year, planning_area, young_share, active_share, aged_share) %>%
+  pivot_longer(
+    cols = c(young_share, active_share, aged_share),
+    names_to = "component",
+    values_to = "share"
+  ) %>%
+  mutate(
+    component = recode(
+      component,
+      young_share = "Young",
+      active_share = "Economically active",
+      aged_share = "Aged"
+    )
+  )
+
+ggplot(
+  share_long,
+  aes(x = year, y = share, colour = component)
+) +
+  geom_line(linewidth = 0.8) +
+  geom_point(size = 1.6) +
+  facet_wrap(~ planning_area) +
+  scale_colour_manual(
+    values = c(
+      "Young" = my_soft_teal,
+      "Economically active" = my_teal,
+      "Aged" = my_warning
+    )
+  ) +
+  scale_y_continuous(labels = label_percent(scale = 1)) +
+  labs(
+    title = "Population share by age component",
+    subtitle = "A supporting chart helps explain the movement shown in the ternary plot",
+    x = "Year",
+    y = "Share of population",
+    colour = "Component"
+  ) +
+  theme_yy +
+  theme(legend.position = "top")
+```
+
+## Code
+
+```{r}
+#| eval: false
+
+share_long <- selected_ternary %>%
+  select(year, planning_area, young_share, active_share, aged_share) %>%
+  pivot_longer(
+    cols = c(young_share, active_share, aged_share),
+    names_to = "component",
+    values_to = "share"
+  ) %>%
+  mutate(
+    component = recode(
+      component,
+      young_share = "Young",
+      active_share = "Economically active",
+      aged_share = "Aged"
+    )
+  )
+
+ggplot(
+  share_long,
+  aes(x = year, y = share, colour = component)
+) +
+  geom_line(linewidth = 0.8) +
+  geom_point(size = 1.6) +
+  facet_wrap(~ planning_area) +
+  scale_colour_manual(
+    values = c(
+      "Young" = my_soft_teal,
+      "Economically active" = my_teal,
+      "Aged" = my_warning
+    )
+  ) +
+  scale_y_continuous(labels = label_percent(scale = 1)) +
+  labs(
+    title = "Population share by age component",
+    subtitle = "A supporting chart helps explain the movement shown in the ternary plot",
+    x = "Year",
+    y = "Share of population",
+    colour = "Component"
+  ) +
+  theme_yy +
+  theme(legend.position = "top")
+```
+
+:::
+
+This chart makes it easier to see which component is driving the movement inside the ternary plot.
+
+### 5.5.2 Extra analysis: ageing ratio
+
+As an additional analytical layer, we calculate an ageing ratio:
+
+```text
+aged share / young share
+```
+
+A higher ageing ratio means the aged population is larger relative to the young population.
+
+::: {.panel-tabset}
+
+## View
+
+```{r}
+#| echo: false
+
+ageing_indicator <- ternary_data %>%
+  mutate(
+    ageing_ratio = aged_share / young_share
+  ) %>%
+  select(
+    year,
+    planning_area,
+    young_share,
+    active_share,
+    aged_share,
+    ageing_ratio
+  )
+
+DT::datatable(
+  ageing_indicator %>%
+    mutate(
+      across(
+        c(young_share, active_share, aged_share, ageing_ratio),
+        ~ round(.x, 2)
+      )
+    ),
+  rownames = FALSE,
+  class = "compact stripe hover",
+  options = list(pageLength = 10, scrollX = TRUE),
+  width = "100%"
+)
+```
+
+## Code
+
+```{r}
+#| eval: false
+
+ageing_indicator <- ternary_data %>%
+  mutate(
+    ageing_ratio = aged_share / young_share
+  ) %>%
+  select(
+    year,
+    planning_area,
+    young_share,
+    active_share,
+    aged_share,
+    ageing_ratio
+  )
+
+DT::datatable(
+  ageing_indicator %>%
+    mutate(
+      across(
+        c(young_share, active_share, aged_share, ageing_ratio),
+        ~ round(.x, 2)
+      )
+    ),
+  rownames = FALSE,
+  class = "compact stripe hover",
+  options = list(pageLength = 10, scrollX = TRUE),
+  width = "100%"
+)
+```
+
+:::
+
+::: {.callout-tip}
+## Extra interpretation
+
+The ageing ratio gives a simple summary of demographic ageing.  
+If this ratio increases over time, the planning area is ageing relative to its young population.
+:::
+
+### 5.5.3 Visualising ageing ratio for selected planning areas
+
+::: {.panel-tabset}
+
+## View
+
+```{r}
+#| echo: false
+#| fig-width: 9
+#| fig-height: 5
+
+ageing_indicator %>%
+  filter(planning_area %in% top_pa) %>%
+  ggplot(aes(x = year, y = ageing_ratio, colour = planning_area)) +
+  geom_line(linewidth = 0.85) +
+  geom_point(size = 1.8) +
+  labs(
+    title = "Ageing ratio over time",
+    subtitle = "Aged share divided by young share for selected planning areas",
+    x = "Year",
+    y = "Ageing ratio",
+    colour = "Planning area"
+  ) +
+  theme_yy +
+  theme(legend.position = "bottom")
+```
+
+## Code
+
+```{r}
+#| eval: false
+
+ageing_indicator %>%
+  filter(planning_area %in% top_pa) %>%
+  ggplot(aes(x = year, y = ageing_ratio, colour = planning_area)) +
+  geom_line(linewidth = 0.85) +
+  geom_point(size = 1.8) +
+  labs(
+    title = "Ageing ratio over time",
+    subtitle = "Aged share divided by young share for selected planning areas",
+    x = "Year",
+    y = "Ageing ratio",
+    colour = "Planning area"
+  ) +
+  theme_yy +
+  theme(legend.position = "bottom")
+```
+
+:::
+
+This extra chart makes the ageing pattern more explicit. It complements the ternary plot by turning the age balance into a direct indicator.
+
+## 5.6 Final Takeaway
+
+Ternary plots are useful when the main task is to compare three parts of a whole. In this exercise, the three parts are young, economically active, and aged population shares.
+
+The ternary plot keeps the composition intact, while the supporting line charts help explain the direction of change more clearly.
+
+::: {.callout-tip}
+## Final takeaway
+
+Use a ternary plot when three components must be interpreted together.  
+For population data, it is especially useful for showing how the age structure shifts across places and over time.
+:::
+
+## 5.7 Reference
+
+This exercise covered:
+
+- cleaning Singapore resident population data,
+- converting detailed age groups into three age components,
+- calculating percentage shares,
+- creating ternary plots with `ggtern`,
+- using supporting charts to improve interpretation.
+
+The main interpretation principle is simple: a ternary plot shows **composition**, not absolute population size.
