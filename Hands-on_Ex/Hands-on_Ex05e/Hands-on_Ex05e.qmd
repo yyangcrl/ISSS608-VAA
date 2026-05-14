@@ -1,0 +1,1395 @@
+---
+title: "Hands-on Exercise 5e - Visualising Spatial Point Patterns"
+author: "Yang Yang"
+format:
+  html:
+    theme: sketchy
+    toc: true
+    toc-depth: 3
+    number-sections: false
+    code-copy: true
+    code-overflow: wrap
+editor: visual
+execute:
+  warning: false
+  message: false
+---
+
+```{r}
+#| label: setup
+#| include: false
+
+if (!require(pacman)) {
+  install.packages("pacman")
+}
+
+pacman::p_load(
+  tidyverse,
+  DT,
+  janitor,
+  scales,
+  lubridate,
+  plotly,
+  knitr
+)
+
+my_teal <- "#2A6F6F"
+my_soft_teal <- "#8AA6A3"
+my_dark <- "#1F1F1F"
+my_light_teal <- "#D8E8E6"
+my_grey <- "#F3F4F4"
+my_warning <- "#B07C3E"
+my_red <- "#9A4B4B"
+
+theme_yy <- theme_minimal(base_size = 13) +
+  theme(
+    plot.title = element_text(face = "bold", colour = my_dark),
+    plot.subtitle = element_text(colour = my_teal),
+    axis.title = element_text(colour = my_dark),
+    axis.text = element_text(colour = my_dark),
+    panel.grid.minor = element_blank(),
+    legend.position = "bottom"
+  )
+```
+
+## 5.1 Overview
+
+Spatial point pattern analysis is useful when the data contains events that happen across different locations. In this exercise, we use Singapore private residential transaction data from `realis2018.csv`.
+
+The dataset does not include longitude and latitude, so the analysis uses available spatial identifiers such as planning region, planning area, postal district, postal sector, and postal code. This still allows us to study how residential transactions are distributed across Singapore at an area-based level.
+
+By the end of this exercise, we will be able to:
+
+- import and clean private residential transaction data,
+- prepare location-based transaction variables,
+- visualise transaction concentration by planning region and planning area,
+- compare unit price patterns across locations,
+- create simple spatial proxy heatmaps using postal district and planning area,
+- add a small extension using monthly transaction trends.
+
+::: {.callout-important}
+## Important
+
+This exercise uses planning areas and postal districts as spatial proxies.  
+They are not the same as exact point coordinates, but they still provide useful location-based structure for exploratory analysis.
+:::
+
+## 5.2 Getting Started
+
+### 5.2.1 Installing and launching R packages
+
+The packages below are used for data import, cleaning, wrangling, static visualisation, interactive visualisation, and table display.
+
+::: {.panel-tabset}
+
+## View
+
+```{r}
+#| echo: false
+
+package_table <- tibble(
+  Package = c("tidyverse", "DT", "janitor", "lubridate", "plotly", "scales"),
+  Purpose = c(
+    "Data import, wrangling, and ggplot2 visualisation",
+    "Interactive HTML tables",
+    "Cleaning variable names",
+    "Parsing transaction dates",
+    "Interactive plots",
+    "Formatting labels and numerical scales"
+  )
+)
+
+DT::datatable(
+  package_table,
+  rownames = FALSE,
+  class = "compact stripe hover",
+  options = list(dom = "t", pageLength = 6),
+  width = "100%"
+)
+```
+
+## Code
+
+```{r}
+#| eval: false
+
+pacman::p_load(
+  tidyverse,
+  DT,
+  janitor,
+  lubridate,
+  plotly,
+  scales
+)
+```
+
+:::
+
+### 5.2.2 Importing data
+
+The dataset used in this exercise is `realis2018.csv`.
+
+::: {.panel-tabset}
+
+## View
+
+```{r}
+#| echo: false
+
+csv_file <- list.files(pattern = "realis2018.*\\.csv$")[1]
+
+realis_raw <- read_csv(csv_file, show_col_types = FALSE)
+
+glimpse(realis_raw)
+```
+
+## Code
+
+```{r}
+#| eval: false
+
+csv_file <- list.files(pattern = "realis2018.*\\.csv$")[1]
+
+realis_raw <- read_csv(csv_file, show_col_types = FALSE)
+
+glimpse(realis_raw)
+```
+
+:::
+
+The data is read from the current exercise folder. Using `list.files()` avoids path errors during rendering.
+
+### 5.2.3 Cleaning column names
+
+The original dataset contains column names such as `Project Name`, `Area (sqm)`, `Transacted Price ($)`, and `Planning Area`. These names are cleaned before analysis.
+
+::: {.panel-tabset}
+
+## View
+
+```{r}
+#| echo: false
+
+realis <- realis_raw %>%
+  janitor::clean_names()
+
+names(realis)
+```
+
+## Code
+
+```{r}
+realis <- realis_raw %>%
+  janitor::clean_names()
+
+names(realis)
+```
+
+:::
+
+After cleaning, the column names become easier to use in R. For example, `Planning Area` becomes `planning_area`, and `Unit Price ($ psf)` becomes `unit_price_psf`.
+
+### 5.2.4 Quick data preview
+
+::: {.panel-tabset}
+
+## View
+
+```{r}
+#| echo: false
+
+DT::datatable(
+  head(realis, 12),
+  rownames = FALSE,
+  class = "compact stripe hover",
+  options = list(pageLength = 12, scrollX = TRUE),
+  width = "100%"
+)
+```
+
+## Code
+
+```{r}
+#| eval: false
+
+DT::datatable(
+  head(realis, 12),
+  rownames = FALSE,
+  class = "compact stripe hover",
+  options = list(pageLength = 12, scrollX = TRUE),
+  width = "100%"
+)
+```
+
+:::
+
+## 5.3 Preparing Data for Spatial Pattern Analysis
+
+Before visualising the transaction patterns, the dataset needs to be standardised. We keep the spatial identifiers, transaction date, property type, area, transaction price, and unit price.
+
+### 5.3.1 Selecting useful variables
+
+::: {.panel-tabset}
+
+## View
+
+```{r}
+#| echo: false
+
+realis_clean <- realis %>%
+  transmute(
+    project_name = as.character(project_name),
+    address = as.character(address),
+    no_of_units = as.numeric(no_of_units),
+    area_sqm = as.numeric(area_sqm),
+    transacted_price = as.numeric(transacted_price),
+    unit_price_psm = as.numeric(unit_price_psm),
+    unit_price_psf = as.numeric(unit_price_psf),
+    sale_date = as.Date(sale_date, format = "%d-%b-%y"),
+    property_type = as.character(property_type),
+    type_of_sale = as.character(type_of_sale),
+    postal_district = as.character(postal_district),
+    postal_sector = as.character(postal_sector),
+    postal_code = as.character(postal_code),
+    planning_region = as.character(planning_region),
+    planning_area = as.character(planning_area)
+  ) %>%
+  filter(
+    !is.na(sale_date),
+    !is.na(planning_region),
+    !is.na(planning_area),
+    !is.na(postal_district),
+    !is.na(unit_price_psf),
+    !is.na(transacted_price)
+  )
+
+DT::datatable(
+  head(realis_clean, 12),
+  rownames = FALSE,
+  class = "compact stripe hover",
+  options = list(pageLength = 12, scrollX = TRUE),
+  width = "100%"
+)
+```
+
+## Code
+
+```{r}
+realis_clean <- realis %>%
+  transmute(
+    project_name = as.character(project_name),
+    address = as.character(address),
+    no_of_units = as.numeric(no_of_units),
+    area_sqm = as.numeric(area_sqm),
+    transacted_price = as.numeric(transacted_price),
+    unit_price_psm = as.numeric(unit_price_psm),
+    unit_price_psf = as.numeric(unit_price_psf),
+    sale_date = as.Date(sale_date, format = "%d-%b-%y"),
+    property_type = as.character(property_type),
+    type_of_sale = as.character(type_of_sale),
+    postal_district = as.character(postal_district),
+    postal_sector = as.character(postal_sector),
+    postal_code = as.character(postal_code),
+    planning_region = as.character(planning_region),
+    planning_area = as.character(planning_area)
+  ) %>%
+  filter(
+    !is.na(sale_date),
+    !is.na(planning_region),
+    !is.na(planning_area),
+    !is.na(postal_district),
+    !is.na(unit_price_psf),
+    !is.na(transacted_price)
+  )
+
+DT::datatable(
+  head(realis_clean, 12),
+  rownames = FALSE,
+  class = "compact stripe hover",
+  options = list(pageLength = 12, scrollX = TRUE),
+  width = "100%"
+)
+```
+
+:::
+
+::: {.callout-tip}
+## What can we learn?
+
+The cleaned dataset keeps both transaction variables and location variables.  
+This allows us to analyse where transactions are concentrated and how prices differ across areas.
+:::
+
+### 5.3.2 Creating summary indicators
+
+We calculate the number of transactions, total transacted value, median unit price, and median unit size for each planning area.
+
+::: {.panel-tabset}
+
+## View
+
+```{r}
+#| echo: false
+
+area_summary <- realis_clean %>%
+  group_by(planning_region, planning_area) %>%
+  summarise(
+    transactions = n(),
+    total_value_million = sum(transacted_price, na.rm = TRUE) / 1000000,
+    median_unit_price_psf = median(unit_price_psf, na.rm = TRUE),
+    median_area_sqm = median(area_sqm, na.rm = TRUE),
+    .groups = "drop"
+  ) %>%
+  arrange(desc(transactions))
+
+DT::datatable(
+  area_summary %>%
+    mutate(
+      total_value_million = round(total_value_million, 2),
+      median_unit_price_psf = round(median_unit_price_psf, 0),
+      median_area_sqm = round(median_area_sqm, 1)
+    ),
+  rownames = FALSE,
+  class = "compact stripe hover",
+  options = list(pageLength = 12, scrollX = TRUE),
+  width = "100%"
+)
+```
+
+## Code
+
+```{r}
+area_summary <- realis_clean %>%
+  group_by(planning_region, planning_area) %>%
+  summarise(
+    transactions = n(),
+    total_value_million = sum(transacted_price, na.rm = TRUE) / 1000000,
+    median_unit_price_psf = median(unit_price_psf, na.rm = TRUE),
+    median_area_sqm = median(area_sqm, na.rm = TRUE),
+    .groups = "drop"
+  ) %>%
+  arrange(desc(transactions))
+
+DT::datatable(
+  area_summary %>%
+    mutate(
+      total_value_million = round(total_value_million, 2),
+      median_unit_price_psf = round(median_unit_price_psf, 0),
+      median_area_sqm = round(median_area_sqm, 1)
+    ),
+  rownames = FALSE,
+  class = "compact stripe hover",
+  options = list(pageLength = 12, scrollX = TRUE),
+  width = "100%"
+)
+```
+
+:::
+
+## 5.4 Visualising Transaction Concentration
+
+A basic starting point is to identify where the most transactions happened. This does not show exact geographical coordinates, but it gives a clear area-based picture of market concentration.
+
+### 5.4.1 Transactions by planning region
+
+::: {.panel-tabset}
+
+## View
+
+```{r}
+#| echo: false
+#| fig-width: 8
+#| fig-height: 5
+
+region_summary <- realis_clean %>%
+  group_by(planning_region) %>%
+  summarise(
+    transactions = n(),
+    median_unit_price_psf = median(unit_price_psf, na.rm = TRUE),
+    total_value_million = sum(transacted_price, na.rm = TRUE) / 1000000,
+    .groups = "drop"
+  ) %>%
+  arrange(desc(transactions))
+
+ggplot(
+  region_summary,
+  aes(
+    x = fct_reorder(planning_region, transactions),
+    y = transactions
+  )
+) +
+  geom_col(
+    fill = my_teal,
+    colour = my_dark,
+    linewidth = 0.3
+  ) +
+  coord_flip() +
+  scale_y_continuous(labels = comma) +
+  labs(
+    title = "Number of private residential transactions by planning region",
+    subtitle = "Transaction counts show where market activity is concentrated",
+    x = NULL,
+    y = "Number of transactions"
+  ) +
+  theme_yy
+```
+
+## Code
+
+```{r}
+region_summary <- realis_clean %>%
+  group_by(planning_region) %>%
+  summarise(
+    transactions = n(),
+    median_unit_price_psf = median(unit_price_psf, na.rm = TRUE),
+    total_value_million = sum(transacted_price, na.rm = TRUE) / 1000000,
+    .groups = "drop"
+  ) %>%
+  arrange(desc(transactions))
+
+ggplot(
+  region_summary,
+  aes(
+    x = fct_reorder(planning_region, transactions),
+    y = transactions
+  )
+) +
+  geom_col(
+    fill = my_teal,
+    colour = my_dark,
+    linewidth = 0.3
+  ) +
+  coord_flip() +
+  scale_y_continuous(labels = comma) +
+  labs(
+    title = "Number of private residential transactions by planning region",
+    subtitle = "Transaction counts show where market activity is concentrated",
+    x = NULL,
+    y = "Number of transactions"
+  ) +
+  theme_yy
+```
+
+:::
+
+The bar chart gives a first-level view of spatial concentration. A region with more transactions may indicate more active market supply, stronger resale activity, or a larger residential base.
+
+### 5.4.2 Top planning areas by transaction count
+
+::: {.panel-tabset}
+
+## View
+
+```{r}
+#| echo: false
+#| fig-width: 9
+#| fig-height: 6
+
+top_area_summary <- area_summary %>%
+  slice_head(n = 15)
+
+ggplot(
+  top_area_summary,
+  aes(
+    x = fct_reorder(planning_area, transactions),
+    y = transactions,
+    fill = planning_region
+  )
+) +
+  geom_col(
+    colour = my_dark,
+    linewidth = 0.25
+  ) +
+  coord_flip() +
+  scale_fill_manual(
+    values = c(
+      "Central Region" = my_teal,
+      "East Region" = my_soft_teal,
+      "North East Region" = my_warning,
+      "North Region" = my_light_teal,
+      "West Region" = my_red
+    )
+  ) +
+  scale_y_continuous(labels = comma) +
+  labs(
+    title = "Top 15 planning areas by transaction count",
+    subtitle = "Planning areas are coloured by planning region",
+    x = NULL,
+    y = "Number of transactions",
+    fill = "Planning region"
+  ) +
+  theme_yy
+```
+
+## Code
+
+```{r}
+top_area_summary <- area_summary %>%
+  slice_head(n = 15)
+
+ggplot(
+  top_area_summary,
+  aes(
+    x = fct_reorder(planning_area, transactions),
+    y = transactions,
+    fill = planning_region
+  )
+) +
+  geom_col(
+    colour = my_dark,
+    linewidth = 0.25
+  ) +
+  coord_flip() +
+  scale_fill_manual(
+    values = c(
+      "Central Region" = my_teal,
+      "East Region" = my_soft_teal,
+      "North East Region" = my_warning,
+      "North Region" = my_light_teal,
+      "West Region" = my_red
+    )
+  ) +
+  scale_y_continuous(labels = comma) +
+  labs(
+    title = "Top 15 planning areas by transaction count",
+    subtitle = "Planning areas are coloured by planning region",
+    x = NULL,
+    y = "Number of transactions",
+    fill = "Planning region"
+  ) +
+  theme_yy
+```
+
+:::
+
+This plot gives a more detailed view than the regional chart. It shows which planning areas dominate the transaction dataset.
+
+::: {.callout-note}
+## Reading the chart
+
+A high transaction count does not automatically mean high price.  
+Transaction volume and unit price should be analysed separately.
+:::
+
+## 5.5 Visualising Price Patterns
+
+Transaction concentration and price level are different dimensions. The next charts focus on unit price per square foot.
+
+### 5.5.1 Median unit price by planning area
+
+::: {.panel-tabset}
+
+## View
+
+```{r}
+#| echo: false
+#| fig-width: 9
+#| fig-height: 6
+
+price_area_summary <- area_summary %>%
+  filter(transactions >= 30) %>%
+  arrange(desc(median_unit_price_psf)) %>%
+  slice_head(n = 15)
+
+ggplot(
+  price_area_summary,
+  aes(
+    x = fct_reorder(planning_area, median_unit_price_psf),
+    y = median_unit_price_psf,
+    fill = planning_region
+  )
+) +
+  geom_col(
+    colour = my_dark,
+    linewidth = 0.25
+  ) +
+  coord_flip() +
+  scale_fill_manual(
+    values = c(
+      "Central Region" = my_teal,
+      "East Region" = my_soft_teal,
+      "North East Region" = my_warning,
+      "North Region" = my_light_teal,
+      "West Region" = my_red
+    )
+  ) +
+  scale_y_continuous(labels = dollar) +
+  labs(
+    title = "Top planning areas by median unit price",
+    subtitle = "Only planning areas with at least 30 transactions are included",
+    x = NULL,
+    y = "Median unit price ($ psf)",
+    fill = "Planning region"
+  ) +
+  theme_yy
+```
+
+## Code
+
+```{r}
+price_area_summary <- area_summary %>%
+  filter(transactions >= 30) %>%
+  arrange(desc(median_unit_price_psf)) %>%
+  slice_head(n = 15)
+
+ggplot(
+  price_area_summary,
+  aes(
+    x = fct_reorder(planning_area, median_unit_price_psf),
+    y = median_unit_price_psf,
+    fill = planning_region
+  )
+) +
+  geom_col(
+    colour = my_dark,
+    linewidth = 0.25
+  ) +
+  coord_flip() +
+  scale_fill_manual(
+    values = c(
+      "Central Region" = my_teal,
+      "East Region" = my_soft_teal,
+      "North East Region" = my_warning,
+      "North Region" = my_light_teal,
+      "West Region" = my_red
+    )
+  ) +
+  scale_y_continuous(labels = dollar) +
+  labs(
+    title = "Top planning areas by median unit price",
+    subtitle = "Only planning areas with at least 30 transactions are included",
+    x = NULL,
+    y = "Median unit price ($ psf)",
+    fill = "Planning region"
+  ) +
+  theme_yy
+```
+
+:::
+
+Using a minimum transaction threshold avoids over-reading planning areas with very few observations.
+
+### 5.5.2 Unit price distribution by property type
+
+::: {.panel-tabset}
+
+## View
+
+```{r}
+#| echo: false
+#| fig-width: 9
+#| fig-height: 5
+
+property_order <- realis_clean %>%
+  group_by(property_type) %>%
+  summarise(median_price = median(unit_price_psf, na.rm = TRUE), .groups = "drop") %>%
+  arrange(median_price) %>%
+  pull(property_type)
+
+ggplot(
+  realis_clean,
+  aes(
+    x = factor(property_type, levels = property_order),
+    y = unit_price_psf
+  )
+) +
+  geom_boxplot(
+    fill = my_light_teal,
+    colour = my_dark,
+    outlier.alpha = 0.15
+  ) +
+  coord_flip() +
+  scale_y_continuous(labels = dollar) +
+  labs(
+    title = "Unit price distribution by property type",
+    subtitle = "Boxplots reveal price spread and outliers across property categories",
+    x = NULL,
+    y = "Unit price ($ psf)"
+  ) +
+  theme_yy
+```
+
+## Code
+
+```{r}
+property_order <- realis_clean %>%
+  group_by(property_type) %>%
+  summarise(median_price = median(unit_price_psf, na.rm = TRUE), .groups = "drop") %>%
+  arrange(median_price) %>%
+  pull(property_type)
+
+ggplot(
+  realis_clean,
+  aes(
+    x = factor(property_type, levels = property_order),
+    y = unit_price_psf
+  )
+) +
+  geom_boxplot(
+    fill = my_light_teal,
+    colour = my_dark,
+    outlier.alpha = 0.15
+  ) +
+  coord_flip() +
+  scale_y_continuous(labels = dollar) +
+  labs(
+    title = "Unit price distribution by property type",
+    subtitle = "Boxplots reveal price spread and outliers across property categories",
+    x = NULL,
+    y = "Unit price ($ psf)"
+  ) +
+  theme_yy
+```
+
+:::
+
+This chart separates spatial analysis from property-type analysis. Some areas may appear expensive partly because they contain more high-end property types.
+
+## 5.6 Postal District as Spatial Proxy
+
+Postal district can be used as a simplified spatial unit. It is not a map, but it helps show whether transaction counts and prices are concentrated in certain districts.
+
+### 5.6.1 Postal district summary
+
+::: {.panel-tabset}
+
+## View
+
+```{r}
+#| echo: false
+
+district_summary <- realis_clean %>%
+  group_by(postal_district) %>%
+  summarise(
+    transactions = n(),
+    median_unit_price_psf = median(unit_price_psf, na.rm = TRUE),
+    total_value_million = sum(transacted_price, na.rm = TRUE) / 1000000,
+    .groups = "drop"
+  ) %>%
+  mutate(
+    postal_district = factor(postal_district, levels = sort(unique(postal_district)))
+  )
+
+DT::datatable(
+  district_summary %>%
+    mutate(
+      median_unit_price_psf = round(median_unit_price_psf, 0),
+      total_value_million = round(total_value_million, 2)
+    ),
+  rownames = FALSE,
+  class = "compact stripe hover",
+  options = list(pageLength = 12, scrollX = TRUE),
+  width = "100%"
+)
+```
+
+## Code
+
+```{r}
+district_summary <- realis_clean %>%
+  group_by(postal_district) %>%
+  summarise(
+    transactions = n(),
+    median_unit_price_psf = median(unit_price_psf, na.rm = TRUE),
+    total_value_million = sum(transacted_price, na.rm = TRUE) / 1000000,
+    .groups = "drop"
+  ) %>%
+  mutate(
+    postal_district = factor(postal_district, levels = sort(unique(postal_district)))
+  )
+
+DT::datatable(
+  district_summary %>%
+    mutate(
+      median_unit_price_psf = round(median_unit_price_psf, 0),
+      total_value_million = round(total_value_million, 2)
+    ),
+  rownames = FALSE,
+  class = "compact stripe hover",
+  options = list(pageLength = 12, scrollX = TRUE),
+  width = "100%"
+)
+```
+
+:::
+
+### 5.6.2 Postal district heatmap
+
+::: {.panel-tabset}
+
+## View
+
+```{r}
+#| echo: false
+#| fig-width: 10
+#| fig-height: 5
+
+district_heatmap <- district_summary %>%
+  mutate(
+    district_group = paste0("District ", postal_district),
+    price_band = cut(
+      median_unit_price_psf,
+      breaks = quantile(median_unit_price_psf, probs = seq(0, 1, 0.2), na.rm = TRUE),
+      include.lowest = TRUE,
+      labels = c("Very low", "Low", "Medium", "High", "Very high")
+    )
+  )
+
+ggplot(
+  district_heatmap,
+  aes(
+    x = district_group,
+    y = price_band,
+    fill = transactions
+  )
+) +
+  geom_tile(
+    colour = "white",
+    linewidth = 0.35
+  ) +
+  scale_fill_gradient(
+    low = my_light_teal,
+    high = my_teal
+  ) +
+  labs(
+    title = "Postal district transaction heatmap",
+    subtitle = "Districts are positioned by price band and coloured by transaction count",
+    x = "Postal district",
+    y = "Median unit price band",
+    fill = "Transactions"
+  ) +
+  theme_yy +
+  theme(
+    axis.text.x = element_text(angle = 45, hjust = 1),
+    panel.grid = element_blank()
+  )
+```
+
+## Code
+
+```{r}
+district_heatmap <- district_summary %>%
+  mutate(
+    district_group = paste0("District ", postal_district),
+    price_band = cut(
+      median_unit_price_psf,
+      breaks = quantile(median_unit_price_psf, probs = seq(0, 1, 0.2), na.rm = TRUE),
+      include.lowest = TRUE,
+      labels = c("Very low", "Low", "Medium", "High", "Very high")
+    )
+  )
+
+ggplot(
+  district_heatmap,
+  aes(
+    x = district_group,
+    y = price_band,
+    fill = transactions
+  )
+) +
+  geom_tile(
+    colour = "white",
+    linewidth = 0.35
+  ) +
+  scale_fill_gradient(
+    low = my_light_teal,
+    high = my_teal
+  ) +
+  labs(
+    title = "Postal district transaction heatmap",
+    subtitle = "Districts are positioned by price band and coloured by transaction count",
+    x = "Postal district",
+    y = "Median unit price band",
+    fill = "Transactions"
+  ) +
+  theme_yy +
+  theme(
+    axis.text.x = element_text(angle = 45, hjust = 1),
+    panel.grid = element_blank()
+  )
+```
+
+:::
+
+This heatmap is a compact alternative when exact geographic coordinates are unavailable.
+
+::: {.callout-tip}
+## What can we learn?
+
+Postal district analysis is useful for quick market screening.  
+It helps identify districts with both high activity and high price levels.
+:::
+
+## 5.7 Interactive Transaction View
+
+Interactive charts are useful when the dataset contains many records. Instead of labelling every point, the details can be shown through hover text.
+
+### 5.7.1 Interactive unit price and area plot
+
+::: {.panel-tabset}
+
+## View
+
+```{r}
+#| echo: false
+
+set.seed(123)
+
+interactive_sample <- realis_clean %>%
+  slice_sample(n = min(2500, nrow(realis_clean)))
+
+p_interactive <- ggplot(
+  interactive_sample,
+  aes(
+    x = area_sqm,
+    y = unit_price_psf,
+    colour = planning_region,
+    text = paste0(
+      "Project: ", project_name,
+      "<br>Planning area: ", planning_area,
+      "<br>Property type: ", property_type,
+      "<br>Sale date: ", sale_date,
+      "<br>Area sqm: ", area_sqm,
+      "<br>Unit price psf: $", unit_price_psf,
+      "<br>Transacted price: $", comma(transacted_price)
+    )
+  )
+) +
+  geom_point(alpha = 0.65, size = 1.8) +
+  scale_colour_manual(
+    values = c(
+      "Central Region" = my_teal,
+      "East Region" = my_soft_teal,
+      "North East Region" = my_warning,
+      "North Region" = my_light_teal,
+      "West Region" = my_red
+    )
+  ) +
+  scale_y_continuous(labels = dollar) +
+  labs(
+    title = "Interactive view of unit price and unit size",
+    subtitle = "Hover over each point to inspect transaction-level details",
+    x = "Area (sqm)",
+    y = "Unit price ($ psf)",
+    colour = "Planning region"
+  ) +
+  theme_yy
+
+ggplotly(p_interactive, tooltip = "text")
+```
+
+## Code
+
+```{r}
+set.seed(123)
+
+interactive_sample <- realis_clean %>%
+  slice_sample(n = min(2500, nrow(realis_clean)))
+
+p_interactive <- ggplot(
+  interactive_sample,
+  aes(
+    x = area_sqm,
+    y = unit_price_psf,
+    colour = planning_region,
+    text = paste0(
+      "Project: ", project_name,
+      "<br>Planning area: ", planning_area,
+      "<br>Property type: ", property_type,
+      "<br>Sale date: ", sale_date,
+      "<br>Area sqm: ", area_sqm,
+      "<br>Unit price psf: $", unit_price_psf,
+      "<br>Transacted price: $", comma(transacted_price)
+    )
+  )
+) +
+  geom_point(alpha = 0.65, size = 1.8) +
+  scale_colour_manual(
+    values = c(
+      "Central Region" = my_teal,
+      "East Region" = my_soft_teal,
+      "North East Region" = my_warning,
+      "North Region" = my_light_teal,
+      "West Region" = my_red
+    )
+  ) +
+  scale_y_continuous(labels = dollar) +
+  labs(
+    title = "Interactive view of unit price and unit size",
+    subtitle = "Hover over each point to inspect transaction-level details",
+    x = "Area (sqm)",
+    y = "Unit price ($ psf)",
+    colour = "Planning region"
+  ) +
+  theme_yy
+
+ggplotly(p_interactive, tooltip = "text")
+```
+
+:::
+
+The interactive plot helps reveal individual transactions without making the static chart overcrowded.
+
+## 5.8 Extra Analysis: Monthly Transaction Trend
+
+As a small extension, we add a temporal layer. This does not replace the spatial analysis, but it helps show whether transaction activity changed across 2018.
+
+### 5.8.1 Preparing monthly data
+
+::: {.panel-tabset}
+
+## View
+
+```{r}
+#| echo: false
+
+monthly_summary <- realis_clean %>%
+  mutate(
+    sale_month = floor_date(sale_date, unit = "month")
+  ) %>%
+  group_by(sale_month, planning_region) %>%
+  summarise(
+    transactions = n(),
+    median_unit_price_psf = median(unit_price_psf, na.rm = TRUE),
+    .groups = "drop"
+  )
+
+DT::datatable(
+  monthly_summary %>%
+    mutate(
+      sale_month = as.character(sale_month),
+      median_unit_price_psf = round(median_unit_price_psf, 0)
+    ),
+  rownames = FALSE,
+  class = "compact stripe hover",
+  options = list(pageLength = 12, scrollX = TRUE),
+  width = "100%"
+)
+```
+
+## Code
+
+```{r}
+monthly_summary <- realis_clean %>%
+  mutate(
+    sale_month = floor_date(sale_date, unit = "month")
+  ) %>%
+  group_by(sale_month, planning_region) %>%
+  summarise(
+    transactions = n(),
+    median_unit_price_psf = median(unit_price_psf, na.rm = TRUE),
+    .groups = "drop"
+  )
+
+DT::datatable(
+  monthly_summary %>%
+    mutate(
+      sale_month = as.character(sale_month),
+      median_unit_price_psf = round(median_unit_price_psf, 0)
+    ),
+  rownames = FALSE,
+  class = "compact stripe hover",
+  options = list(pageLength = 12, scrollX = TRUE),
+  width = "100%"
+)
+```
+
+:::
+
+### 5.8.2 Plotting monthly transactions
+
+::: {.panel-tabset}
+
+## View
+
+```{r}
+#| echo: false
+#| fig-width: 9
+#| fig-height: 5
+
+ggplot(
+  monthly_summary,
+  aes(
+    x = sale_month,
+    y = transactions,
+    colour = planning_region
+  )
+) +
+  geom_line(linewidth = 0.8) +
+  geom_point(size = 1.8) +
+  scale_colour_manual(
+    values = c(
+      "Central Region" = my_teal,
+      "East Region" = my_soft_teal,
+      "North East Region" = my_warning,
+      "North Region" = my_light_teal,
+      "West Region" = my_red
+    )
+  ) +
+  scale_x_date(date_labels = "%b", date_breaks = "1 month") +
+  scale_y_continuous(labels = comma) +
+  labs(
+    title = "Monthly transaction trend by planning region",
+    subtitle = "This extension adds a simple time dimension to the spatial analysis",
+    x = "Sale month",
+    y = "Number of transactions",
+    colour = "Planning region"
+  ) +
+  theme_yy
+```
+
+## Code
+
+```{r}
+ggplot(
+  monthly_summary,
+  aes(
+    x = sale_month,
+    y = transactions,
+    colour = planning_region
+  )
+) +
+  geom_line(linewidth = 0.8) +
+  geom_point(size = 1.8) +
+  scale_colour_manual(
+    values = c(
+      "Central Region" = my_teal,
+      "East Region" = my_soft_teal,
+      "North East Region" = my_warning,
+      "North Region" = my_light_teal,
+      "West Region" = my_red
+    )
+  ) +
+  scale_x_date(date_labels = "%b", date_breaks = "1 month") +
+  scale_y_continuous(labels = comma) +
+  labs(
+    title = "Monthly transaction trend by planning region",
+    subtitle = "This extension adds a simple time dimension to the spatial analysis",
+    x = "Sale month",
+    y = "Number of transactions",
+    colour = "Planning region"
+  ) +
+  theme_yy
+```
+
+:::
+
+The monthly trend adds context to the spatial analysis. A region may have high total transaction volume because of strong activity in only a few months.
+
+## 5.9 Extra Analysis: Price and Volume Quadrant
+
+The final extension compares planning areas using both transaction count and median unit price.
+
+### 5.9.1 Creating quadrant classification
+
+::: {.panel-tabset}
+
+## View
+
+```{r}
+#| echo: false
+
+quadrant_data <- area_summary %>%
+  filter(transactions >= 20) %>%
+  mutate(
+    volume_level = if_else(
+      transactions >= median(transactions, na.rm = TRUE),
+      "High volume",
+      "Low volume"
+    ),
+    price_level = if_else(
+      median_unit_price_psf >= median(median_unit_price_psf, na.rm = TRUE),
+      "High price",
+      "Low price"
+    ),
+    quadrant = paste(price_level, volume_level, sep = " / ")
+  )
+
+DT::datatable(
+  quadrant_data %>%
+    select(
+      planning_region,
+      planning_area,
+      transactions,
+      median_unit_price_psf,
+      quadrant
+    ) %>%
+    mutate(
+      median_unit_price_psf = round(median_unit_price_psf, 0)
+    ),
+  rownames = FALSE,
+  class = "compact stripe hover",
+  options = list(pageLength = 12, scrollX = TRUE),
+  width = "100%"
+)
+```
+
+## Code
+
+```{r}
+quadrant_data <- area_summary %>%
+  filter(transactions >= 20) %>%
+  mutate(
+    volume_level = if_else(
+      transactions >= median(transactions, na.rm = TRUE),
+      "High volume",
+      "Low volume"
+    ),
+    price_level = if_else(
+      median_unit_price_psf >= median(median_unit_price_psf, na.rm = TRUE),
+      "High price",
+      "Low price"
+    ),
+    quadrant = paste(price_level, volume_level, sep = " / ")
+  )
+
+DT::datatable(
+  quadrant_data %>%
+    select(
+      planning_region,
+      planning_area,
+      transactions,
+      median_unit_price_psf,
+      quadrant
+    ) %>%
+    mutate(
+      median_unit_price_psf = round(median_unit_price_psf, 0)
+    ),
+  rownames = FALSE,
+  class = "compact stripe hover",
+  options = list(pageLength = 12, scrollX = TRUE),
+  width = "100%"
+)
+```
+
+:::
+
+### 5.9.2 Plotting price-volume quadrant
+
+::: {.panel-tabset}
+
+## View
+
+```{r}
+#| echo: false
+#| fig-width: 9
+#| fig-height: 6
+
+ggplot(
+  quadrant_data,
+  aes(
+    x = transactions,
+    y = median_unit_price_psf,
+    colour = planning_region,
+    size = total_value_million
+  )
+) +
+  geom_point(alpha = 0.75) +
+  geom_vline(
+    xintercept = median(quadrant_data$transactions, na.rm = TRUE),
+    linetype = "dashed",
+    colour = my_dark
+  ) +
+  geom_hline(
+    yintercept = median(quadrant_data$median_unit_price_psf, na.rm = TRUE),
+    linetype = "dashed",
+    colour = my_dark
+  ) +
+  scale_colour_manual(
+    values = c(
+      "Central Region" = my_teal,
+      "East Region" = my_soft_teal,
+      "North East Region" = my_warning,
+      "North Region" = my_light_teal,
+      "West Region" = my_red
+    )
+  ) +
+  scale_size_continuous(range = c(2, 9)) +
+  scale_x_continuous(labels = comma) +
+  scale_y_continuous(labels = dollar) +
+  labs(
+    title = "Price-volume quadrant by planning area",
+    subtitle = "Planning areas are compared by transaction count and median unit price",
+    x = "Number of transactions",
+    y = "Median unit price ($ psf)",
+    colour = "Planning region",
+    size = "Total value ($m)"
+  ) +
+  theme_yy
+```
+
+## Code
+
+```{r}
+ggplot(
+  quadrant_data,
+  aes(
+    x = transactions,
+    y = median_unit_price_psf,
+    colour = planning_region,
+    size = total_value_million
+  )
+) +
+  geom_point(alpha = 0.75) +
+  geom_vline(
+    xintercept = median(quadrant_data$transactions, na.rm = TRUE),
+    linetype = "dashed",
+    colour = my_dark
+  ) +
+  geom_hline(
+    yintercept = median(quadrant_data$median_unit_price_psf, na.rm = TRUE),
+    linetype = "dashed",
+    colour = my_dark
+  ) +
+  scale_colour_manual(
+    values = c(
+      "Central Region" = my_teal,
+      "East Region" = my_soft_teal,
+      "North East Region" = my_warning,
+      "North Region" = my_light_teal,
+      "West Region" = my_red
+    )
+  ) +
+  scale_size_continuous(range = c(2, 9)) +
+  scale_x_continuous(labels = comma) +
+  scale_y_continuous(labels = dollar) +
+  labs(
+    title = "Price-volume quadrant by planning area",
+    subtitle = "Planning areas are compared by transaction count and median unit price",
+    x = "Number of transactions",
+    y = "Median unit price ($ psf)",
+    colour = "Planning region",
+    size = "Total value ($m)"
+  ) +
+  theme_yy
+```
+
+:::
+
+This extension gives a simple strategic view. Areas in the high-price and high-volume zone are especially important because they combine market depth with strong price levels.
+
+## 5.10 Final Takeaway
+
+Spatial point pattern analysis is about understanding where events are concentrated. In this exercise, private residential transactions are analysed using planning region, planning area, postal district, and postal sector as spatial identifiers.
+
+Because the dataset does not provide exact coordinates, the analysis focuses on spatial proxies rather than literal map points. This is still useful for identifying active regions, high-price planning areas, and postal districts with stronger transaction concentration.
+
+::: {.callout-tip}
+## Final takeaway
+
+When coordinates are not available, area-based spatial analysis is still useful.  
+Planning areas and postal districts can provide a practical first view of spatial transaction patterns.
+:::
+
+## 5.11 Reference
+
+This exercise covered:
+
+- importing and cleaning `realis2018.csv`,
+- preparing transaction and location variables,
+- summarising transactions by planning region and planning area,
+- visualising transaction concentration,
+- comparing median unit prices,
+- using postal district as a spatial proxy,
+- creating an interactive transaction-level plot,
+- adding monthly trends and a price-volume quadrant as small extensions.
