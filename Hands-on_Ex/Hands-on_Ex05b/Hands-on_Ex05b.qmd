@@ -1,0 +1,1278 @@
+---
+title: "Hands-on Exercise 5b - Visualising Multivariate Data"
+author: "Yang Yang"
+format:
+  html:
+    theme: sketchy
+    toc: true
+    toc-depth: 3
+    number-sections: false
+    code-copy: true
+    code-overflow: wrap
+editor: visual
+execute:
+  warning: false
+  message: false
+---
+
+```{r}
+#| label: setup
+#| include: false
+
+if (!require(pacman)) {
+  install.packages("pacman")
+}
+
+pacman::p_load(
+  tidyverse,
+  GGally,
+  plotly,
+  DT,
+  janitor,
+  scales,
+  knitr
+)
+
+my_teal <- "#2A6F6F"
+my_soft_teal <- "#8AA6A3"
+my_dark <- "#1F1F1F"
+my_light_teal <- "#D8E8E6"
+my_grey <- "#F3F4F4"
+my_warning <- "#B07C3E"
+my_red <- "#9A4B4B"
+my_white <- "#D8E8E6"
+
+theme_yy <- theme_minimal(base_size = 13) +
+  theme(
+    plot.title = element_text(face = "bold", colour = my_dark),
+    plot.subtitle = element_text(colour = my_teal),
+    axis.title = element_text(colour = my_dark),
+    axis.text = element_text(colour = my_dark),
+    panel.grid.minor = element_blank(),
+    panel.grid.major.x = element_blank(),
+    legend.position = "bottom"
+  )
+```
+
+## 5.1 Overview
+
+Multivariate data contains several variables for each observation. A normal scatter plot can only show two variables at once, so it may not be enough when the task is to explore many chemical attributes together.
+
+In this exercise, we use the `wine_quality.csv` dataset to explore wine quality using multivariate visualisation methods. The dataset contains physicochemical measurements such as acidity, sugar, sulphur dioxide, density, pH, sulphates, alcohol, wine quality score, and wine type.
+
+By the end of this exercise, we will be able to:
+
+- import and prepare multivariate wine quality data,
+- use parallel coordinate plots to compare many variables at the same time,
+- use correlation heatmaps to identify variable relationships,
+- use scatterplot matrices to inspect pairwise patterns,
+- create interactive multivariate graphics with `plotly`,
+- add a small extension by comparing chemical profiles between red and white wines.
+
+::: {.callout-important}
+## Important
+
+Multivariate visualisation is useful because one variable rarely explains the full pattern.  
+For wine quality, alcohol, acidity, sulphates, density, and sulphur dioxide may interact together.
+:::
+
+## 5.2 Getting Started
+
+### 5.2.1 Installing and launching R packages
+
+This exercise uses `GGally` for parallel coordinate plots and scatterplot matrices. `plotly` is used for interactivity, while `DT` is used to display interactive data tables.
+
+::: {.panel-tabset}
+
+## View
+
+```{r}
+#| echo: false
+
+package_table <- tibble(
+  Package = c("tidyverse", "GGally", "plotly", "DT", "janitor", "scales"),
+  Purpose = c(
+    "Data import, wrangling, and plotting",
+    "Parallel coordinate plot and scatterplot matrix",
+    "Interactive visualisation",
+    "Interactive HTML table",
+    "Cleaning column names",
+    "Formatting labels and numbers"
+  )
+)
+
+DT::datatable(
+  package_table,
+  rownames = FALSE,
+  class = "compact stripe hover",
+  options = list(dom = "t", pageLength = 6),
+  width = "100%"
+)
+```
+
+## Code
+
+```{r}
+#| eval: false
+
+pacman::p_load(
+  tidyverse,
+  GGally,
+  plotly,
+  DT,
+  janitor,
+  scales
+)
+```
+
+:::
+
+::: {.callout-note}
+## Package note
+
+If `GGally` is not installed, run this once in the Console:
+
+```r
+install.packages("GGally")
+```
+:::
+
+### 5.2.2 Importing data
+
+The dataset used in this exercise is `wine_quality.csv`.
+
+::: {.panel-tabset}
+
+## View
+
+```{r}
+#| echo: false
+
+csv_file <- list.files(pattern = "wine_quality.*\\.csv$")[1]
+
+wine_raw <- read_csv(csv_file, show_col_types = FALSE)
+
+glimpse(wine_raw)
+```
+
+## Code
+
+```{r}
+#| eval: false
+
+csv_file <- list.files(pattern = "wine_quality.*\\.csv$")[1]
+
+wine_raw <- read_csv(csv_file, show_col_types = FALSE)
+
+glimpse(wine_raw)
+```
+
+:::
+
+The dataset is imported directly from the current exercise folder. The `glimpse()` output helps us check the number of observations, variables, and data types.
+
+### 5.2.3 Cleaning column names
+
+The original dataset contains column names with spaces, such as `fixed acidity` and `volatile acidity`. These names are cleaned to make later coding easier.
+
+::: {.panel-tabset}
+
+## View
+
+```{r}
+#| echo: false
+
+wine <- wine_raw %>%
+  janitor::clean_names() %>%
+  mutate(
+    type = as.factor(type),
+    quality = as.integer(quality)
+  )
+
+names(wine)
+```
+
+## Code
+
+```{r}
+wine <- wine_raw %>%
+  janitor::clean_names() %>%
+  mutate(
+    type = as.factor(type),
+    quality = as.integer(quality)
+  )
+
+names(wine)
+```
+
+:::
+
+After cleaning, variable names such as `fixed acidity` become `fixed_acidity`. This avoids problems when writing R code.
+
+### 5.2.4 Quick data preview
+
+::: {.panel-tabset}
+
+## View
+
+```{r}
+#| echo: false
+
+DT::datatable(
+  head(wine, 12),
+  rownames = FALSE,
+  class = "compact stripe hover",
+  options = list(pageLength = 12, scrollX = TRUE),
+  width = "100%"
+)
+```
+
+## Code
+
+```{r}
+#| eval: false
+
+DT::datatable(
+  head(wine, 12),
+  rownames = FALSE,
+  class = "compact stripe hover",
+  options = list(pageLength = 12, scrollX = TRUE),
+  width = "100%"
+)
+```
+
+:::
+
+## 5.3 Preparing Data for Multivariate Visualisation
+
+Before creating multivariate charts, we select a smaller set of variables. This keeps the visualisation readable and avoids overcrowding.
+
+### 5.3.1 Selecting variables
+
+The selected variables include acidity, sugar, sulphur dioxide, density, pH, sulphates, alcohol, quality, and wine type.
+
+::: {.panel-tabset}
+
+## View
+
+```{r}
+#| echo: false
+
+wine_selected <- wine %>%
+  select(
+    fixed_acidity,
+    volatile_acidity,
+    citric_acid,
+    residual_sugar,
+    chlorides,
+    total_sulfur_dioxide,
+    density,
+    p_h,
+    sulphates,
+    alcohol,
+    quality,
+    type
+  ) %>%
+  drop_na()
+
+DT::datatable(
+  head(wine_selected, 12),
+  rownames = FALSE,
+  class = "compact stripe hover",
+  options = list(pageLength = 12, scrollX = TRUE),
+  width = "100%"
+)
+```
+
+## Code
+
+```{r}
+wine_selected <- wine %>%
+  select(
+    fixed_acidity,
+    volatile_acidity,
+    citric_acid,
+    residual_sugar,
+    chlorides,
+    total_sulfur_dioxide,
+    density,
+    p_h,
+    sulphates,
+    alcohol,
+    quality,
+    type
+  ) %>%
+  drop_na()
+
+DT::datatable(
+  head(wine_selected, 12),
+  rownames = FALSE,
+  class = "compact stripe hover",
+  options = list(pageLength = 12, scrollX = TRUE),
+  width = "100%"
+)
+```
+
+:::
+
+::: {.callout-tip}
+## What can we learn?
+
+For multivariate visualisation, selecting too many variables can make the plot unreadable.  
+A good chart should show enough complexity, but not so much that the reader cannot interpret it.
+:::
+
+### 5.3.2 Summary by wine type
+
+Before drawing complex charts, it is useful to summarise the difference between red and white wines.
+
+::: {.panel-tabset}
+
+## View
+
+```{r}
+#| echo: false
+
+wine_type_summary <- wine_selected %>%
+  group_by(type) %>%
+  summarise(
+    n = n(),
+    mean_quality = mean(quality, na.rm = TRUE),
+    mean_alcohol = mean(alcohol, na.rm = TRUE),
+    mean_volatile_acidity = mean(volatile_acidity, na.rm = TRUE),
+    mean_residual_sugar = mean(residual_sugar, na.rm = TRUE),
+    mean_density = mean(density, na.rm = TRUE),
+    .groups = "drop"
+  )
+
+DT::datatable(
+  wine_type_summary %>%
+    mutate(across(where(is.numeric), ~ round(.x, 2))),
+  rownames = FALSE,
+  class = "compact stripe hover",
+  options = list(dom = "t", scrollX = TRUE),
+  width = "100%"
+)
+```
+
+## Code
+
+```{r}
+wine_type_summary <- wine_selected %>%
+  group_by(type) %>%
+  summarise(
+    n = n(),
+    mean_quality = mean(quality, na.rm = TRUE),
+    mean_alcohol = mean(alcohol, na.rm = TRUE),
+    mean_volatile_acidity = mean(volatile_acidity, na.rm = TRUE),
+    mean_residual_sugar = mean(residual_sugar, na.rm = TRUE),
+    mean_density = mean(density, na.rm = TRUE),
+    .groups = "drop"
+  )
+
+DT::datatable(
+  wine_type_summary %>%
+    mutate(across(where(is.numeric), ~ round(.x, 2))),
+  rownames = FALSE,
+  class = "compact stripe hover",
+  options = list(dom = "t", scrollX = TRUE),
+  width = "100%"
+)
+```
+
+:::
+
+This summary gives an early view of how wine type differs in quality and chemical profile.
+
+## 5.4 Parallel Coordinate Plot
+
+A parallel coordinate plot is useful for visualising many numeric variables at once. Each variable is represented as a vertical axis, and each observation becomes a line crossing the axes.
+
+Because variables have different measurement scales, the values are rescaled before plotting.
+
+### 5.4.1 Basic parallel coordinate plot
+
+::: {.panel-tabset}
+
+## View
+
+```{r}
+#| echo: false
+#| fig-width: 10
+#| fig-height: 6
+
+set.seed(123)
+
+wine_sample <- wine_selected %>%
+  group_by(type) %>%
+  group_modify(~ slice_sample(.x, n = min(350, nrow(.x)))) %>%
+  ungroup() %>%
+  mutate(row_id = row_number())
+
+parallel_data <- wine_sample %>%
+  select(
+    row_id,
+    type,
+    fixed_acidity,
+    volatile_acidity,
+    citric_acid,
+    residual_sugar,
+    chlorides,
+    total_sulfur_dioxide,
+    density,
+    p_h,
+    sulphates,
+    alcohol
+  ) %>%
+  pivot_longer(
+    cols = -c(row_id, type),
+    names_to = "chemical_attribute",
+    values_to = "value"
+  ) %>%
+  group_by(chemical_attribute) %>%
+  mutate(
+    scaled_value = scales::rescale(value)
+  ) %>%
+  ungroup()
+
+ggplot(
+  parallel_data,
+  aes(
+    x = chemical_attribute,
+    y = scaled_value,
+    group = row_id,
+    colour = type
+  )
+) +
+  geom_line(alpha = 0.22, linewidth = 0.35) +
+  scale_colour_manual(
+    values = c("red" = my_red, "white" = my_teal),
+    na.value = my_dark
+  ) +
+  labs(
+    title = "Parallel coordinate plot of wine chemical attributes",
+    subtitle = "Variables are rescaled to make different measurement units comparable",
+    x = "Chemical attributes",
+    y = "Rescaled value",
+    colour = "Wine type"
+  ) +
+  theme_yy +
+  theme(
+    axis.text.x = element_text(angle = 30, hjust = 1),
+    legend.position = "bottom"
+  )
+```
+
+## Code
+
+```{r}
+wine_quality_grouped <- wine_selected %>%
+  mutate(
+    quality_group = case_when(
+      quality <= 5 ~ "Low quality",
+      quality == 6 ~ "Medium quality",
+      quality >= 7 ~ "High quality"
+    ),
+    quality_group = factor(
+      quality_group,
+      levels = c("Low quality", "Medium quality", "High quality")
+    )
+  ) %>%
+  drop_na(quality_group)
+
+set.seed(123)
+
+wine_quality_sample <- wine_quality_grouped %>%
+  group_by(quality_group) %>%
+  group_modify(~ slice_sample(.x, n = min(300, nrow(.x)))) %>%
+  ungroup() %>%
+  mutate(row_id = row_number())
+
+parallel_quality_data <- wine_quality_sample %>%
+  select(
+    row_id,
+    quality_group,
+    fixed_acidity,
+    volatile_acidity,
+    citric_acid,
+    residual_sugar,
+    chlorides,
+    total_sulfur_dioxide,
+    density,
+    p_h,
+    sulphates,
+    alcohol
+  ) %>%
+  pivot_longer(
+    cols = -c(row_id, quality_group),
+    names_to = "chemical_attribute",
+    values_to = "value"
+  ) %>%
+  group_by(chemical_attribute) %>%
+  mutate(
+    scaled_value = scales::rescale(value)
+  ) %>%
+  ungroup()
+
+ggplot(
+  parallel_quality_data,
+  aes(
+    x = chemical_attribute,
+    y = scaled_value,
+    group = row_id,
+    colour = quality_group
+  )
+) +
+  geom_line(alpha = 0.22, linewidth = 0.35) +
+  scale_colour_manual(
+    values = c(
+      "Low quality" = my_soft_teal,
+      "Medium quality" = my_teal,
+      "High quality" = my_warning
+    )
+  ) +
+  labs(
+    title = "Parallel coordinate plot by wine quality group",
+    subtitle = "Higher-quality wines can be compared against lower-quality wines across many chemical attributes",
+    x = "Chemical attributes",
+    y = "Rescaled value",
+    colour = "Quality group"
+  ) +
+  theme_yy +
+  theme(
+    axis.text.x = element_text(angle = 30, hjust = 1),
+    legend.position = "bottom"
+  )
+```
+
+:::
+
+The parallel coordinate plot shows the chemical profile of red and white wines. It is especially useful when we want to compare patterns across many variables rather than focusing on one variable at a time.
+
+::: {.callout-note}
+## Reading the plot
+
+Each line represents one wine record.  
+The line goes through several axes, showing the wine’s relative value for each chemical attribute.
+:::
+
+### 5.4.2 Parallel coordinate plot by quality group
+
+To make the pattern more meaningful, we classify wine quality into three groups: low, medium, and high.
+
+::: {.panel-tabset}
+
+## View
+
+```{r}
+#| echo: false
+#| fig-width: 10
+#| fig-height: 6
+
+wine_quality_grouped <- wine_selected %>%
+  mutate(
+    quality_group = case_when(
+      quality <= 5 ~ "Low quality",
+      quality == 6 ~ "Medium quality",
+      quality >= 7 ~ "High quality"
+    ),
+    quality_group = factor(
+      quality_group,
+      levels = c("Low quality", "Medium quality", "High quality")
+    )
+  ) %>%
+  drop_na(quality_group)
+
+set.seed(123)
+
+wine_quality_sample <- wine_quality_grouped %>%
+  group_by(quality_group) %>%
+  group_modify(~ slice_sample(.x, n = min(300, nrow(.x)))) %>%
+  ungroup() %>%
+  mutate(row_id = row_number())
+
+parallel_quality_data <- wine_quality_sample %>%
+  select(
+    row_id,
+    quality_group,
+    fixed_acidity,
+    volatile_acidity,
+    citric_acid,
+    residual_sugar,
+    chlorides,
+    total_sulfur_dioxide,
+    density,
+    p_h,
+    sulphates,
+    alcohol
+  ) %>%
+  pivot_longer(
+    cols = -c(row_id, quality_group),
+    names_to = "chemical_attribute",
+    values_to = "value"
+  ) %>%
+  group_by(chemical_attribute) %>%
+  mutate(
+    scaled_value = scales::rescale(value)
+  ) %>%
+  ungroup()
+
+ggplot(
+  parallel_quality_data,
+  aes(
+    x = chemical_attribute,
+    y = scaled_value,
+    group = row_id,
+    colour = quality_group
+  )
+) +
+  geom_line(alpha = 0.22, linewidth = 0.35) +
+  scale_colour_manual(
+    values = c(
+      "Low quality" = my_soft_teal,
+      "Medium quality" = my_teal,
+      "High quality" = my_warning
+    )
+  ) +
+  labs(
+    title = "Parallel coordinate plot by wine quality group",
+    subtitle = "Higher-quality wines can be compared against lower-quality wines across many chemical attributes",
+    x = "Chemical attributes",
+    y = "Rescaled value",
+    colour = "Quality group"
+  ) +
+  theme_yy +
+  theme(
+    axis.text.x = element_text(angle = 30, hjust = 1),
+    legend.position = "bottom"
+  )
+```
+
+## Code
+
+```{r}
+wine_quality_grouped <- wine_selected %>%
+  mutate(
+    quality_group = case_when(
+      quality <= 5 ~ "Low quality",
+      quality == 6 ~ "Medium quality",
+      quality >= 7 ~ "High quality",
+      TRUE ~ NA_character_
+    ),
+    quality_group = factor(
+      quality_group,
+      levels = c("Low quality", "Medium quality", "High quality")
+    )
+  ) %>%
+  drop_na(quality_group)
+
+set.seed(123)
+
+wine_quality_sample <- wine_quality_grouped %>%
+  group_by(quality_group) %>%
+  group_modify(~ slice_sample(.x, n = min(300, nrow(.x)))) %>%
+  ungroup() %>%
+  mutate(row_id = row_number())
+
+parallel_quality_data <- wine_quality_sample %>%
+  select(
+    row_id,
+    quality_group,
+    fixed_acidity,
+    volatile_acidity,
+    citric_acid,
+    residual_sugar,
+    chlorides,
+    total_sulfur_dioxide,
+    density,
+    p_h,
+    sulphates,
+    alcohol
+  ) %>%
+  pivot_longer(
+    cols = -c(row_id, quality_group),
+    names_to = "chemical_attribute",
+    values_to = "value"
+  ) %>%
+  group_by(chemical_attribute) %>%
+  mutate(
+    scaled_value = scales::rescale(value)
+  ) %>%
+  ungroup()
+
+ggplot(
+  parallel_quality_data,
+  aes(
+    x = chemical_attribute,
+    y = scaled_value,
+    group = row_id,
+    colour = quality_group
+  )
+) +
+  geom_line(alpha = 0.22, linewidth = 0.35) +
+  scale_colour_manual(
+    values = c(
+      "Low quality" = my_soft_teal,
+      "Medium quality" = my_teal,
+      "High quality" = my_warning
+    )
+  ) +
+  labs(
+    title = "Parallel coordinate plot by wine quality group",
+    subtitle = "Higher-quality wines can be compared against lower-quality wines across many chemical attributes",
+    x = "Chemical attributes",
+    y = "Rescaled value",
+    colour = "Quality group"
+  ) +
+  theme_yy +
+  theme(
+    axis.text.x = element_text(angle = 30, hjust = 1),
+    legend.position = "bottom"
+  )
+```
+
+:::
+
+This view helps us compare whether higher-quality wines show different patterns in alcohol, acidity, sulphates, and other chemical attributes.
+
+::: {.callout-tip}
+## What can we learn?
+
+Parallel coordinate plots are most useful for pattern detection.  
+They do not give exact values easily, but they help reveal how groups differ across many variables.
+:::
+
+## 5.5 Correlation Heatmap
+
+A correlation heatmap shows how numeric variables move together. It is useful before modelling because it reveals which variables have positive or negative relationships.
+
+### 5.5.1 Computing correlation matrix
+
+::: {.panel-tabset}
+
+## View
+
+```{r}
+#| echo: false
+
+wine_numeric <- wine_selected %>%
+  select(where(is.numeric))
+
+cor_matrix <- cor(wine_numeric, use = "pairwise.complete.obs")
+
+cor_long <- as.data.frame(as.table(cor_matrix)) %>%
+  rename(
+    variable_x = Var1,
+    variable_y = Var2,
+    correlation = Freq
+  )
+
+DT::datatable(
+  cor_long %>%
+    mutate(correlation = round(correlation, 2)) %>%
+    arrange(desc(abs(correlation))) %>%
+    head(15),
+  rownames = FALSE,
+  class = "compact stripe hover",
+  options = list(dom = "t", scrollX = TRUE),
+  width = "100%"
+)
+```
+
+## Code
+
+```{r}
+wine_numeric <- wine_selected %>%
+  select(where(is.numeric))
+
+cor_matrix <- cor(wine_numeric, use = "pairwise.complete.obs")
+
+cor_long <- as.data.frame(as.table(cor_matrix)) %>%
+  rename(
+    variable_x = Var1,
+    variable_y = Var2,
+    correlation = Freq
+  )
+
+DT::datatable(
+  cor_long %>%
+    mutate(correlation = round(correlation, 2)) %>%
+    arrange(desc(abs(correlation))) %>%
+    head(15),
+  rownames = FALSE,
+  class = "compact stripe hover",
+  options = list(dom = "t", scrollX = TRUE),
+  width = "100%"
+)
+```
+
+:::
+
+### 5.5.2 Plotting correlation heatmap
+
+::: {.panel-tabset}
+
+## View
+
+```{r}
+#| echo: false
+#| fig-width: 9
+#| fig-height: 7
+
+ggplot(
+  cor_long,
+  aes(x = variable_x, y = variable_y, fill = correlation)
+) +
+  geom_tile(colour = "white", linewidth = 0.4) +
+  geom_text(
+    aes(label = round(correlation, 2)),
+    size = 2.7,
+    colour = my_dark
+  ) +
+  scale_fill_gradient2(
+    low = my_red,
+    mid = "white",
+    high = my_teal,
+    midpoint = 0,
+    limits = c(-1, 1)
+  ) +
+  labs(
+    title = "Correlation heatmap of wine chemical variables",
+    subtitle = "Positive and negative relationships are shown using a diverging colour scale",
+    x = NULL,
+    y = NULL,
+    fill = "Correlation"
+  ) +
+  theme_yy +
+  theme(
+    axis.text.x = element_text(angle = 45, hjust = 1),
+    panel.grid = element_blank()
+  )
+```
+
+## Code
+
+```{r}
+ggplot(
+  cor_long,
+  aes(x = variable_x, y = variable_y, fill = correlation)
+) +
+  geom_tile(colour = "white", linewidth = 0.4) +
+  geom_text(
+    aes(label = round(correlation, 2)),
+    size = 2.7,
+    colour = my_dark
+  ) +
+  scale_fill_gradient2(
+    low = my_red,
+    mid = "white",
+    high = my_teal,
+    midpoint = 0,
+    limits = c(-1, 1)
+  ) +
+  labs(
+    title = "Correlation heatmap of wine chemical variables",
+    subtitle = "Positive and negative relationships are shown using a diverging colour scale",
+    x = NULL,
+    y = NULL,
+    fill = "Correlation"
+  ) +
+  theme_yy +
+  theme(
+    axis.text.x = element_text(angle = 45, hjust = 1),
+    panel.grid = element_blank()
+  )
+```
+
+:::
+
+The correlation heatmap is more compact than many scatter plots. It helps identify variable pairs that may deserve closer inspection.
+
+## 5.6 Scatterplot Matrix
+
+A scatterplot matrix shows multiple pairwise relationships in one display. This is useful when we want to see whether variables have linear, curved, or clustered patterns.
+
+### 5.6.1 Creating scatterplot matrix
+
+To keep the chart readable, we select a smaller group of variables that are closely related to wine quality.
+
+::: {.panel-tabset}
+
+## View
+
+```{r}
+#| echo: false
+#| fig-width: 10
+#| fig-height: 8
+
+wine_matrix <- wine_selected %>%
+  select(
+    alcohol,
+    volatile_acidity,
+    sulphates,
+    density,
+    residual_sugar,
+    quality,
+    type
+  )
+
+GGally::ggpairs(
+  wine_matrix,
+  aes(colour = type, alpha = 0.35),
+  columns = 1:6,
+  upper = list(continuous = wrap("cor", size = 3)),
+  lower = list(continuous = wrap("points", size = 0.7)),
+  diag = list(continuous = wrap("densityDiag", alpha = 0.5))
+) +
+  scale_colour_manual(
+    values = c("red" = my_red, "white" = my_teal)
+  ) +
+  scale_fill_manual(
+    values = c("red" = my_red, "white" = my_light_teal)
+  ) +
+  theme_bw(base_size = 10) +
+  theme(
+    strip.background = element_rect(fill = my_light_teal),
+    strip.text = element_text(colour = my_dark, face = "bold")
+  )
+```
+
+## Code
+
+```{r}
+wine_matrix <- wine_selected %>%
+  select(
+    alcohol,
+    volatile_acidity,
+    sulphates,
+    density,
+    residual_sugar,
+    quality,
+    type
+  )
+
+GGally::ggpairs(
+  wine_matrix,
+  aes(colour = type, alpha = 0.35),
+  columns = 1:6,
+  upper = list(continuous = wrap("cor", size = 3)),
+  lower = list(continuous = wrap("points", size = 0.7)),
+  diag = list(continuous = wrap("densityDiag", alpha = 0.5))
+) +
+  scale_colour_manual(
+    values = c("red" = my_red, "white" = my_teal)
+  ) +
+  scale_fill_manual(
+    values = c("red" = my_red, "white" = my_light_teal)
+  ) +
+  theme_bw(base_size = 10) +
+  theme(
+    strip.background = element_rect(fill = my_light_teal),
+    strip.text = element_text(colour = my_dark, face = "bold")
+  )
+```
+
+:::
+
+The scatterplot matrix provides a detailed overview of pairwise relationships. It is more information-dense than a single scatter plot.
+
+::: {.callout-note}
+## Reading the matrix
+
+The diagonal panels show variable distributions.  
+The lower panels show scatter plots.  
+The upper panels show correlation values.
+:::
+
+## 5.7 Interactive Multivariate Plot
+
+Interactive plots are useful when the dataset contains many points. Instead of labelling every observation, we can use hover information.
+
+### 5.7.1 Interactive scatter plot: alcohol, acidity, and quality
+
+::: {.panel-tabset}
+
+## View
+
+```{r}
+#| echo: false
+
+p_interactive <- ggplot(
+  wine_selected,
+  aes(
+    x = alcohol,
+    y = volatile_acidity,
+    colour = type,
+    size = quality,
+    text = paste0(
+      "Type: ", type,
+      "<br>Quality: ", quality,
+      "<br>Alcohol: ", alcohol,
+      "<br>Volatile acidity: ", volatile_acidity,
+      "<br>Sulphates: ", sulphates,
+      "<br>Density: ", density
+    )
+  )
+) +
+  geom_point(alpha = 0.55) +
+  scale_colour_manual(
+    values = c("red" = my_red, "white" = my_teal)
+  ) +
+  scale_size_continuous(range = c(1.5, 5)) +
+  labs(
+    title = "Interactive view of wine quality patterns",
+    subtitle = "Hover over each point to inspect chemical attributes",
+    x = "Alcohol",
+    y = "Volatile acidity",
+    colour = "Wine type",
+    size = "Quality"
+  ) +
+  theme_yy
+
+ggplotly(p_interactive, tooltip = "text")
+```
+
+## Code
+
+```{r}
+p_interactive <- ggplot(
+  wine_selected,
+  aes(
+    x = alcohol,
+    y = volatile_acidity,
+    colour = type,
+    size = quality,
+    text = paste0(
+      "Type: ", type,
+      "<br>Quality: ", quality,
+      "<br>Alcohol: ", alcohol,
+      "<br>Volatile acidity: ", volatile_acidity,
+      "<br>Sulphates: ", sulphates,
+      "<br>Density: ", density
+    )
+  )
+) +
+  geom_point(alpha = 0.55) +
+  scale_colour_manual(
+    values = c("red" = my_red, "white" = my_teal)
+  ) +
+  scale_size_continuous(range = c(1.5, 5)) +
+  labs(
+    title = "Interactive view of wine quality patterns",
+    subtitle = "Hover over each point to inspect chemical attributes",
+    x = "Alcohol",
+    y = "Volatile acidity",
+    colour = "Wine type",
+    size = "Quality"
+  ) +
+  theme_yy
+
+ggplotly(p_interactive, tooltip = "text")
+```
+
+:::
+
+This plot is useful because alcohol, volatile acidity, and quality can be compared at the same time. The hover text provides additional chemical details without overcrowding the chart.
+
+## 5.8 Extra Analysis: Average Chemical Profile by Quality Group
+
+As a small extension, we create a profile chart that compares average chemical attributes across low, medium, and high-quality wines.
+
+### 5.8.1 Preparing average profile data
+
+::: {.panel-tabset}
+
+## View
+
+```{r}
+#| echo: false
+
+profile_data <- wine_quality_grouped %>%
+  group_by(quality_group) %>%
+  summarise(
+    fixed_acidity = mean(fixed_acidity, na.rm = TRUE),
+    volatile_acidity = mean(volatile_acidity, na.rm = TRUE),
+    citric_acid = mean(citric_acid, na.rm = TRUE),
+    residual_sugar = mean(residual_sugar, na.rm = TRUE),
+    chlorides = mean(chlorides, na.rm = TRUE),
+    sulphates = mean(sulphates, na.rm = TRUE),
+    alcohol = mean(alcohol, na.rm = TRUE),
+    .groups = "drop"
+  ) %>%
+  pivot_longer(
+    cols = -quality_group,
+    names_to = "chemical_attribute",
+    values_to = "mean_value"
+  ) %>%
+  group_by(chemical_attribute) %>%
+  mutate(
+    scaled_value = rescale(mean_value)
+  ) %>%
+  ungroup()
+
+DT::datatable(
+  profile_data %>%
+    mutate(
+      mean_value = round(mean_value, 3),
+      scaled_value = round(scaled_value, 2)
+    ),
+  rownames = FALSE,
+  class = "compact stripe hover",
+  options = list(pageLength = 10, scrollX = TRUE),
+  width = "100%"
+)
+```
+
+## Code
+
+```{r}
+profile_data <- wine_quality_grouped %>%
+  group_by(quality_group) %>%
+  summarise(
+    fixed_acidity = mean(fixed_acidity, na.rm = TRUE),
+    volatile_acidity = mean(volatile_acidity, na.rm = TRUE),
+    citric_acid = mean(citric_acid, na.rm = TRUE),
+    residual_sugar = mean(residual_sugar, na.rm = TRUE),
+    chlorides = mean(chlorides, na.rm = TRUE),
+    sulphates = mean(sulphates, na.rm = TRUE),
+    alcohol = mean(alcohol, na.rm = TRUE),
+    .groups = "drop"
+  ) %>%
+  pivot_longer(
+    cols = -quality_group,
+    names_to = "chemical_attribute",
+    values_to = "mean_value"
+  ) %>%
+  group_by(chemical_attribute) %>%
+  mutate(
+    scaled_value = rescale(mean_value)
+  ) %>%
+  ungroup()
+
+DT::datatable(
+  profile_data %>%
+    mutate(
+      mean_value = round(mean_value, 3),
+      scaled_value = round(scaled_value, 2)
+    ),
+  rownames = FALSE,
+  class = "compact stripe hover",
+  options = list(pageLength = 10, scrollX = TRUE),
+  width = "100%"
+)
+```
+
+:::
+
+### 5.8.2 Plotting average chemical profile
+
+::: {.panel-tabset}
+
+## View
+
+```{r}
+#| echo: false
+#| fig-width: 9
+#| fig-height: 5
+
+ggplot(
+  profile_data,
+  aes(
+    x = chemical_attribute,
+    y = scaled_value,
+    group = quality_group,
+    colour = quality_group
+  )
+) +
+  geom_line(linewidth = 0.85) +
+  geom_point(size = 2.2) +
+  scale_colour_manual(
+    values = c(
+      "Low quality" = my_soft_teal,
+      "Medium quality" = my_teal,
+      "High quality" = my_warning
+    )
+  ) +
+  labs(
+    title = "Average chemical profile by quality group",
+    subtitle = "Values are rescaled within each chemical attribute for easier comparison",
+    x = "Chemical attribute",
+    y = "Rescaled mean value",
+    colour = "Quality group"
+  ) +
+  theme_yy +
+  theme(
+    axis.text.x = element_text(angle = 30, hjust = 1),
+    legend.position = "top"
+  )
+```
+
+## Code
+
+```{r}
+ggplot(
+  profile_data,
+  aes(
+    x = chemical_attribute,
+    y = scaled_value,
+    group = quality_group,
+    colour = quality_group
+  )
+) +
+  geom_line(linewidth = 0.85) +
+  geom_point(size = 2.2) +
+  scale_colour_manual(
+    values = c(
+      "Low quality" = my_soft_teal,
+      "Medium quality" = my_teal,
+      "High quality" = my_warning
+    )
+  ) +
+  labs(
+    title = "Average chemical profile by quality group",
+    subtitle = "Values are rescaled within each chemical attribute for easier comparison",
+    x = "Chemical attribute",
+    y = "Rescaled mean value",
+    colour = "Quality group"
+  ) +
+  theme_yy +
+  theme(
+    axis.text.x = element_text(angle = 30, hjust = 1),
+    legend.position = "top"
+  )
+```
+
+:::
+
+::: {.callout-tip}
+## Extra interpretation
+
+This profile chart gives a cleaner summary than the full parallel coordinate plot.  
+It shows how average chemical attributes differ across quality groups.
+:::
+
+## 5.9 Final Takeaway
+
+Multivariate visualisation helps reveal patterns that are difficult to see with single-variable charts. For wine quality data, chemical variables should be explored together because quality may depend on several measurements at the same time.
+
+Parallel coordinate plots are useful for comparing many variables. Correlation heatmaps reveal relationships between variables. Scatterplot matrices help inspect pairwise patterns. Interactive graphics make large datasets easier to explore.
+
+::: {.callout-tip}
+## Final takeaway
+
+Use multivariate visualisation when the question cannot be answered by one variable alone.  
+For wine quality, the useful insight comes from comparing chemical attributes together, not separately.
+:::
+
+## 5.10 Reference
+
+This exercise covered:
+
+- importing and preparing wine quality data,
+- creating parallel coordinate plots with `GGally`,
+- comparing red and white wine profiles,
+- grouping wines by quality,
+- creating a correlation heatmap,
+- building a scatterplot matrix,
+- creating an interactive plot with `plotly`,
+- extending the analysis with an average chemical profile chart.
