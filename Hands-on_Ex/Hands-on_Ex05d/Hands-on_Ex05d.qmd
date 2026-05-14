@@ -1,0 +1,1177 @@
+---
+title: "Hands-on Exercise 5d - Visualising Multivariate Data"
+author: "Yang Yang"
+format:
+  html:
+    theme: sketchy
+    toc: true
+    toc-depth: 3
+    number-sections: false
+    code-copy: true
+    code-overflow: wrap
+editor: visual
+execute:
+  warning: false
+  message: false
+---
+
+```{r}
+#| label: setup
+#| include: false
+
+if (!require(pacman)) {
+  install.packages("pacman")
+}
+
+pacman::p_load(
+  tidyverse,
+  DT,
+  janitor,
+  scales,
+  plotly,
+  knitr
+)
+
+my_teal <- "#2A6F6F"
+my_soft_teal <- "#8AA6A3"
+my_dark <- "#1F1F1F"
+my_light_teal <- "#D8E8E6"
+my_grey <- "#F3F4F4"
+my_warning <- "#B07C3E"
+my_red <- "#9A4B4B"
+
+theme_yy <- theme_minimal(base_size = 13) +
+  theme(
+    plot.title = element_text(face = "bold", colour = my_dark),
+    plot.subtitle = element_text(colour = my_teal),
+    axis.title = element_text(colour = my_dark),
+    axis.text = element_text(colour = my_dark),
+    panel.grid.minor = element_blank(),
+    legend.position = "bottom"
+  )
+```
+
+## 5.1 Overview
+
+Multivariate data contains many variables for each observation. A normal scatter plot is useful for comparing two variables, but it is limited when the task is to compare many indicators together.
+
+In this exercise, we use the `WHData-2018.csv` dataset to visualise country-level happiness indicators. The aim is to see how countries and regions differ across multiple measures such as happiness score, GDP per capita, social support, healthy life expectancy, freedom, generosity, and perceptions of corruption.
+
+By the end of this exercise, we will be able to:
+
+- import and clean multivariate data,
+- prepare numerical indicators for comparison,
+- create a heatmap for multiple indicators,
+- reorder countries using clustering,
+- compare regional profiles,
+- create an interactive multivariate chart,
+- add simple extensions for interpretation.
+
+::: {.callout-important}
+## Important
+
+Multivariate visualisation is useful when one variable alone is not enough.  
+For the World Happiness data, happiness score should be read together with social, economic, health, and governance-related indicators.
+:::
+
+## 5.2 Getting Started
+
+### 5.2.1 Installing and launching R packages
+
+This exercise uses `tidyverse` for data preparation, `DT` for tables, `plotly` for interactivity, and `janitor` for cleaning column names.
+
+::: {.panel-tabset}
+
+## View
+
+```{r}
+#| echo: false
+
+package_table <- tibble(
+  Package = c("tidyverse", "DT", "janitor", "plotly", "scales"),
+  Purpose = c(
+    "Data import, wrangling, and plotting",
+    "Interactive HTML tables",
+    "Cleaning column names",
+    "Interactive visualisation",
+    "Rescaling and formatting values"
+  )
+)
+
+DT::datatable(
+  package_table,
+  rownames = FALSE,
+  class = "compact stripe hover",
+  options = list(dom = "t", pageLength = 5),
+  width = "100%"
+)
+```
+
+## Code
+
+```{r}
+#| eval: false
+
+pacman::p_load(
+  tidyverse,
+  DT,
+  janitor,
+  plotly,
+  scales
+)
+```
+
+:::
+
+### 5.2.2 Importing data
+
+The dataset used in this exercise is `WHData-2018.csv`.
+
+::: {.panel-tabset}
+
+## View
+
+```{r}
+#| echo: false
+
+csv_file <- list.files(pattern = "WHData-2018.*\\.csv$")[1]
+
+wh_raw <- read_csv(csv_file, show_col_types = FALSE)
+
+glimpse(wh_raw)
+```
+
+## Code
+
+```{r}
+#| eval: false
+
+csv_file <- list.files(pattern = "WHData-2018.*\\.csv$")[1]
+
+wh_raw <- read_csv(csv_file, show_col_types = FALSE)
+
+glimpse(wh_raw)
+```
+
+:::
+
+The data is read from the current folder. Using `list.files()` makes the code safer because it does not depend on typing the full path manually.
+
+### 5.2.3 Cleaning column names
+
+::: {.panel-tabset}
+
+## View
+
+```{r}
+#| echo: false
+
+wh <- wh_raw %>%
+  janitor::clean_names()
+
+names(wh)
+```
+
+## Code
+
+```{r}
+wh <- wh_raw %>%
+  janitor::clean_names()
+
+names(wh)
+```
+
+:::
+
+After cleaning, column names such as `Happiness score` and `GDP per capita` become easier to use in R code.
+
+### 5.2.4 Quick data preview
+
+::: {.panel-tabset}
+
+## View
+
+```{r}
+#| echo: false
+
+DT::datatable(
+  head(wh, 12),
+  rownames = FALSE,
+  class = "compact stripe hover",
+  options = list(pageLength = 12, scrollX = TRUE),
+  width = "100%"
+)
+```
+
+## Code
+
+```{r}
+#| eval: false
+
+DT::datatable(
+  head(wh, 12),
+  rownames = FALSE,
+  class = "compact stripe hover",
+  options = list(pageLength = 12, scrollX = TRUE),
+  width = "100%"
+)
+```
+
+:::
+
+## 5.3 Preparing Data for Multivariate Visualisation
+
+Before visualising many variables together, we select the main numerical indicators and rescale them. Rescaling is necessary because the variables use different units and ranges.
+
+### 5.3.1 Selecting indicators
+
+::: {.panel-tabset}
+
+## View
+
+```{r}
+#| echo: false
+
+wh_selected <- wh %>%
+  select(
+    country,
+    region,
+    happiness_score,
+    gdp_per_capita,
+    social_support,
+    healthy_life_expectancy,
+    freedom_to_make_life_choices,
+    generosity,
+    perceptions_of_corruption
+  ) %>%
+  drop_na()
+
+DT::datatable(
+  head(wh_selected, 12),
+  rownames = FALSE,
+  class = "compact stripe hover",
+  options = list(pageLength = 12, scrollX = TRUE),
+  width = "100%"
+)
+```
+
+## Code
+
+```{r}
+wh_selected <- wh %>%
+  select(
+    country,
+    region,
+    happiness_score,
+    gdp_per_capita,
+    social_support,
+    healthy_life_expectancy,
+    freedom_to_make_life_choices,
+    generosity,
+    perceptions_of_corruption
+  ) %>%
+  drop_na()
+
+DT::datatable(
+  head(wh_selected, 12),
+  rownames = FALSE,
+  class = "compact stripe hover",
+  options = list(pageLength = 12, scrollX = TRUE),
+  width = "100%"
+)
+```
+
+:::
+
+::: {.callout-tip}
+## What can we learn?
+
+For multivariate visualisation, the first decision is variable selection.  
+Too many variables can make the chart crowded, while too few variables may hide important patterns.
+:::
+
+### 5.3.2 Rescaling indicators
+
+The indicators are rescaled from 0 to 1. This allows us to compare them on the same visual scale.
+
+::: {.panel-tabset}
+
+## View
+
+```{r}
+#| echo: false
+
+wh_scaled <- wh_selected %>%
+  mutate(
+    across(
+      c(
+        happiness_score,
+        gdp_per_capita,
+        social_support,
+        healthy_life_expectancy,
+        freedom_to_make_life_choices,
+        generosity,
+        perceptions_of_corruption
+      ),
+      ~ scales::rescale(.x),
+      .names = "scaled_{.col}"
+    )
+  )
+
+DT::datatable(
+  wh_scaled %>%
+    select(country, region, starts_with("scaled_")) %>%
+    head(12),
+  rownames = FALSE,
+  class = "compact stripe hover",
+  options = list(pageLength = 12, scrollX = TRUE),
+  width = "100%"
+)
+```
+
+## Code
+
+```{r}
+wh_scaled <- wh_selected %>%
+  mutate(
+    across(
+      c(
+        happiness_score,
+        gdp_per_capita,
+        social_support,
+        healthy_life_expectancy,
+        freedom_to_make_life_choices,
+        generosity,
+        perceptions_of_corruption
+      ),
+      ~ scales::rescale(.x),
+      .names = "scaled_{.col}"
+    )
+  )
+
+DT::datatable(
+  wh_scaled %>%
+    select(country, region, starts_with("scaled_")) %>%
+    head(12),
+  rownames = FALSE,
+  class = "compact stripe hover",
+  options = list(pageLength = 12, scrollX = TRUE),
+  width = "100%"
+)
+```
+
+:::
+
+Rescaling does not change the ranking of countries within each indicator. It only puts all indicators onto a common scale.
+
+## 5.4 Creating a Multivariate Heatmap
+
+A heatmap is useful when we want to compare many countries across many indicators. Each cell represents the relative value of one indicator for one country.
+
+### 5.4.1 Preparing heatmap data
+
+To keep the chart readable, we first focus on the top 30 countries by happiness score.
+
+::: {.panel-tabset}
+
+## View
+
+```{r}
+#| echo: false
+
+top_countries <- wh_scaled %>%
+  arrange(desc(happiness_score)) %>%
+  slice_head(n = 30)
+
+heatmap_data <- top_countries %>%
+  select(
+    country,
+    region,
+    scaled_happiness_score,
+    scaled_gdp_per_capita,
+    scaled_social_support,
+    scaled_healthy_life_expectancy,
+    scaled_freedom_to_make_life_choices,
+    scaled_generosity,
+    scaled_perceptions_of_corruption
+  ) %>%
+  pivot_longer(
+    cols = starts_with("scaled_"),
+    names_to = "indicator",
+    values_to = "scaled_value"
+  ) %>%
+  mutate(
+    indicator = str_remove(indicator, "scaled_"),
+    indicator = str_replace_all(indicator, "_", " "),
+    indicator = str_to_title(indicator)
+  )
+
+DT::datatable(
+  head(heatmap_data, 12),
+  rownames = FALSE,
+  class = "compact stripe hover",
+  options = list(pageLength = 12, scrollX = TRUE),
+  width = "100%"
+)
+```
+
+## Code
+
+```{r}
+top_countries <- wh_scaled %>%
+  arrange(desc(happiness_score)) %>%
+  slice_head(n = 30)
+
+heatmap_data <- top_countries %>%
+  select(
+    country,
+    region,
+    scaled_happiness_score,
+    scaled_gdp_per_capita,
+    scaled_social_support,
+    scaled_healthy_life_expectancy,
+    scaled_freedom_to_make_life_choices,
+    scaled_generosity,
+    scaled_perceptions_of_corruption
+  ) %>%
+  pivot_longer(
+    cols = starts_with("scaled_"),
+    names_to = "indicator",
+    values_to = "scaled_value"
+  ) %>%
+  mutate(
+    indicator = str_remove(indicator, "scaled_"),
+    indicator = str_replace_all(indicator, "_", " "),
+    indicator = str_to_title(indicator)
+  )
+
+DT::datatable(
+  head(heatmap_data, 12),
+  rownames = FALSE,
+  class = "compact stripe hover",
+  options = list(pageLength = 12, scrollX = TRUE),
+  width = "100%"
+)
+```
+
+:::
+
+### 5.4.2 Plotting the heatmap
+
+::: {.panel-tabset}
+
+## View
+
+```{r}
+#| echo: false
+#| fig-width: 10
+#| fig-height: 8
+
+country_order_by_happiness <- top_countries %>%
+  arrange(happiness_score) %>%
+  pull(country)
+
+heatmap_data_plot <- heatmap_data %>%
+  mutate(
+    country = factor(country, levels = country_order_by_happiness)
+  )
+
+ggplot(
+  heatmap_data_plot,
+  aes(
+    x = indicator,
+    y = country,
+    fill = scaled_value
+  )
+) +
+  geom_tile(colour = "white", linewidth = 0.35) +
+  scale_fill_gradient(
+    low = my_light_teal,
+    high = my_teal,
+    limits = c(0, 1)
+  ) +
+  labs(
+    title = "Multivariate heatmap of top 30 happiest countries",
+    subtitle = "Values are rescaled from 0 to 1 for comparison across indicators",
+    x = NULL,
+    y = NULL,
+    fill = "Rescaled value"
+  ) +
+  theme_yy +
+  theme(
+    axis.text.x = element_text(angle = 35, hjust = 1),
+    panel.grid = element_blank()
+  )
+```
+
+## Code
+
+```{r}
+ggplot(
+  heatmap_data_plot,
+  aes(
+    x = indicator,
+    y = country,
+    fill = scaled_value
+  )
+) +
+  geom_tile(colour = "white", linewidth = 0.35) +
+  scale_fill_gradient(
+    low = my_light_teal,
+    high = my_teal,
+    limits = c(0, 1)
+  ) +
+  labs(
+    title = "Multivariate heatmap of top 30 happiest countries",
+    subtitle = "Values are rescaled from 0 to 1 for comparison across indicators",
+    x = NULL,
+    y = NULL,
+    fill = "Rescaled value"
+  ) +
+  theme_yy +
+  theme(
+    axis.text.x = element_text(angle = 35, hjust = 1),
+    panel.grid = element_blank()
+  )
+```
+
+:::
+
+The heatmap allows us to compare the overall profile of each country. Darker teal cells indicate relatively higher values within that indicator.
+
+::: {.callout-note}
+## Reading the heatmap
+
+The heatmap shows relative indicator levels, not raw values.  
+A dark cell means the country is high on that indicator compared with other countries in the dataset.
+:::
+
+## 5.5 Reordering Countries with Clustering
+
+The previous heatmap orders countries by happiness score. Another option is to order countries by similarity across all selected indicators.
+
+### 5.5.1 Creating clustered country order
+
+::: {.panel-tabset}
+
+## View
+
+```{r}
+#| echo: false
+
+cluster_matrix <- top_countries %>%
+  select(
+    scaled_happiness_score,
+    scaled_gdp_per_capita,
+    scaled_social_support,
+    scaled_healthy_life_expectancy,
+    scaled_freedom_to_make_life_choices,
+    scaled_generosity,
+    scaled_perceptions_of_corruption
+  ) %>%
+  as.matrix()
+
+rownames(cluster_matrix) <- top_countries$country
+
+country_order <- hclust(dist(cluster_matrix))$labels[hclust(dist(cluster_matrix))$order]
+
+heatmap_clustered <- heatmap_data %>%
+  mutate(
+    country = factor(country, levels = rev(country_order))
+  )
+
+DT::datatable(
+  tibble(country_order = country_order),
+  rownames = FALSE,
+  class = "compact stripe hover",
+  options = list(pageLength = 10),
+  width = "100%"
+)
+```
+
+## Code
+
+```{r}
+cluster_matrix <- top_countries %>%
+  select(
+    scaled_happiness_score,
+    scaled_gdp_per_capita,
+    scaled_social_support,
+    scaled_healthy_life_expectancy,
+    scaled_freedom_to_make_life_choices,
+    scaled_generosity,
+    scaled_perceptions_of_corruption
+  ) %>%
+  as.matrix()
+
+rownames(cluster_matrix) <- top_countries$country
+
+country_order <- hclust(dist(cluster_matrix))$labels[hclust(dist(cluster_matrix))$order]
+
+heatmap_clustered <- heatmap_data %>%
+  mutate(
+    country = factor(country, levels = rev(country_order))
+  )
+
+DT::datatable(
+  tibble(country_order = country_order),
+  rownames = FALSE,
+  class = "compact stripe hover",
+  options = list(pageLength = 10),
+  width = "100%"
+)
+```
+
+:::
+
+Clustering groups countries with similar multivariate profiles closer together.
+
+### 5.5.2 Clustered heatmap
+
+::: {.panel-tabset}
+
+## View
+
+```{r}
+#| echo: false
+#| fig-width: 10
+#| fig-height: 8
+
+ggplot(
+  heatmap_clustered,
+  aes(
+    x = indicator,
+    y = country,
+    fill = scaled_value
+  )
+) +
+  geom_tile(colour = "white", linewidth = 0.35) +
+  scale_fill_gradient(
+    low = my_light_teal,
+    high = my_teal,
+    limits = c(0, 1)
+  ) +
+  labs(
+    title = "Clustered heatmap of country happiness profiles",
+    subtitle = "Countries with similar indicator patterns are placed closer together",
+    x = NULL,
+    y = NULL,
+    fill = "Rescaled value"
+  ) +
+  theme_yy +
+  theme(
+    axis.text.x = element_text(angle = 35, hjust = 1),
+    panel.grid = element_blank()
+  )
+```
+
+## Code
+
+```{r}
+ggplot(
+  heatmap_clustered,
+  aes(
+    x = indicator,
+    y = country,
+    fill = scaled_value
+  )
+) +
+  geom_tile(colour = "white", linewidth = 0.35) +
+  scale_fill_gradient(
+    low = my_light_teal,
+    high = my_teal,
+    limits = c(0, 1)
+  ) +
+  labs(
+    title = "Clustered heatmap of country happiness profiles",
+    subtitle = "Countries with similar indicator patterns are placed closer together",
+    x = NULL,
+    y = NULL,
+    fill = "Rescaled value"
+  ) +
+  theme_yy +
+  theme(
+    axis.text.x = element_text(angle = 35, hjust = 1),
+    panel.grid = element_blank()
+  )
+```
+
+:::
+
+This version is better for pattern discovery because the ordering is based on similarity rather than rank.
+
+## 5.6 Regional Profile Comparison
+
+A country-level heatmap can be detailed. To get a higher-level view, we can summarise the indicators by region.
+
+### 5.6.1 Preparing regional profile data
+
+::: {.panel-tabset}
+
+## View
+
+```{r}
+#| echo: false
+
+region_profile <- wh_scaled %>%
+  group_by(region) %>%
+  summarise(
+    happiness_score = mean(happiness_score, na.rm = TRUE),
+    gdp_per_capita = mean(gdp_per_capita, na.rm = TRUE),
+    social_support = mean(social_support, na.rm = TRUE),
+    healthy_life_expectancy = mean(healthy_life_expectancy, na.rm = TRUE),
+    freedom_to_make_life_choices = mean(freedom_to_make_life_choices, na.rm = TRUE),
+    generosity = mean(generosity, na.rm = TRUE),
+    perceptions_of_corruption = mean(perceptions_of_corruption, na.rm = TRUE),
+    .groups = "drop"
+  ) %>%
+  mutate(
+    across(
+      -region,
+      ~ scales::rescale(.x),
+      .names = "scaled_{.col}"
+    )
+  )
+
+region_heatmap <- region_profile %>%
+  select(region, starts_with("scaled_")) %>%
+  pivot_longer(
+    cols = starts_with("scaled_"),
+    names_to = "indicator",
+    values_to = "scaled_value"
+  ) %>%
+  mutate(
+    indicator = str_remove(indicator, "scaled_"),
+    indicator = str_replace_all(indicator, "_", " "),
+    indicator = str_to_title(indicator)
+  )
+
+DT::datatable(
+  region_profile %>%
+    mutate(across(where(is.numeric), ~ round(.x, 3))),
+  rownames = FALSE,
+  class = "compact stripe hover",
+  options = list(pageLength = 10, scrollX = TRUE),
+  width = "100%"
+)
+```
+
+## Code
+
+```{r}
+region_profile <- wh_scaled %>%
+  group_by(region) %>%
+  summarise(
+    happiness_score = mean(happiness_score, na.rm = TRUE),
+    gdp_per_capita = mean(gdp_per_capita, na.rm = TRUE),
+    social_support = mean(social_support, na.rm = TRUE),
+    healthy_life_expectancy = mean(healthy_life_expectancy, na.rm = TRUE),
+    freedom_to_make_life_choices = mean(freedom_to_make_life_choices, na.rm = TRUE),
+    generosity = mean(generosity, na.rm = TRUE),
+    perceptions_of_corruption = mean(perceptions_of_corruption, na.rm = TRUE),
+    .groups = "drop"
+  ) %>%
+  mutate(
+    across(
+      -region,
+      ~ scales::rescale(.x),
+      .names = "scaled_{.col}"
+    )
+  )
+
+region_heatmap <- region_profile %>%
+  select(region, starts_with("scaled_")) %>%
+  pivot_longer(
+    cols = starts_with("scaled_"),
+    names_to = "indicator",
+    values_to = "scaled_value"
+  ) %>%
+  mutate(
+    indicator = str_remove(indicator, "scaled_"),
+    indicator = str_replace_all(indicator, "_", " "),
+    indicator = str_to_title(indicator)
+  )
+
+DT::datatable(
+  region_profile %>%
+    mutate(across(where(is.numeric), ~ round(.x, 3))),
+  rownames = FALSE,
+  class = "compact stripe hover",
+  options = list(pageLength = 10, scrollX = TRUE),
+  width = "100%"
+)
+```
+
+:::
+
+### 5.6.2 Regional heatmap
+
+::: {.panel-tabset}
+
+## View
+
+```{r}
+#| echo: false
+#| fig-width: 10
+#| fig-height: 6
+
+ggplot(
+  region_heatmap,
+  aes(
+    x = indicator,
+    y = fct_reorder(region, scaled_value, .fun = mean),
+    fill = scaled_value
+  )
+) +
+  geom_tile(colour = "white", linewidth = 0.35) +
+  scale_fill_gradient(
+    low = my_light_teal,
+    high = my_teal,
+    limits = c(0, 1)
+  ) +
+  labs(
+    title = "Regional profile heatmap",
+    subtitle = "This extension summarises the multivariate pattern by region",
+    x = NULL,
+    y = NULL,
+    fill = "Rescaled value"
+  ) +
+  theme_yy +
+  theme(
+    axis.text.x = element_text(angle = 35, hjust = 1),
+    panel.grid = element_blank()
+  )
+```
+
+## Code
+
+```{r}
+ggplot(
+  region_heatmap,
+  aes(
+    x = indicator,
+    y = fct_reorder(region, scaled_value, .fun = mean),
+    fill = scaled_value
+  )
+) +
+  geom_tile(colour = "white", linewidth = 0.35) +
+  scale_fill_gradient(
+    low = my_light_teal,
+    high = my_teal,
+    limits = c(0, 1)
+  ) +
+  labs(
+    title = "Regional profile heatmap",
+    subtitle = "This extension summarises the multivariate pattern by region",
+    x = NULL,
+    y = NULL,
+    fill = "Rescaled value"
+  ) +
+  theme_yy +
+  theme(
+    axis.text.x = element_text(angle = 35, hjust = 1),
+    panel.grid = element_blank()
+  )
+```
+
+:::
+
+The regional heatmap is less detailed than the country-level heatmap, but it gives a cleaner overview of broad differences.
+
+## 5.7 Interactive Multivariate Heatmap
+
+The static heatmap is useful for reading patterns, while an interactive version allows readers to inspect values by hovering over each cell.
+
+### 5.7.1 Interactive heatmap
+
+::: {.panel-tabset}
+
+## View
+
+```{r}
+#| echo: false
+
+interactive_heatmap <- ggplot(
+  heatmap_clustered,
+  aes(
+    x = indicator,
+    y = country,
+    fill = scaled_value,
+    text = paste0(
+      "Country: ", country,
+      "<br>Indicator: ", indicator,
+      "<br>Rescaled value: ", round(scaled_value, 3)
+    )
+  )
+) +
+  geom_tile(colour = "white", linewidth = 0.35) +
+  scale_fill_gradient(
+    low = my_light_teal,
+    high = my_teal,
+    limits = c(0, 1)
+  ) +
+  labs(
+    title = "Interactive multivariate heatmap",
+    subtitle = "Hover over a cell to inspect the indicator value",
+    x = NULL,
+    y = NULL,
+    fill = "Rescaled value"
+  ) +
+  theme_yy +
+  theme(
+    axis.text.x = element_text(angle = 35, hjust = 1),
+    panel.grid = element_blank()
+  )
+
+ggplotly(interactive_heatmap, tooltip = "text")
+```
+
+## Code
+
+```{r}
+interactive_heatmap <- ggplot(
+  heatmap_clustered,
+  aes(
+    x = indicator,
+    y = country,
+    fill = scaled_value,
+    text = paste0(
+      "Country: ", country,
+      "<br>Indicator: ", indicator,
+      "<br>Rescaled value: ", round(scaled_value, 3)
+    )
+  )
+) +
+  geom_tile(colour = "white", linewidth = 0.35) +
+  scale_fill_gradient(
+    low = my_light_teal,
+    high = my_teal,
+    limits = c(0, 1)
+  ) +
+  labs(
+    title = "Interactive multivariate heatmap",
+    subtitle = "Hover over a cell to inspect the indicator value",
+    x = NULL,
+    y = NULL,
+    fill = "Rescaled value"
+  ) +
+  theme_yy +
+  theme(
+    axis.text.x = element_text(angle = 35, hjust = 1),
+    panel.grid = element_blank()
+  )
+
+ggplotly(interactive_heatmap, tooltip = "text")
+```
+
+:::
+
+The interactive version is useful when the chart contains many cells. It keeps the visual clean while still allowing detailed inspection.
+
+## 5.8 Extra Check: Top and Bottom Country Profiles
+
+As a small extension, we compare the top five and bottom five countries by happiness score.
+
+### 5.8.1 Preparing comparison data
+
+::: {.panel-tabset}
+
+## View
+
+```{r}
+#| echo: false
+
+top_bottom_countries <- bind_rows(
+  wh_scaled %>%
+    arrange(desc(happiness_score)) %>%
+    slice_head(n = 5) %>%
+    mutate(group = "Top 5"),
+  wh_scaled %>%
+    arrange(happiness_score) %>%
+    slice_head(n = 5) %>%
+    mutate(group = "Bottom 5")
+)
+
+top_bottom_heatmap <- top_bottom_countries %>%
+  select(
+    country,
+    group,
+    scaled_happiness_score,
+    scaled_gdp_per_capita,
+    scaled_social_support,
+    scaled_healthy_life_expectancy,
+    scaled_freedom_to_make_life_choices,
+    scaled_generosity,
+    scaled_perceptions_of_corruption
+  ) %>%
+  pivot_longer(
+    cols = starts_with("scaled_"),
+    names_to = "indicator",
+    values_to = "scaled_value"
+  ) %>%
+  mutate(
+    indicator = str_remove(indicator, "scaled_"),
+    indicator = str_replace_all(indicator, "_", " "),
+    indicator = str_to_title(indicator)
+  )
+
+DT::datatable(
+  top_bottom_countries %>%
+    select(country, region, group, happiness_score),
+  rownames = FALSE,
+  class = "compact stripe hover",
+  options = list(dom = "t", scrollX = TRUE),
+  width = "100%"
+)
+```
+
+## Code
+
+```{r}
+top_bottom_countries <- bind_rows(
+  wh_scaled %>%
+    arrange(desc(happiness_score)) %>%
+    slice_head(n = 5) %>%
+    mutate(group = "Top 5"),
+  wh_scaled %>%
+    arrange(happiness_score) %>%
+    slice_head(n = 5) %>%
+    mutate(group = "Bottom 5")
+)
+
+top_bottom_heatmap <- top_bottom_countries %>%
+  select(
+    country,
+    group,
+    scaled_happiness_score,
+    scaled_gdp_per_capita,
+    scaled_social_support,
+    scaled_healthy_life_expectancy,
+    scaled_freedom_to_make_life_choices,
+    scaled_generosity,
+    scaled_perceptions_of_corruption
+  ) %>%
+  pivot_longer(
+    cols = starts_with("scaled_"),
+    names_to = "indicator",
+    values_to = "scaled_value"
+  ) %>%
+  mutate(
+    indicator = str_remove(indicator, "scaled_"),
+    indicator = str_replace_all(indicator, "_", " "),
+    indicator = str_to_title(indicator)
+  )
+
+DT::datatable(
+  top_bottom_countries %>%
+    select(country, region, group, happiness_score),
+  rownames = FALSE,
+  class = "compact stripe hover",
+  options = list(dom = "t", scrollX = TRUE),
+  width = "100%"
+)
+```
+
+:::
+
+### 5.8.2 Plotting top and bottom profiles
+
+::: {.panel-tabset}
+
+## View
+
+```{r}
+#| echo: false
+#| fig-width: 10
+#| fig-height: 5
+
+ggplot(
+  top_bottom_heatmap,
+  aes(
+    x = indicator,
+    y = fct_reorder(country, scaled_value, .fun = mean),
+    fill = scaled_value
+  )
+) +
+  geom_tile(colour = "white", linewidth = 0.35) +
+  facet_wrap(~ group, scales = "free_y") +
+  scale_fill_gradient(
+    low = my_light_teal,
+    high = my_teal,
+    limits = c(0, 1)
+  ) +
+  labs(
+    title = "Top and bottom country profiles",
+    subtitle = "This extension compares the strongest contrast in happiness ranking",
+    x = NULL,
+    y = NULL,
+    fill = "Rescaled value"
+  ) +
+  theme_yy +
+  theme(
+    axis.text.x = element_text(angle = 35, hjust = 1),
+    panel.grid = element_blank()
+  )
+```
+
+## Code
+
+```{r}
+ggplot(
+  top_bottom_heatmap,
+  aes(
+    x = indicator,
+    y = fct_reorder(country, scaled_value, .fun = mean),
+    fill = scaled_value
+  )
+) +
+  geom_tile(colour = "white", linewidth = 0.35) +
+  facet_wrap(~ group, scales = "free_y") +
+  scale_fill_gradient(
+    low = my_light_teal,
+    high = my_teal,
+    limits = c(0, 1)
+  ) +
+  labs(
+    title = "Top and bottom country profiles",
+    subtitle = "This extension compares the strongest contrast in happiness ranking",
+    x = NULL,
+    y = NULL,
+    fill = "Rescaled value"
+  ) +
+  theme_yy +
+  theme(
+    axis.text.x = element_text(angle = 35, hjust = 1),
+    panel.grid = element_blank()
+  )
+```
+
+:::
+
+This comparison makes the multivariate differences easier to explain because the two groups are visually separated.
+
+## 5.9 Final Takeaway
+
+Multivariate heatmaps are useful when we want to compare many observations across many indicators. They are especially effective when values are rescaled, because the reader can compare patterns across different measurement units.
+
+In this exercise, the country-level heatmap shows detailed profiles, clustering helps reveal similar countries, and the regional heatmap gives a broader summary.
+
+::: {.callout-tip}
+## Final takeaway
+
+Use a multivariate heatmap when the main question is about overall profile, not just one variable.  
+It is strongest when the data has many comparable indicators for the same set of observations.
+:::
+
+## 5.10 Reference
+
+This exercise covered:
+
+- importing and cleaning World Happiness data,
+- selecting key numerical indicators,
+- rescaling variables,
+- creating a country-level multivariate heatmap,
+- reordering countries using clustering,
+- summarising regional profiles,
+- creating an interactive heatmap,
+- adding a top-versus-bottom comparison.
