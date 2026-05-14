@@ -1,5 +1,5 @@
 ---
-title: "Hands-on Exercise 4d - Programming Animated Statistical Graphics with R"
+title: "Hands-on Exercise 4d - Funnel Plots for Fair Comparisons"
 author: "Yang Yang"
 format:
   html:
@@ -14,3 +14,970 @@ execute:
   warning: false
   message: false
 ---
+
+```{r}
+#| label: setup
+#| include: false
+
+if (!require(pacman)) {
+  install.packages("pacman")
+}
+
+pacman::p_load(
+  tidyverse,
+  FunnelPlotR,
+  plotly,
+  DT,
+  knitr,
+  scales
+)
+
+my_teal <- "#2A6F6F"
+my_soft_teal <- "#8AA6A3"
+my_dark <- "#1F1F1F"
+my_light_teal <- "#D8E8E6"
+my_grey <- "#F3F4F4"
+my_warning <- "#B07C3E"
+
+theme_yy <- theme_minimal(base_size = 13) +
+  theme(
+    plot.title = element_text(face = "bold", colour = my_dark),
+    plot.subtitle = element_text(colour = my_teal),
+    axis.title = element_text(colour = my_dark),
+    axis.text = element_text(colour = my_dark),
+    panel.grid.minor = element_blank(),
+    panel.grid.major.x = element_blank()
+  )
+```
+
+## 4.1 Overview
+
+A funnel plot is useful when we want to compare performance fairly across groups with different sample sizes. A simple ranking chart can be misleading because small areas may appear unusually high or low just by random variation.
+
+In this exercise, we will use funnel plots to compare COVID-19 death rates across sub-districts in DKI Jakarta. The key idea is that areas with smaller populations naturally have more unstable rates, while larger areas usually have more stable rates.
+
+By the end of this exercise, we will be able to:
+
+- explain why funnel plots are useful for fair comparison,
+- import and prepare COVID-19 data,
+- create a funnel plot using `FunnelPlotR`,
+- manually construct funnel-limit calculations with `ggplot2`,
+- create an interactive funnel plot using `plotly`,
+- identify possible outlier areas above the 99.9% upper control limit.
+
+::: {.callout-important}
+## Important
+
+A funnel plot does not automatically prove that an area is “good” or “bad”.  
+It highlights areas that are unusual after accounting for population size. These areas should be investigated further, not judged directly from the plot alone.
+:::
+
+## 4.2 Installing and Launching R Packages
+
+The main package used in this exercise is `FunnelPlotR`. We also use `tidyverse` for data preparation, `plotly` for interactivity, and `DT` for displaying tables.
+
+::: {.panel-tabset}
+
+## View
+
+```{r}
+#| echo: false
+
+package_table <- tibble(
+  Package = c("tidyverse", "FunnelPlotR", "plotly", "DT", "scales"),
+  Purpose = c(
+    "Data import, transformation, and ggplot2 graphics",
+    "Creating funnel plots for fair comparison",
+    "Converting ggplot charts into interactive charts",
+    "Displaying interactive HTML tables",
+    "Formatting rates and numeric labels"
+  )
+)
+
+DT::datatable(
+  package_table,
+  rownames = FALSE,
+  class = "compact stripe hover",
+  options = list(dom = "t", pageLength = 5),
+  width = "100%"
+)
+```
+
+## Code
+
+```{r}
+#| eval: false
+
+pacman::p_load(
+  tidyverse,
+  FunnelPlotR,
+  plotly,
+  DT,
+  knitr,
+  scales
+)
+```
+
+:::
+
+::: {.callout-note}
+## Package note
+
+If `FunnelPlotR` is not installed on your machine, install it once in the Console before rendering:
+
+```r
+install.packages("FunnelPlotR")
+```
+:::
+
+## 4.3 Importing Data
+
+The dataset used in this exercise is `COVID-19_DKI_Jakarta.csv`. It contains COVID-19 information for sub-districts in DKI Jakarta.
+
+::: {.panel-tabset}
+
+## View
+
+```{r}
+#| echo: false
+
+covid19 <- read_csv("COVID-19_DKI_Jakarta.csv", show_col_types = FALSE)
+
+glimpse(covid19)
+```
+
+## Code
+
+```{r}
+covid19 <- read_csv("COVID-19_DKI_Jakarta.csv", show_col_types = FALSE)
+
+glimpse(covid19)
+```
+
+:::
+
+The `glimpse()` output is used to check the variable names and data types before plotting. For a funnel plot, we mainly need one variable for population size and one variable for the outcome count.
+
+### 4.3.1 Cleaning variable names
+
+Different datasets sometimes use slightly different column names. To make the code easier to work with, the next step standardises the names into a simpler format.
+
+::: {.panel-tabset}
+
+## View
+
+```{r}
+#| echo: false
+
+covid_clean <- covid19 %>%
+  janitor::clean_names()
+
+names(covid_clean)
+```
+
+## Code
+
+```{r}
+covid_clean <- covid19 %>%
+  janitor::clean_names()
+
+names(covid_clean)
+```
+
+:::
+
+The `janitor::clean_names()` function converts column names into a consistent lowercase format. This reduces the chance of errors caused by spaces, capital letters, or special characters.
+
+::: {.callout-warning}
+## Warning
+
+If your render fails here, it probably means the `janitor` package is missing. Run this once in the Console:
+
+```r
+install.packages("janitor")
+```
+:::
+
+### 4.3.2 Preparing data for funnel plots
+
+The original dataset may contain several columns, but the funnel plot needs three main pieces of information:
+
+- the area name,
+- the population or denominator,
+- the observed number of cases or deaths.
+
+The code below automatically looks for likely column names. This makes the page more robust if your CSV uses names such as `subdistrict`, `population`, `death`, or similar wording.
+
+::: {.panel-tabset}
+
+## View
+
+```{r}
+#| echo: false
+
+name_col <- "sub_district"
+pop_col <- "positive"
+death_col <- "death"
+
+funnel_data <- covid_clean %>%
+  transmute(
+    area = as.character(.data[[name_col]]),
+    population = as.numeric(.data[[pop_col]]),
+    deaths = as.numeric(.data[[death_col]])
+  ) %>%
+  filter(
+    !is.na(area),
+    !is.na(population),
+    !is.na(deaths),
+    population > 0
+  ) %>%
+  mutate(
+    death_rate = deaths / population,
+    death_rate_per_10000 = death_rate * 10000
+  )
+
+DT::datatable(
+  funnel_data %>%
+    mutate(
+      death_rate = round(death_rate, 5),
+      death_rate_per_10000 = round(death_rate_per_10000, 2)
+    ),
+  rownames = FALSE,
+  class = "compact stripe hover",
+  options = list(pageLength = 8, scrollX = TRUE),
+  width = "100%"
+)
+```
+
+## Code
+
+```{r}
+name_col <- "sub_district"
+pop_col <- "positive"
+death_col <- "death"
+
+funnel_data <- covid_clean %>%
+  transmute(
+    area = as.character(.data[[name_col]]),
+    population = as.numeric(.data[[pop_col]]),
+    deaths = as.numeric(.data[[death_col]])
+  ) %>%
+  filter(
+    !is.na(area),
+    !is.na(population),
+    !is.na(deaths),
+    population > 0
+  ) %>%
+  mutate(
+    death_rate = deaths / population,
+    death_rate_per_10000 = death_rate * 10000
+  )
+
+DT::datatable(
+  funnel_data %>%
+    mutate(
+      death_rate = round(death_rate, 5),
+      death_rate_per_10000 = round(death_rate_per_10000, 2)
+    ),
+  rownames = FALSE,
+  class = "compact stripe hover",
+  options = list(pageLength = 8, scrollX = TRUE),
+  width = "100%"
+)
+```
+
+:::
+
+::: {.callout-tip}
+## What can we learn?
+
+The key rate is calculated as:
+
+```text
+observed deaths / population
+```
+
+This rate is then scaled per 10,000 people so that the values are easier to read.
+:::
+
+## 4.4 FunnelPlotR Methods
+
+`FunnelPlotR` provides a convenient way to generate funnel plots without manually calculating all the control limits.
+
+The basic idea is to compare each area’s observed outcome against what would be expected given its population size. The funnel shape appears because smaller areas have wider expected variation, while larger areas have narrower expected variation.
+
+### 4.4.1 Creating a funnel plot with FunnelPlotR
+
+::: {.panel-tabset}
+
+## View
+
+```{r}
+#| echo: false
+#| fig-width: 9
+#| fig-height: 6
+
+tryCatch({
+  funnel_plot(
+    numerator = funnel_data$deaths,
+    denominator = funnel_data$population,
+    group = funnel_data$area,
+    data_type = "SR",
+    limit = 99.8,
+    label = 5,
+    title = "Funnel plot of COVID-19 death rate by area",
+    x_label = "Population",
+    y_label = "Death rate"
+  )
+}, error = function(e) {
+  cat("FunnelPlotR could not render on this machine. The manual ggplot2 funnel plot below covers the same method.")
+})
+```
+
+## Code
+
+```{r}
+tryCatch({
+  funnel_plot(
+    numerator = funnel_data$deaths,
+    denominator = funnel_data$population,
+    group = funnel_data$area,
+    data_type = "SR",
+    limit = 99.8,
+    label = 5,
+    title = "Funnel plot of COVID-19 death rate by area",
+    x_label = "Population",
+    y_label = "Death rate"
+  )
+}, error = function(e) {
+  cat("FunnelPlotR could not render on this machine. The manual ggplot2 funnel plot below covers the same method.")
+})
+```
+
+:::
+
+This chart uses the package function directly. It is convenient, but the manual approach below gives more control over style and interpretation.
+
+::: {.callout-note}
+## Note
+
+Package-based charts are fast to produce, but manual `ggplot2` construction is better when we need custom styling, labels, colour control, or deeper explanation.
+:::
+
+## 4.5 Funnel Plot for Fair Visual Comparison
+
+In this section, we manually construct a funnel plot. This helps us understand what the funnel limits mean instead of treating the package output as a black box.
+
+### 4.5.1 Calculating funnel limits manually
+
+First, we calculate the overall death rate. Then, for a sequence of population values, we calculate the expected upper and lower control limits.
+
+The standard approximation is:
+
+```text
+overall rate ± z × sqrt(overall rate × (1 - overall rate) / population)
+```
+
+For funnel plots, common z-values are:
+
+- 1.96 for approximately 95% limits,
+- 3.29 for approximately 99.9% limits.
+
+::: {.panel-tabset}
+
+## View
+
+```{r}
+#| echo: false
+
+overall_rate <- sum(funnel_data$deaths, na.rm = TRUE) /
+  sum(funnel_data$population, na.rm = TRUE)
+
+pop_range <- seq(
+  from = max(1, min(funnel_data$population, na.rm = TRUE)),
+  to = max(funnel_data$population, na.rm = TRUE),
+  length.out = 300
+)
+
+limit_data <- tibble(
+  population = pop_range,
+  overall_rate = overall_rate,
+  lower_95 = pmax(0, overall_rate - 1.96 * sqrt(overall_rate * (1 - overall_rate) / population)),
+  upper_95 = overall_rate + 1.96 * sqrt(overall_rate * (1 - overall_rate) / population),
+  lower_999 = pmax(0, overall_rate - 3.29 * sqrt(overall_rate * (1 - overall_rate) / population)),
+  upper_999 = overall_rate + 3.29 * sqrt(overall_rate * (1 - overall_rate) / population)
+)
+
+summary_table <- tibble(
+  Metric = c("Total deaths", "Total population", "Overall death rate", "Overall death rate per 10,000"),
+  Value = c(
+    comma(sum(funnel_data$deaths, na.rm = TRUE)),
+    comma(sum(funnel_data$population, na.rm = TRUE)),
+    round(overall_rate, 6),
+    round(overall_rate * 10000, 2)
+  )
+)
+
+DT::datatable(
+  summary_table,
+  rownames = FALSE,
+  class = "compact stripe hover",
+  options = list(dom = "t"),
+  width = "100%"
+)
+```
+
+## Code
+
+```{r}
+overall_rate <- sum(funnel_data$deaths, na.rm = TRUE) /
+  sum(funnel_data$population, na.rm = TRUE)
+
+pop_range <- seq(
+  from = max(1, min(funnel_data$population, na.rm = TRUE)),
+  to = max(funnel_data$population, na.rm = TRUE),
+  length.out = 300
+)
+
+limit_data <- tibble(
+  population = pop_range,
+  overall_rate = overall_rate,
+  lower_95 = pmax(0, overall_rate - 1.96 * sqrt(overall_rate * (1 - overall_rate) / population)),
+  upper_95 = overall_rate + 1.96 * sqrt(overall_rate * (1 - overall_rate) / population),
+  lower_999 = pmax(0, overall_rate - 3.29 * sqrt(overall_rate * (1 - overall_rate) / population)),
+  upper_999 = overall_rate + 3.29 * sqrt(overall_rate * (1 - overall_rate) / population)
+)
+
+summary_table <- tibble(
+  Metric = c("Total deaths", "Total positive cases", "Overall death rate", "Overall death rate per 10,000"),
+  Value = c(
+    comma(sum(funnel_data$deaths, na.rm = TRUE)),
+    comma(sum(funnel_data$population, na.rm = TRUE)),
+    round(overall_rate, 6),
+    round(overall_rate * 10000, 2)
+  )
+)
+
+DT::datatable(
+  summary_table,
+  rownames = FALSE,
+  class = "compact stripe hover",
+  options = list(dom = "t"),
+  width = "100%"
+)
+```
+
+:::
+
+The overall rate acts as the centre line of the funnel plot. Each area is then compared against this benchmark.
+
+### 4.5.2 Creating the manual funnel plot
+
+::: {.panel-tabset}
+
+## View
+
+```{r}
+#| echo: false
+#| fig-width: 9
+#| fig-height: 6
+
+funnel_data <- funnel_data %>%
+  mutate(
+    upper_95_at_pop = overall_rate + 1.96 * sqrt(overall_rate * (1 - overall_rate) / population),
+    upper_999_at_pop = overall_rate + 3.29 * sqrt(overall_rate * (1 - overall_rate) / population),
+    lower_95_at_pop = pmax(0, overall_rate - 1.96 * sqrt(overall_rate * (1 - overall_rate) / population)),
+    lower_999_at_pop = pmax(0, overall_rate - 3.29 * sqrt(overall_rate * (1 - overall_rate) / population)),
+    status = case_when(
+      death_rate > upper_999_at_pop ~ "Above 99.9% limit",
+      death_rate > upper_95_at_pop ~ "Above 95% limit",
+      death_rate < lower_999_at_pop ~ "Below 99.9% limit",
+      death_rate < lower_95_at_pop ~ "Below 95% limit",
+      TRUE ~ "Within expected range"
+    )
+  )
+
+status_cols <- c(
+  "Above 99.9% limit" = my_warning,
+  "Above 95% limit" = my_soft_teal,
+  "Below 99.9% limit" = "#6B7280",
+  "Below 95% limit" = my_light_teal,
+  "Within expected range" = my_teal
+)
+
+ggplot() +
+  geom_line(
+    data = limit_data,
+    aes(x = population, y = overall_rate),
+    colour = my_dark,
+    linewidth = 0.65
+  ) +
+  geom_line(
+    data = limit_data,
+    aes(x = population, y = upper_95),
+    colour = my_soft_teal,
+    linewidth = 0.55,
+    linetype = "dashed"
+  ) +
+  geom_line(
+    data = limit_data,
+    aes(x = population, y = lower_95),
+    colour = my_soft_teal,
+    linewidth = 0.55,
+    linetype = "dashed"
+  ) +
+  geom_line(
+    data = limit_data,
+    aes(x = population, y = upper_999),
+    colour = my_warning,
+    linewidth = 0.55,
+    linetype = "dotted"
+  ) +
+  geom_line(
+    data = limit_data,
+    aes(x = population, y = lower_999),
+    colour = my_warning,
+    linewidth = 0.55,
+    linetype = "dotted"
+  ) +
+  geom_point(
+    data = funnel_data,
+    aes(x = population, y = death_rate, colour = status),
+    size = 2.3,
+    alpha = 0.85
+  ) +
+  scale_colour_manual(values = status_cols) +
+  scale_y_continuous(labels = label_number(accuracy = 0.0001)) +
+  labs(
+    title = "Manual funnel plot of COVID-19 death rate",
+    subtitle = "Areas outside the funnel limits may deserve further investigation",
+    x = "Population",
+    y = "Death rate",
+    colour = "Status"
+  ) +
+  theme_yy +
+  theme(legend.position = "bottom")
+```
+
+## Code
+
+```{r}
+funnel_data <- funnel_data %>%
+  mutate(
+    upper_95_at_pop = overall_rate + 1.96 * sqrt(overall_rate * (1 - overall_rate) / population),
+    upper_999_at_pop = overall_rate + 3.29 * sqrt(overall_rate * (1 - overall_rate) / population),
+    lower_95_at_pop = pmax(0, overall_rate - 1.96 * sqrt(overall_rate * (1 - overall_rate) / population)),
+    lower_999_at_pop = pmax(0, overall_rate - 3.29 * sqrt(overall_rate * (1 - overall_rate) / population)),
+    status = case_when(
+      death_rate > upper_999_at_pop ~ "Above 99.9% limit",
+      death_rate > upper_95_at_pop ~ "Above 95% limit",
+      death_rate < lower_999_at_pop ~ "Below 99.9% limit",
+      death_rate < lower_95_at_pop ~ "Below 95% limit",
+      TRUE ~ "Within expected range"
+    )
+  )
+
+status_cols <- c(
+  "Above 99.9% limit" = my_warning,
+  "Above 95% limit" = my_soft_teal,
+  "Below 99.9% limit" = "#6B7280",
+  "Below 95% limit" = my_light_teal,
+  "Within expected range" = my_teal
+)
+
+ggplot() +
+  geom_line(
+    data = limit_data,
+    aes(x = population, y = overall_rate),
+    colour = my_dark,
+    linewidth = 0.65
+  ) +
+  geom_line(
+    data = limit_data,
+    aes(x = population, y = upper_95),
+    colour = my_soft_teal,
+    linewidth = 0.55,
+    linetype = "dashed"
+  ) +
+  geom_line(
+    data = limit_data,
+    aes(x = population, y = lower_95),
+    colour = my_soft_teal,
+    linewidth = 0.55,
+    linetype = "dashed"
+  ) +
+  geom_line(
+    data = limit_data,
+    aes(x = population, y = upper_999),
+    colour = my_warning,
+    linewidth = 0.55,
+    linetype = "dotted"
+  ) +
+  geom_line(
+    data = limit_data,
+    aes(x = population, y = lower_999),
+    colour = my_warning,
+    linewidth = 0.55,
+    linetype = "dotted"
+  ) +
+  geom_point(
+    data = funnel_data,
+    aes(x = population, y = death_rate, colour = status),
+    size = 2.3,
+    alpha = 0.85
+  ) +
+  scale_colour_manual(values = status_cols) +
+  scale_y_continuous(labels = label_number(accuracy = 0.0001)) +
+  labs(
+    title = "Manual funnel plot of COVID-19 death rate",
+    subtitle = "Areas outside the funnel limits may deserve further investigation",
+    x = "Positive cases",
+    y = "Death rate",
+    colour = "Status"
+  ) +
+  theme_yy +
+  theme(legend.position = "bottom")
+```
+
+:::
+
+The centre line shows the overall death rate. The dashed lines represent the 95% funnel limits, while the dotted lines represent the wider 99.9% limits.
+
+::: {.callout-tip}
+## What can we learn?
+
+The funnel becomes narrower as number of positive cases increases because the rate becomes more statistically stable. Small areas have wider expected variation, so their rates should not be judged using a simple ranking chart.
+:::
+
+### 4.5.3 Interactive funnel plot
+
+The static funnel plot is useful for reporting, but an interactive version is better for exploration. The next chart allows users to hover over each point to see the area name, population, deaths, death rate, and classification status.
+
+::: {.panel-tabset}
+
+## View
+
+```{r}
+#| echo: false
+
+funnel_plot_gg <- ggplot() +
+  geom_line(
+    data = limit_data,
+    aes(x = population, y = overall_rate),
+    colour = my_dark,
+    linewidth = 0.65
+  ) +
+  geom_line(
+    data = limit_data,
+    aes(x = population, y = upper_95),
+    colour = my_soft_teal,
+    linewidth = 0.55,
+    linetype = "dashed"
+  ) +
+  geom_line(
+    data = limit_data,
+    aes(x = population, y = lower_95),
+    colour = my_soft_teal,
+    linewidth = 0.55,
+    linetype = "dashed"
+  ) +
+  geom_line(
+    data = limit_data,
+    aes(x = population, y = upper_999),
+    colour = my_warning,
+    linewidth = 0.55,
+    linetype = "dotted"
+  ) +
+  geom_line(
+    data = limit_data,
+    aes(x = population, y = lower_999),
+    colour = my_warning,
+    linewidth = 0.55,
+    linetype = "dotted"
+  ) +
+  geom_point(
+    data = funnel_data,
+    aes(
+      x = population,
+      y = death_rate,
+      colour = status,
+      text = paste0(
+        "Area: ", area,
+        "<br>Positive cases: ", comma(population),
+        "<br>Deaths: ", comma(deaths),
+        "<br>Death rate: ", round(death_rate, 6),
+        "<br>Rate per 10,000: ", round(death_rate_per_10000, 2),
+        "<br>Status: ", status
+      )
+    ),
+    size = 2.5,
+    alpha = 0.85
+  ) +
+  scale_colour_manual(values = status_cols) +
+  labs(
+    title = "Interactive funnel plot of COVID-19 death rate",
+    x = "Population",
+    y = "Death rate",
+    colour = "Status"
+  ) +
+  theme_yy +
+  theme(legend.position = "bottom")
+
+ggplotly(funnel_plot_gg, tooltip = "text")
+```
+
+## Code
+
+```{r}
+funnel_plot_gg <- ggplot() +
+  geom_line(
+    data = limit_data,
+    aes(x = population, y = overall_rate),
+    colour = my_dark,
+    linewidth = 0.65
+  ) +
+  geom_line(
+    data = limit_data,
+    aes(x = population, y = upper_95),
+    colour = my_soft_teal,
+    linewidth = 0.55,
+    linetype = "dashed"
+  ) +
+  geom_line(
+    data = limit_data,
+    aes(x = population, y = lower_95),
+    colour = my_soft_teal,
+    linewidth = 0.55,
+    linetype = "dashed"
+  ) +
+  geom_line(
+    data = limit_data,
+    aes(x = population, y = upper_999),
+    colour = my_warning,
+    linewidth = 0.55,
+    linetype = "dotted"
+  ) +
+  geom_line(
+    data = limit_data,
+    aes(x = population, y = lower_999),
+    colour = my_warning,
+    linewidth = 0.55,
+    linetype = "dotted"
+  ) +
+  geom_point(
+    data = funnel_data,
+    aes(
+      x = population,
+      y = death_rate,
+      colour = status,
+      text = paste0(
+        "Area: ", area,
+        "<br>Population: ", comma(population),
+        "<br>Deaths: ", comma(deaths),
+        "<br>Death rate: ", round(death_rate, 6),
+        "<br>Rate per 10,000: ", round(death_rate_per_10000, 2),
+        "<br>Status: ", status
+      )
+    ),
+    size = 2.5,
+    alpha = 0.85
+  ) +
+  scale_colour_manual(values = status_cols) +
+  labs(
+    title = "Interactive funnel plot of COVID-19 death rate",
+    x = "Population",
+    y = "Death rate",
+    colour = "Status"
+  ) +
+  theme_yy +
+  theme(legend.position = "bottom")
+
+ggplotly(funnel_plot_gg, tooltip = "text")
+```
+
+:::
+
+This interactive version is useful for identifying which exact areas sit outside the expected range without overcrowding the static chart with many labels.
+
+## 4.6 Extra Analysis: Top Outlier Candidates
+
+The funnel plot tells us which areas are unusual after accounting for population size. The table below focuses only on areas above the 99.9% upper funnel limit. These are the strongest candidates for further investigation.
+
+::: {.panel-tabset}
+
+## View
+
+```{r}
+#| echo: false
+
+outlier_table <- funnel_data %>%
+  filter(death_rate > upper_999_at_pop) %>%
+  arrange(desc(death_rate_per_10000)) %>%
+  mutate(
+    expected_rate = overall_rate,
+    excess_rate_per_10000 = (death_rate - overall_rate) * 10000
+  ) %>%
+  select(
+    area,
+    population,
+    deaths,
+    death_rate_per_10000,
+    excess_rate_per_10000,
+    status
+  )
+
+if (nrow(outlier_table) == 0) {
+  cat("No areas are above the 99.9% upper funnel limit.")
+} else {
+  DT::datatable(
+    outlier_table %>%
+      mutate(
+        population = comma(population),
+        deaths = comma(deaths),
+        death_rate_per_10000 = round(death_rate_per_10000, 2),
+        excess_rate_per_10000 = round(excess_rate_per_10000, 2)
+      ),
+    rownames = FALSE,
+    class = "compact stripe hover",
+    options = list(pageLength = 10, scrollX = TRUE),
+    width = "100%"
+  )
+}
+```
+
+## Code
+
+```{r}
+outlier_table <- funnel_data %>%
+  filter(death_rate > upper_999_at_pop) %>%
+  arrange(desc(death_rate_per_10000)) %>%
+  mutate(
+    expected_rate = overall_rate,
+    excess_rate_per_10000 = (death_rate - overall_rate) * 10000
+  ) %>%
+  select(
+    area,
+    population,
+    deaths,
+    death_rate_per_10000,
+    excess_rate_per_10000,
+    status
+  )
+
+if (nrow(outlier_table) == 0) {
+  cat("No areas are above the 99.9% upper funnel limit.")
+} else {
+  DT::datatable(
+    outlier_table %>%
+      mutate(
+        population = comma(population),
+        deaths = comma(deaths),
+        death_rate_per_10000 = round(death_rate_per_10000, 2),
+        excess_rate_per_10000 = round(excess_rate_per_10000, 2)
+      ),
+    rownames = FALSE,
+    class = "compact stripe hover",
+    options = list(pageLength = 10, scrollX = TRUE),
+    width = "100%"
+  )
+}
+```
+
+:::
+
+::: {.callout-warning}
+## Interpretation warning
+
+Being above the 99.9% limit does not automatically mean poor performance or policy failure. It means the observed rate is statistically unusual and should be investigated with local context, data quality checks, and domain knowledge.
+:::
+
+### 4.6.1 Supporting bar chart of outlier candidates
+
+The chart below visualises the same outlier candidates using death rate per 10,000 people. It is not a replacement for the funnel plot, but it helps summarise the most unusual areas more clearly.
+
+::: {.panel-tabset}
+
+## View
+
+```{r}
+#| echo: false
+#| fig-width: 9
+#| fig-height: 5
+
+if (nrow(outlier_table) == 0) {
+  cat("No outlier bar chart is shown because no areas exceed the 99.9% upper funnel limit.")
+} else {
+  outlier_table %>%
+    slice_max(death_rate_per_10000, n = 10) %>%
+    ggplot(aes(x = reorder(area, death_rate_per_10000), y = death_rate_per_10000)) +
+    geom_col(
+      fill = my_teal,
+      colour = my_dark,
+      linewidth = 0.35,
+      alpha = 0.9
+    ) +
+    coord_flip() +
+    labs(
+      title = "Top outlier candidates above the 99.9% upper funnel limit",
+      subtitle = "Ranked by death rate per 10,000 people",
+      x = "Area",
+      y = "Death rate per 10,000"
+    ) +
+    theme_yy
+}
+```
+
+## Code
+
+```{r}
+if (nrow(outlier_table) == 0) {
+  cat("No outlier bar chart is shown because no areas exceed the 99.9% upper funnel limit.")
+} else {
+  outlier_table %>%
+    slice_max(death_rate_per_10000, n = 10) %>%
+    ggplot(aes(x = reorder(area, death_rate_per_10000), y = death_rate_per_10000)) +
+    geom_col(
+      fill = my_teal,
+      colour = my_dark,
+      linewidth = 0.35,
+      alpha = 0.9
+    ) +
+    coord_flip() +
+    labs(
+      title = "Top outlier candidates above the 99.9% upper funnel limit",
+      subtitle = "Ranked by death rate per 10,000 people",
+      x = "Area",
+      y = "Death rate per 10,000"
+    ) +
+    theme_yy
+}
+```
+
+:::
+
+This extra section adds analytical value because it turns the funnel plot into a follow-up investigation list.
+
+## 4.7 Final Takeaway
+
+Funnel plots are designed for fair comparison. They are especially useful when the size of each group differs substantially.
+
+A simple bar chart may overreact to small denominators, but a funnel plot explicitly accounts for the fact that small areas naturally have more volatile rates. This makes the comparison more statistically responsible.
+
+::: {.callout-tip}
+## Final takeaway
+
+Use a funnel plot when comparing rates across groups with unequal population sizes.  
+Focus less on simple ranking and more on whether each point falls inside or outside the expected funnel limits.
+:::
+
+## 4.8 Reference
+
+This exercise covered:
+
+- data preparation for rate-based comparison,
+- funnel plot creation using `FunnelPlotR`,
+- manual funnel-limit construction with `ggplot2`,
+- interactive funnel plots with `plotly`,
+- outlier identification using the 99.9% upper control limit.
+
+The main interpretation principle is simple: a funnel plot identifies unusual variation, not automatic causation.
