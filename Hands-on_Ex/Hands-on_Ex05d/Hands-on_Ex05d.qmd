@@ -1,5 +1,5 @@
 ---
-title: "Hands-on Exercise 5d - Visualising Multivariate Data"
+title: "Hands-on Exercise 5d - Visual Multivariate Analysis with Parallel Coordinates Plot"
 author: "Yang Yang"
 format:
   html:
@@ -25,6 +25,8 @@ if (!require(pacman)) {
 
 pacman::p_load(
   tidyverse,
+  GGally,
+  parallelPlot,
   DT,
   janitor,
   scales,
@@ -53,32 +55,28 @@ theme_yy <- theme_minimal(base_size = 13) +
 
 ## 5.1 Overview
 
-Multivariate data contains many variables for each observation. A normal scatter plot is useful for comparing two variables, but it is limited when the task is to compare many indicators together.
+Parallel coordinates plot is designed for visualising multivariate numerical data. Instead of comparing only two variables at a time, it places many numerical variables on parallel vertical axes and draws one line for each observation.
 
-In this exercise, we use the `WHData-2018.csv` dataset to visualise country-level happiness indicators. The aim is to see how countries and regions differ across multiple measures such as happiness score, GDP per capita, social support, healthy life expectancy, freedom, generosity, and perceptions of corruption.
+In this exercise, we use the World Happiness 2018 dataset. Each country is represented by one line, and the variables include happiness score, GDP per capita, social support, healthy life expectancy, freedom, generosity, and perceptions of corruption.
 
 By the end of this exercise, we will be able to:
 
-- import and clean multivariate data,
-- prepare numerical indicators for comparison,
-- create a heatmap for multiple indicators,
-- reorder countries using clustering,
-- compare regional profiles,
-- create an interactive multivariate chart,
-- add simple extensions for interpretation.
+- create static parallel coordinates plots using `ggparcoord()` from the `GGally` package,
+- group parallel coordinate lines by geographical region,
+- improve readability using scaling, transparency, boxplots, facets, and rotated labels,
+- create interactive parallel coordinates plots using `parallelPlot`,
+- add a small extension to compare regional happiness profiles.
 
 ::: {.callout-important}
 ## Important
 
-Multivariate visualisation is useful when one variable alone is not enough.  
-For the World Happiness data, happiness score should be read together with social, economic, health, and governance-related indicators.
+Parallel coordinates plot is mainly an analytical visualisation.  
+It is useful for exploring multivariate patterns, but it can become visually crowded when there are many observations.
 :::
 
-## 5.2 Getting Started
+## 5.2 Installing and Launching R Packages
 
-### 5.2.1 Installing and launching R packages
-
-This exercise uses `tidyverse` for data preparation, `DT` for tables, `plotly` for interactivity, and `janitor` for cleaning column names.
+For this exercise, the main packages are `GGally`, `parallelPlot`, and `tidyverse`.
 
 ::: {.panel-tabset}
 
@@ -88,13 +86,14 @@ This exercise uses `tidyverse` for data preparation, `DT` for tables, `plotly` f
 #| echo: false
 
 package_table <- tibble(
-  Package = c("tidyverse", "DT", "janitor", "plotly", "scales"),
+  Package = c("tidyverse", "GGally", "parallelPlot", "DT", "janitor", "scales"),
   Purpose = c(
-    "Data import, wrangling, and plotting",
+    "Data import, wrangling, and ggplot2 workflow",
+    "Static parallel coordinates plot using ggparcoord()",
+    "Interactive parallel coordinates plot",
     "Interactive HTML tables",
-    "Cleaning column names",
-    "Interactive visualisation",
-    "Rescaling and formatting values"
+    "Cleaning column names when needed",
+    "Number formatting and rescaling"
   )
 )
 
@@ -102,7 +101,7 @@ DT::datatable(
   package_table,
   rownames = FALSE,
   class = "compact stripe hover",
-  options = list(dom = "t", pageLength = 5),
+  options = list(dom = "t", pageLength = 6),
   width = "100%"
 )
 ```
@@ -114,18 +113,21 @@ DT::datatable(
 
 pacman::p_load(
   tidyverse,
+  GGally,
+  parallelPlot,
   DT,
   janitor,
-  plotly,
   scales
 )
 ```
 
 :::
 
-### 5.2.2 Importing data
+## 5.3 Data Preparation
 
-The dataset used in this exercise is `WHData-2018.csv`.
+The dataset used in this exercise is `WHData-2018.csv`. It contains country-level World Happiness indicators for 2018.
+
+### 5.3.1 Importing data
 
 ::: {.panel-tabset}
 
@@ -136,56 +138,26 @@ The dataset used in this exercise is `WHData-2018.csv`.
 
 csv_file <- list.files(pattern = "WHData-2018.*\\.csv$")[1]
 
-wh_raw <- read_csv(csv_file, show_col_types = FALSE)
+wh <- read_csv(csv_file, show_col_types = FALSE)
 
-glimpse(wh_raw)
+glimpse(wh)
 ```
 
 ## Code
 
 ```{r}
-#| eval: false
-
 csv_file <- list.files(pattern = "WHData-2018.*\\.csv$")[1]
 
-wh_raw <- read_csv(csv_file, show_col_types = FALSE)
+wh <- read_csv(csv_file, show_col_types = FALSE)
 
-glimpse(wh_raw)
+glimpse(wh)
 ```
 
 :::
 
-The data is read from the current folder. Using `list.files()` makes the code safer because it does not depend on typing the full path manually.
+Using `list.files()` makes the render safer because the code will still work if the file name contains a small suffix such as `(2)`.
 
-### 5.2.3 Cleaning column names
-
-::: {.panel-tabset}
-
-## View
-
-```{r}
-#| echo: false
-
-wh <- wh_raw %>%
-  janitor::clean_names()
-
-names(wh)
-```
-
-## Code
-
-```{r}
-wh <- wh_raw %>%
-  janitor::clean_names()
-
-names(wh)
-```
-
-:::
-
-After cleaning, column names such as `Happiness score` and `GDP per capita` become easier to use in R code.
-
-### 5.2.4 Quick data preview
+### 5.3.2 Checking the data structure
 
 ::: {.panel-tabset}
 
@@ -206,8 +178,6 @@ DT::datatable(
 ## Code
 
 ```{r}
-#| eval: false
-
 DT::datatable(
   head(wh, 12),
   rownames = FALSE,
@@ -219,11 +189,16 @@ DT::datatable(
 
 :::
 
-## 5.3 Preparing Data for Multivariate Visualisation
+The key numerical variables are located from column 7 to column 12:
 
-Before visualising many variables together, we select the main numerical indicators and rescale them. Rescaling is necessary because the variables use different units and ranges.
+- GDP per capita
+- Social support
+- Healthy life expectancy
+- Freedom to make life choices
+- Generosity
+- Perceptions of corruption
 
-### 5.3.1 Selecting indicators
+### 5.3.3 Creating colour palette by region
 
 ::: {.panel-tabset}
 
@@ -232,67 +207,176 @@ Before visualising many variables together, we select the main numerical indicat
 ```{r}
 #| echo: false
 
-wh_selected <- wh %>%
-  select(
-    country,
-    region,
-    happiness_score,
-    gdp_per_capita,
-    social_support,
-    healthy_life_expectancy,
-    freedom_to_make_life_choices,
-    generosity,
-    perceptions_of_corruption
-  ) %>%
-  drop_na()
+region_levels <- sort(unique(wh$Region))
 
-DT::datatable(
-  head(wh_selected, 12),
-  rownames = FALSE,
-  class = "compact stripe hover",
-  options = list(pageLength = 12, scrollX = TRUE),
-  width = "100%"
+region_palette <- setNames(
+  rep(
+    c(
+      my_teal,
+      my_soft_teal,
+      my_warning,
+      my_red,
+      "#4F7C82",
+      "#7A9E7E",
+      "#C9A66B",
+      "#6E7582",
+      "#9B7E93",
+      "#3F5E5A"
+    ),
+    length.out = length(region_levels)
+  ),
+  region_levels
 )
+
+tibble(
+  Region = names(region_palette),
+  Colour = unname(region_palette)
+) %>%
+  DT::datatable(
+    rownames = FALSE,
+    class = "compact stripe hover",
+    options = list(dom = "t", pageLength = 10),
+    width = "100%"
+  )
 ```
 
 ## Code
 
 ```{r}
-wh_selected <- wh %>%
-  select(
-    country,
-    region,
-    happiness_score,
-    gdp_per_capita,
-    social_support,
-    healthy_life_expectancy,
-    freedom_to_make_life_choices,
-    generosity,
-    perceptions_of_corruption
-  ) %>%
-  drop_na()
+region_levels <- sort(unique(wh$Region))
 
-DT::datatable(
-  head(wh_selected, 12),
-  rownames = FALSE,
-  class = "compact stripe hover",
-  options = list(pageLength = 12, scrollX = TRUE),
-  width = "100%"
+region_palette <- setNames(
+  rep(
+    c(
+      my_teal,
+      my_soft_teal,
+      my_warning,
+      my_red,
+      "#4F7C82",
+      "#7A9E7E",
+      "#C9A66B",
+      "#6E7582",
+      "#9B7E93",
+      "#3F5E5A"
+    ),
+    length.out = length(region_levels)
+  ),
+  region_levels
 )
 ```
 
 :::
+
+The palette keeps the page consistent with the deep muted teal style while still giving enough colours for the different regions.
+
+## 5.4 Plotting Static Parallel Coordinates Plot
+
+This section follows the `ggparcoord()` method from the `GGally` package.
+
+### 5.4.1 Plotting a simple parallel coordinates plot
+
+::: {.panel-tabset}
+
+## View
+
+```{r}
+#| echo: false
+#| fig-width: 8
+#| fig-height: 5
+
+GGally::ggparcoord(
+  data = wh,
+  columns = c(7:12)
+) +
+  labs(
+    title = "Simple parallel coordinates plot of World Happiness variables"
+  ) +
+  theme_yy +
+  theme(
+    axis.text.x = element_text(angle = 25, hjust = 1),
+    legend.position = "none"
+  )
+```
+
+## Code
+
+```{r}
+GGally::ggparcoord(
+  data = wh,
+  columns = c(7:12)
+) +
+  labs(
+    title = "Simple parallel coordinates plot of World Happiness variables"
+  ) +
+  theme_yy +
+  theme(
+    axis.text.x = element_text(angle = 25, hjust = 1),
+    legend.position = "none"
+  )
+```
+
+:::
+
+This first version is useful as a starting point, but it is visually crowded. Since all countries are drawn together, the regional pattern is not easy to see.
+
+### 5.4.2 Plotting a parallel coordinates plot with boxplot
+
+::: {.panel-tabset}
+
+## View
+
+```{r}
+#| echo: false
+#| fig-width: 9
+#| fig-height: 5
+
+GGally::ggparcoord(
+  data = wh,
+  columns = c(7:12),
+  groupColumn = 2,
+  scale = "uniminmax",
+  alphaLines = 0.2,
+  boxplot = TRUE,
+  title = "Parallel Coordinates Plot of World Happiness Variables"
+) +
+  scale_colour_manual(values = region_palette) +
+  theme_yy +
+  theme(
+    axis.text.x = element_text(angle = 25, hjust = 1)
+  )
+```
+
+## Code
+
+```{r}
+GGally::ggparcoord(
+  data = wh,
+  columns = c(7:12),
+  groupColumn = 2,
+  scale = "uniminmax",
+  alphaLines = 0.2,
+  boxplot = TRUE,
+  title = "Parallel Coordinates Plot of World Happiness Variables"
+) +
+  scale_colour_manual(values = region_palette) +
+  theme_yy +
+  theme(
+    axis.text.x = element_text(angle = 25, hjust = 1)
+  )
+```
+
+:::
+
+The `groupColumn` argument colours the lines by region. The `scale = "uniminmax"` argument rescales each variable from 0 to 1, making variables with different units comparable.
 
 ::: {.callout-tip}
 ## What can we learn?
 
-For multivariate visualisation, the first decision is variable selection.  
-Too many variables can make the chart crowded, while too few variables may hide important patterns.
+The boxplot layer gives a quick view of the distribution of each variable.  
+The lines show country-level profiles, while the boxplots summarise the overall spread.
 :::
 
-### 5.3.2 Rescaling indicators
-
-The indicators are rescaled from 0 to 1. This allows us to compare them on the same visual scale.
+### 5.4.3 Parallel coordinates with facet
 
 ::: {.panel-tabset}
 
@@ -300,257 +384,53 @@ The indicators are rescaled from 0 to 1. This allows us to compare them on the s
 
 ```{r}
 #| echo: false
-
-wh_scaled <- wh_selected %>%
-  mutate(
-    across(
-      c(
-        happiness_score,
-        gdp_per_capita,
-        social_support,
-        healthy_life_expectancy,
-        freedom_to_make_life_choices,
-        generosity,
-        perceptions_of_corruption
-      ),
-      ~ scales::rescale(.x),
-      .names = "scaled_{.col}"
-    )
-  )
-
-DT::datatable(
-  wh_scaled %>%
-    select(country, region, starts_with("scaled_")) %>%
-    head(12),
-  rownames = FALSE,
-  class = "compact stripe hover",
-  options = list(pageLength = 12, scrollX = TRUE),
-  width = "100%"
-)
-```
-
-## Code
-
-```{r}
-wh_scaled <- wh_selected %>%
-  mutate(
-    across(
-      c(
-        happiness_score,
-        gdp_per_capita,
-        social_support,
-        healthy_life_expectancy,
-        freedom_to_make_life_choices,
-        generosity,
-        perceptions_of_corruption
-      ),
-      ~ scales::rescale(.x),
-      .names = "scaled_{.col}"
-    )
-  )
-
-DT::datatable(
-  wh_scaled %>%
-    select(country, region, starts_with("scaled_")) %>%
-    head(12),
-  rownames = FALSE,
-  class = "compact stripe hover",
-  options = list(pageLength = 12, scrollX = TRUE),
-  width = "100%"
-)
-```
-
-:::
-
-Rescaling does not change the ranking of countries within each indicator. It only puts all indicators onto a common scale.
-
-## 5.4 Creating a Multivariate Heatmap
-
-A heatmap is useful when we want to compare many countries across many indicators. Each cell represents the relative value of one indicator for one country.
-
-### 5.4.1 Preparing heatmap data
-
-To keep the chart readable, we first focus on the top 30 countries by happiness score.
-
-::: {.panel-tabset}
-
-## View
-
-```{r}
-#| echo: false
-
-top_countries <- wh_scaled %>%
-  arrange(desc(happiness_score)) %>%
-  slice_head(n = 30)
-
-heatmap_data <- top_countries %>%
-  select(
-    country,
-    region,
-    scaled_happiness_score,
-    scaled_gdp_per_capita,
-    scaled_social_support,
-    scaled_healthy_life_expectancy,
-    scaled_freedom_to_make_life_choices,
-    scaled_generosity,
-    scaled_perceptions_of_corruption
-  ) %>%
-  pivot_longer(
-    cols = starts_with("scaled_"),
-    names_to = "indicator",
-    values_to = "scaled_value"
-  ) %>%
-  mutate(
-    indicator = str_remove(indicator, "scaled_"),
-    indicator = str_replace_all(indicator, "_", " "),
-    indicator = str_to_title(indicator)
-  )
-
-DT::datatable(
-  head(heatmap_data, 12),
-  rownames = FALSE,
-  class = "compact stripe hover",
-  options = list(pageLength = 12, scrollX = TRUE),
-  width = "100%"
-)
-```
-
-## Code
-
-```{r}
-top_countries <- wh_scaled %>%
-  arrange(desc(happiness_score)) %>%
-  slice_head(n = 30)
-
-heatmap_data <- top_countries %>%
-  select(
-    country,
-    region,
-    scaled_happiness_score,
-    scaled_gdp_per_capita,
-    scaled_social_support,
-    scaled_healthy_life_expectancy,
-    scaled_freedom_to_make_life_choices,
-    scaled_generosity,
-    scaled_perceptions_of_corruption
-  ) %>%
-  pivot_longer(
-    cols = starts_with("scaled_"),
-    names_to = "indicator",
-    values_to = "scaled_value"
-  ) %>%
-  mutate(
-    indicator = str_remove(indicator, "scaled_"),
-    indicator = str_replace_all(indicator, "_", " "),
-    indicator = str_to_title(indicator)
-  )
-
-DT::datatable(
-  head(heatmap_data, 12),
-  rownames = FALSE,
-  class = "compact stripe hover",
-  options = list(pageLength = 12, scrollX = TRUE),
-  width = "100%"
-)
-```
-
-:::
-
-### 5.4.2 Plotting the heatmap
-
-::: {.panel-tabset}
-
-## View
-
-```{r}
-#| echo: false
-#| fig-width: 10
+#| fig-width: 11
 #| fig-height: 8
 
-country_order_by_happiness <- top_countries %>%
-  arrange(happiness_score) %>%
-  pull(country)
-
-heatmap_data_plot <- heatmap_data %>%
-  mutate(
-    country = factor(country, levels = country_order_by_happiness)
-  )
-
-ggplot(
-  heatmap_data_plot,
-  aes(
-    x = indicator,
-    y = country,
-    fill = scaled_value
-  )
+GGally::ggparcoord(
+  data = wh,
+  columns = c(7:12),
+  groupColumn = 2,
+  scale = "uniminmax",
+  alphaLines = 0.2,
+  boxplot = TRUE,
+  title = "Multiple Parallel Coordinates Plots of World Happiness Variables by Region"
 ) +
-  geom_tile(colour = "white", linewidth = 0.35) +
-  scale_fill_gradient(
-    low = my_light_teal,
-    high = my_teal,
-    limits = c(0, 1)
-  ) +
-  labs(
-    title = "Multivariate heatmap of top 30 happiest countries",
-    subtitle = "Values are rescaled from 0 to 1 for comparison across indicators",
-    x = NULL,
-    y = NULL,
-    fill = "Rescaled value"
-  ) +
+  scale_colour_manual(values = region_palette) +
+  facet_wrap(~ Region) +
   theme_yy +
   theme(
-    axis.text.x = element_text(angle = 35, hjust = 1),
-    panel.grid = element_blank()
+    axis.text.x = element_text(angle = 25, hjust = 1),
+    legend.position = "none"
   )
 ```
 
 ## Code
 
 ```{r}
-ggplot(
-  heatmap_data_plot,
-  aes(
-    x = indicator,
-    y = country,
-    fill = scaled_value
-  )
+GGally::ggparcoord(
+  data = wh,
+  columns = c(7:12),
+  groupColumn = 2,
+  scale = "uniminmax",
+  alphaLines = 0.2,
+  boxplot = TRUE,
+  title = "Multiple Parallel Coordinates Plots of World Happiness Variables by Region"
 ) +
-  geom_tile(colour = "white", linewidth = 0.35) +
-  scale_fill_gradient(
-    low = my_light_teal,
-    high = my_teal,
-    limits = c(0, 1)
-  ) +
-  labs(
-    title = "Multivariate heatmap of top 30 happiest countries",
-    subtitle = "Values are rescaled from 0 to 1 for comparison across indicators",
-    x = NULL,
-    y = NULL,
-    fill = "Rescaled value"
-  ) +
+  scale_colour_manual(values = region_palette) +
+  facet_wrap(~ Region) +
   theme_yy +
   theme(
-    axis.text.x = element_text(angle = 35, hjust = 1),
-    panel.grid = element_blank()
+    axis.text.x = element_text(angle = 25, hjust = 1),
+    legend.position = "none"
   )
 ```
 
 :::
 
-The heatmap allows us to compare the overall profile of each country. Darker teal cells indicate relatively higher values within that indicator.
+Faceting makes the plot easier to read because each region is shown separately. This is helpful when the full plot is too dense.
 
-::: {.callout-note}
-## Reading the heatmap
-
-The heatmap shows relative indicator levels, not raw values.  
-A dark cell means the country is high on that indicator compared with other countries in the dataset.
-:::
-
-## 5.5 Reordering Countries with Clustering
-
-The previous heatmap orders countries by happiness score. Another option is to order countries by similarity across all selected indicators.
-
-### 5.5.1 Creating clustered country order
+### 5.4.4 Rotating x-axis text labels
 
 ::: {.panel-tabset}
 
@@ -558,153 +438,111 @@ The previous heatmap orders countries by happiness score. Another option is to o
 
 ```{r}
 #| echo: false
-
-cluster_matrix <- top_countries %>%
-  select(
-    scaled_happiness_score,
-    scaled_gdp_per_capita,
-    scaled_social_support,
-    scaled_healthy_life_expectancy,
-    scaled_freedom_to_make_life_choices,
-    scaled_generosity,
-    scaled_perceptions_of_corruption
-  ) %>%
-  as.matrix()
-
-rownames(cluster_matrix) <- top_countries$country
-
-country_order <- hclust(dist(cluster_matrix))$labels[hclust(dist(cluster_matrix))$order]
-
-heatmap_clustered <- heatmap_data %>%
-  mutate(
-    country = factor(country, levels = rev(country_order))
-  )
-
-DT::datatable(
-  tibble(country_order = country_order),
-  rownames = FALSE,
-  class = "compact stripe hover",
-  options = list(pageLength = 10),
-  width = "100%"
-)
-```
-
-## Code
-
-```{r}
-cluster_matrix <- top_countries %>%
-  select(
-    scaled_happiness_score,
-    scaled_gdp_per_capita,
-    scaled_social_support,
-    scaled_healthy_life_expectancy,
-    scaled_freedom_to_make_life_choices,
-    scaled_generosity,
-    scaled_perceptions_of_corruption
-  ) %>%
-  as.matrix()
-
-rownames(cluster_matrix) <- top_countries$country
-
-country_order <- hclust(dist(cluster_matrix))$labels[hclust(dist(cluster_matrix))$order]
-
-heatmap_clustered <- heatmap_data %>%
-  mutate(
-    country = factor(country, levels = rev(country_order))
-  )
-
-DT::datatable(
-  tibble(country_order = country_order),
-  rownames = FALSE,
-  class = "compact stripe hover",
-  options = list(pageLength = 10),
-  width = "100%"
-)
-```
-
-:::
-
-Clustering groups countries with similar multivariate profiles closer together.
-
-### 5.5.2 Clustered heatmap
-
-::: {.panel-tabset}
-
-## View
-
-```{r}
-#| echo: false
-#| fig-width: 10
+#| fig-width: 11
 #| fig-height: 8
 
-ggplot(
-  heatmap_clustered,
-  aes(
-    x = indicator,
-    y = country,
-    fill = scaled_value
-  )
+GGally::ggparcoord(
+  data = wh,
+  columns = c(7:12),
+  groupColumn = 2,
+  scale = "uniminmax",
+  alphaLines = 0.2,
+  boxplot = TRUE,
+  title = "Parallel Coordinates Plot with Rotated Axis Labels"
 ) +
-  geom_tile(colour = "white", linewidth = 0.35) +
-  scale_fill_gradient(
-    low = my_light_teal,
-    high = my_teal,
-    limits = c(0, 1)
-  ) +
-  labs(
-    title = "Clustered heatmap of country happiness profiles",
-    subtitle = "Countries with similar indicator patterns are placed closer together",
-    x = NULL,
-    y = NULL,
-    fill = "Rescaled value"
-  ) +
+  scale_colour_manual(values = region_palette) +
+  facet_wrap(~ Region) +
   theme_yy +
   theme(
-    axis.text.x = element_text(angle = 35, hjust = 1),
-    panel.grid = element_blank()
+    axis.text.x = element_text(angle = 30),
+    legend.position = "none"
   )
 ```
 
 ## Code
 
 ```{r}
-ggplot(
-  heatmap_clustered,
-  aes(
-    x = indicator,
-    y = country,
-    fill = scaled_value
-  )
+GGally::ggparcoord(
+  data = wh,
+  columns = c(7:12),
+  groupColumn = 2,
+  scale = "uniminmax",
+  alphaLines = 0.2,
+  boxplot = TRUE,
+  title = "Parallel Coordinates Plot with Rotated Axis Labels"
 ) +
-  geom_tile(colour = "white", linewidth = 0.35) +
-  scale_fill_gradient(
-    low = my_light_teal,
-    high = my_teal,
-    limits = c(0, 1)
-  ) +
-  labs(
-    title = "Clustered heatmap of country happiness profiles",
-    subtitle = "Countries with similar indicator patterns are placed closer together",
-    x = NULL,
-    y = NULL,
-    fill = "Rescaled value"
-  ) +
+  scale_colour_manual(values = region_palette) +
+  facet_wrap(~ Region) +
   theme_yy +
   theme(
-    axis.text.x = element_text(angle = 35, hjust = 1),
-    panel.grid = element_blank()
+    axis.text.x = element_text(angle = 30),
+    legend.position = "none"
   )
 ```
 
 :::
 
-This version is better for pattern discovery because the ordering is based on similarity rather than rank.
+Rotating the x-axis labels reduces label overlap, but the text may still sit too close to the plot.
 
-## 5.6 Regional Profile Comparison
+### 5.4.5 Adjusting the rotated x-axis text labels
 
-A country-level heatmap can be detailed. To get a higher-level view, we can summarise the indicators by region.
+::: {.panel-tabset}
 
-### 5.6.1 Preparing regional profile data
+## View
+
+```{r}
+#| echo: false
+#| fig-width: 11
+#| fig-height: 8
+
+GGally::ggparcoord(
+  data = wh,
+  columns = c(7:12),
+  groupColumn = 2,
+  scale = "uniminmax",
+  alphaLines = 0.2,
+  boxplot = TRUE,
+  title = "Adjusted Parallel Coordinates Plot by Region"
+) +
+  scale_colour_manual(values = region_palette) +
+  facet_wrap(~ Region) +
+  theme_yy +
+  theme(
+    axis.text.x = element_text(angle = 30, hjust = 1),
+    legend.position = "none"
+  )
+```
+
+## Code
+
+```{r}
+GGally::ggparcoord(
+  data = wh,
+  columns = c(7:12),
+  groupColumn = 2,
+  scale = "uniminmax",
+  alphaLines = 0.2,
+  boxplot = TRUE,
+  title = "Adjusted Parallel Coordinates Plot by Region"
+) +
+  scale_colour_manual(values = region_palette) +
+  facet_wrap(~ Region) +
+  theme_yy +
+  theme(
+    axis.text.x = element_text(angle = 30, hjust = 1),
+    legend.position = "none"
+  )
+```
+
+:::
+
+The `hjust = 1` setting aligns the rotated labels better and makes the plot easier to read.
+
+## 5.5 Plotting Interactive Parallel Coordinates Plot
+
+The `parallelPlot` package creates interactive parallel coordinates plots using `htmlwidgets`.
+
+### 5.5.1 Preparing data for interactive plot
 
 ::: {.panel-tabset}
 
@@ -713,37 +551,218 @@ A country-level heatmap can be detailed. To get a higher-level view, we can summ
 ```{r}
 #| echo: false
 
-region_profile <- wh_scaled %>%
-  group_by(region) %>%
+wh_parallel <- wh %>%
+  select(
+    `Happiness score`,
+    `GDP per capita`,
+    `Social support`,
+    `Healthy life expectancy`,
+    `Freedom to make life choices`,
+    Generosity,
+    `Perceptions of corruption`
+  )
+
+DT::datatable(
+  head(wh_parallel, 12),
+  rownames = FALSE,
+  class = "compact stripe hover",
+  options = list(pageLength = 12, scrollX = TRUE),
+  width = "100%"
+)
+```
+
+## Code
+
+```{r}
+wh_parallel <- wh %>%
+  select(
+    `Happiness score`,
+    `GDP per capita`,
+    `Social support`,
+    `Healthy life expectancy`,
+    `Freedom to make life choices`,
+    Generosity,
+    `Perceptions of corruption`
+  )
+
+DT::datatable(
+  head(wh_parallel, 12),
+  rownames = FALSE,
+  class = "compact stripe hover",
+  options = list(pageLength = 12, scrollX = TRUE),
+  width = "100%"
+)
+```
+
+:::
+
+Only numerical variables are selected for the interactive parallel coordinates plot.
+
+### 5.5.2 The basic interactive plot
+
+::: {.panel-tabset}
+
+## View
+
+```{r}
+#| echo: false
+
+parallelPlot::parallelPlot(
+  wh_parallel,
+  width = 760,
+  height = 420
+)
+```
+
+## Code
+
+```{r}
+parallelPlot::parallelPlot(
+  wh_parallel,
+  width = 760,
+  height = 420
+)
+```
+
+:::
+
+The basic interactive plot allows the reader to inspect patterns across several variables. However, some axis labels are long and can overlap.
+
+### 5.5.3 Rotating axis labels
+
+::: {.panel-tabset}
+
+## View
+
+```{r}
+#| echo: false
+
+parallelPlot::parallelPlot(
+  wh_parallel,
+  rotateTitle = TRUE,
+  width = 760,
+  height = 420
+)
+```
+
+## Code
+
+```{r}
+parallelPlot::parallelPlot(
+  wh_parallel,
+  rotateTitle = TRUE,
+  width = 760,
+  height = 420
+)
+```
+
+:::
+
+The `rotateTitle = TRUE` argument makes the axis labels easier to read.
+
+### 5.5.4 Changing the colour scheme
+
+::: {.panel-tabset}
+
+## View
+
+```{r}
+#| echo: false
+
+parallelPlot::parallelPlot(
+  wh_parallel,
+  continuousCS = "YlOrRd",
+  rotateTitle = TRUE,
+  width = 760,
+  height = 420
+)
+```
+
+## Code
+
+```{r}
+parallelPlot::parallelPlot(
+  wh_parallel,
+  continuousCS = "YlOrRd",
+  rotateTitle = TRUE,
+  width = 760,
+  height = 420
+)
+```
+
+:::
+
+The `continuousCS` argument changes the continuous colour scheme. This helps when the reader wants stronger colour contrast during interactive inspection.
+
+### 5.5.5 Parallel coordinates plot with histogram
+
+::: {.panel-tabset}
+
+## View
+
+```{r}
+#| echo: false
+
+histoVisibility <- rep(TRUE, ncol(wh_parallel))
+
+parallelPlot::parallelPlot(
+  wh_parallel,
+  rotateTitle = TRUE,
+  histoVisibility = histoVisibility,
+  width = 760,
+  height = 420
+)
+```
+
+## Code
+
+```{r}
+histoVisibility <- rep(TRUE, ncol(wh_parallel))
+
+parallelPlot::parallelPlot(
+  wh_parallel,
+  rotateTitle = TRUE,
+  histoVisibility = histoVisibility,
+  width = 760,
+  height = 420
+)
+```
+
+:::
+
+The histogram layer shows the distribution of each variable along its axis. This makes the interactive plot more informative.
+
+::: {.callout-tip}
+## What can we learn?
+
+Interactive parallel coordinates are useful because users can inspect relationships dynamically.  
+The histogram option adds distribution information to each axis.
+:::
+
+## 5.6 Extra Analysis: Regional Average Profile
+
+This small extension summarises the average World Happiness profile by region. It is still within the parallel coordinates topic because it reduces country-level noise and compares regional profiles.
+
+### 5.6.1 Preparing regional average data
+
+::: {.panel-tabset}
+
+## View
+
+```{r}
+#| echo: false
+
+region_profile <- wh %>%
+  group_by(Region) %>%
   summarise(
-    happiness_score = mean(happiness_score, na.rm = TRUE),
-    gdp_per_capita = mean(gdp_per_capita, na.rm = TRUE),
-    social_support = mean(social_support, na.rm = TRUE),
-    healthy_life_expectancy = mean(healthy_life_expectancy, na.rm = TRUE),
-    freedom_to_make_life_choices = mean(freedom_to_make_life_choices, na.rm = TRUE),
-    generosity = mean(generosity, na.rm = TRUE),
-    perceptions_of_corruption = mean(perceptions_of_corruption, na.rm = TRUE),
+    `Happiness score` = mean(`Happiness score`, na.rm = TRUE),
+    `GDP per capita` = mean(`GDP per capita`, na.rm = TRUE),
+    `Social support` = mean(`Social support`, na.rm = TRUE),
+    `Healthy life expectancy` = mean(`Healthy life expectancy`, na.rm = TRUE),
+    `Freedom to make life choices` = mean(`Freedom to make life choices`, na.rm = TRUE),
+    Generosity = mean(Generosity, na.rm = TRUE),
+    `Perceptions of corruption` = mean(`Perceptions of corruption`, na.rm = TRUE),
     .groups = "drop"
-  ) %>%
-  mutate(
-    across(
-      -region,
-      ~ scales::rescale(.x),
-      .names = "scaled_{.col}"
-    )
-  )
-
-region_heatmap <- region_profile %>%
-  select(region, starts_with("scaled_")) %>%
-  pivot_longer(
-    cols = starts_with("scaled_"),
-    names_to = "indicator",
-    values_to = "scaled_value"
-  ) %>%
-  mutate(
-    indicator = str_remove(indicator, "scaled_"),
-    indicator = str_replace_all(indicator, "_", " "),
-    indicator = str_to_title(indicator)
   )
 
 DT::datatable(
@@ -759,37 +778,17 @@ DT::datatable(
 ## Code
 
 ```{r}
-region_profile <- wh_scaled %>%
-  group_by(region) %>%
+region_profile <- wh %>%
+  group_by(Region) %>%
   summarise(
-    happiness_score = mean(happiness_score, na.rm = TRUE),
-    gdp_per_capita = mean(gdp_per_capita, na.rm = TRUE),
-    social_support = mean(social_support, na.rm = TRUE),
-    healthy_life_expectancy = mean(healthy_life_expectancy, na.rm = TRUE),
-    freedom_to_make_life_choices = mean(freedom_to_make_life_choices, na.rm = TRUE),
-    generosity = mean(generosity, na.rm = TRUE),
-    perceptions_of_corruption = mean(perceptions_of_corruption, na.rm = TRUE),
+    `Happiness score` = mean(`Happiness score`, na.rm = TRUE),
+    `GDP per capita` = mean(`GDP per capita`, na.rm = TRUE),
+    `Social support` = mean(`Social support`, na.rm = TRUE),
+    `Healthy life expectancy` = mean(`Healthy life expectancy`, na.rm = TRUE),
+    `Freedom to make life choices` = mean(`Freedom to make life choices`, na.rm = TRUE),
+    Generosity = mean(Generosity, na.rm = TRUE),
+    `Perceptions of corruption` = mean(`Perceptions of corruption`, na.rm = TRUE),
     .groups = "drop"
-  ) %>%
-  mutate(
-    across(
-      -region,
-      ~ scales::rescale(.x),
-      .names = "scaled_{.col}"
-    )
-  )
-
-region_heatmap <- region_profile %>%
-  select(region, starts_with("scaled_")) %>%
-  pivot_longer(
-    cols = starts_with("scaled_"),
-    names_to = "indicator",
-    values_to = "scaled_value"
-  ) %>%
-  mutate(
-    indicator = str_remove(indicator, "scaled_"),
-    indicator = str_replace_all(indicator, "_", " "),
-    indicator = str_to_title(indicator)
   )
 
 DT::datatable(
@@ -804,7 +803,7 @@ DT::datatable(
 
 :::
 
-### 5.6.2 Regional heatmap
+### 5.6.2 Parallel coordinates plot of regional averages
 
 ::: {.panel-tabset}
 
@@ -812,167 +811,51 @@ DT::datatable(
 
 ```{r}
 #| echo: false
-#| fig-width: 10
-#| fig-height: 6
+#| fig-width: 9
+#| fig-height: 5
 
-ggplot(
-  region_heatmap,
-  aes(
-    x = indicator,
-    y = fct_reorder(region, scaled_value, .fun = mean),
-    fill = scaled_value
-  )
+GGally::ggparcoord(
+  data = region_profile,
+  columns = c(2:8),
+  groupColumn = 1,
+  scale = "uniminmax",
+  alphaLines = 0.8,
+  title = "Parallel Coordinates Plot of Regional Average Happiness Profiles"
 ) +
-  geom_tile(colour = "white", linewidth = 0.35) +
-  scale_fill_gradient(
-    low = my_light_teal,
-    high = my_teal,
-    limits = c(0, 1)
-  ) +
-  labs(
-    title = "Regional profile heatmap",
-    subtitle = "This extension summarises the multivariate pattern by region",
-    x = NULL,
-    y = NULL,
-    fill = "Rescaled value"
-  ) +
+  scale_colour_manual(values = region_palette) +
   theme_yy +
   theme(
-    axis.text.x = element_text(angle = 35, hjust = 1),
-    panel.grid = element_blank()
+    axis.text.x = element_text(angle = 30, hjust = 1)
   )
 ```
 
 ## Code
 
 ```{r}
-ggplot(
-  region_heatmap,
-  aes(
-    x = indicator,
-    y = fct_reorder(region, scaled_value, .fun = mean),
-    fill = scaled_value
-  )
+GGally::ggparcoord(
+  data = region_profile,
+  columns = c(2:8),
+  groupColumn = 1,
+  scale = "uniminmax",
+  alphaLines = 0.8,
+  title = "Parallel Coordinates Plot of Regional Average Happiness Profiles"
 ) +
-  geom_tile(colour = "white", linewidth = 0.35) +
-  scale_fill_gradient(
-    low = my_light_teal,
-    high = my_teal,
-    limits = c(0, 1)
-  ) +
-  labs(
-    title = "Regional profile heatmap",
-    subtitle = "This extension summarises the multivariate pattern by region",
-    x = NULL,
-    y = NULL,
-    fill = "Rescaled value"
-  ) +
+  scale_colour_manual(values = region_palette) +
   theme_yy +
   theme(
-    axis.text.x = element_text(angle = 35, hjust = 1),
-    panel.grid = element_blank()
+    axis.text.x = element_text(angle = 30, hjust = 1)
   )
 ```
 
 :::
 
-The regional heatmap is less detailed than the country-level heatmap, but it gives a cleaner overview of broad differences.
+This regional version is less crowded than the country-level plot. It helps compare the broad profile of each region.
 
-## 5.7 Interactive Multivariate Heatmap
+## 5.7 Extra Analysis: Top and Bottom Happiness Countries
 
-The static heatmap is useful for reading patterns, while an interactive version allows readers to inspect values by hovering over each cell.
+This extension compares the highest and lowest happiness score countries. It is useful because parallel coordinates can show whether high-happiness countries share similar profiles across GDP, health, social support, and freedom.
 
-### 5.7.1 Interactive heatmap
-
-::: {.panel-tabset}
-
-## View
-
-```{r}
-#| echo: false
-
-interactive_heatmap <- ggplot(
-  heatmap_clustered,
-  aes(
-    x = indicator,
-    y = country,
-    fill = scaled_value,
-    text = paste0(
-      "Country: ", country,
-      "<br>Indicator: ", indicator,
-      "<br>Rescaled value: ", round(scaled_value, 3)
-    )
-  )
-) +
-  geom_tile(colour = "white", linewidth = 0.35) +
-  scale_fill_gradient(
-    low = my_light_teal,
-    high = my_teal,
-    limits = c(0, 1)
-  ) +
-  labs(
-    title = "Interactive multivariate heatmap",
-    subtitle = "Hover over a cell to inspect the indicator value",
-    x = NULL,
-    y = NULL,
-    fill = "Rescaled value"
-  ) +
-  theme_yy +
-  theme(
-    axis.text.x = element_text(angle = 35, hjust = 1),
-    panel.grid = element_blank()
-  )
-
-ggplotly(interactive_heatmap, tooltip = "text")
-```
-
-## Code
-
-```{r}
-interactive_heatmap <- ggplot(
-  heatmap_clustered,
-  aes(
-    x = indicator,
-    y = country,
-    fill = scaled_value,
-    text = paste0(
-      "Country: ", country,
-      "<br>Indicator: ", indicator,
-      "<br>Rescaled value: ", round(scaled_value, 3)
-    )
-  )
-) +
-  geom_tile(colour = "white", linewidth = 0.35) +
-  scale_fill_gradient(
-    low = my_light_teal,
-    high = my_teal,
-    limits = c(0, 1)
-  ) +
-  labs(
-    title = "Interactive multivariate heatmap",
-    subtitle = "Hover over a cell to inspect the indicator value",
-    x = NULL,
-    y = NULL,
-    fill = "Rescaled value"
-  ) +
-  theme_yy +
-  theme(
-    axis.text.x = element_text(angle = 35, hjust = 1),
-    panel.grid = element_blank()
-  )
-
-ggplotly(interactive_heatmap, tooltip = "text")
-```
-
-:::
-
-The interactive version is useful when the chart contains many cells. It keeps the visual clean while still allowing detailed inspection.
-
-## 5.8 Extra Check: Top and Bottom Country Profiles
-
-As a small extension, we compare the top five and bottom five countries by happiness score.
-
-### 5.8.1 Preparing comparison data
+### 5.7.1 Preparing top and bottom countries
 
 ::: {.panel-tabset}
 
@@ -982,42 +865,153 @@ As a small extension, we compare the top five and bottom five countries by happi
 #| echo: false
 
 top_bottom_countries <- bind_rows(
-  wh_scaled %>%
-    arrange(desc(happiness_score)) %>%
-    slice_head(n = 5) %>%
-    mutate(group = "Top 5"),
-  wh_scaled %>%
-    arrange(happiness_score) %>%
-    slice_head(n = 5) %>%
-    mutate(group = "Bottom 5")
+  wh %>%
+    arrange(desc(`Happiness score`)) %>%
+    slice_head(n = 8) %>%
+    mutate(Group = "Top 8"),
+  wh %>%
+    arrange(`Happiness score`) %>%
+    slice_head(n = 8) %>%
+    mutate(Group = "Bottom 8")
 )
-
-top_bottom_heatmap <- top_bottom_countries %>%
-  select(
-    country,
-    group,
-    scaled_happiness_score,
-    scaled_gdp_per_capita,
-    scaled_social_support,
-    scaled_healthy_life_expectancy,
-    scaled_freedom_to_make_life_choices,
-    scaled_generosity,
-    scaled_perceptions_of_corruption
-  ) %>%
-  pivot_longer(
-    cols = starts_with("scaled_"),
-    names_to = "indicator",
-    values_to = "scaled_value"
-  ) %>%
-  mutate(
-    indicator = str_remove(indicator, "scaled_"),
-    indicator = str_replace_all(indicator, "_", " "),
-    indicator = str_to_title(indicator)
-  )
 
 DT::datatable(
   top_bottom_countries %>%
-    select(country, region, group, happiness_score),
+    select(
+      Country,
+      Region,
+      Group,
+      `Happiness score`,
+      `GDP per capita`,
+      `Social support`,
+      `Healthy life expectancy`,
+      `Freedom to make life choices`,
+      Generosity,
+      `Perceptions of corruption`
+    ),
+  rownames = FALSE,
+  class = "compact stripe hover",
+  options = list(pageLength = 16, scrollX = TRUE),
+  width = "100%"
+)
+```
+
+## Code
+
+```{r}
+top_bottom_countries <- bind_rows(
+  wh %>%
+    arrange(desc(`Happiness score`)) %>%
+    slice_head(n = 8) %>%
+    mutate(Group = "Top 8"),
+  wh %>%
+    arrange(`Happiness score`) %>%
+    slice_head(n = 8) %>%
+    mutate(Group = "Bottom 8")
+)
+```
+
+:::
+
+### 5.7.2 Parallel coordinates plot for top and bottom countries
+
+::: {.panel-tabset}
+
+## View
+
+```{r}
+#| echo: false
+#| fig-width: 9
+#| fig-height: 5
+
+GGally::ggparcoord(
+  data = top_bottom_countries,
+  columns = c(4, 7:12),
+  groupColumn = "Group",
+  scale = "uniminmax",
+  alphaLines = 0.75,
+  boxplot = TRUE,
+  title = "Top and Bottom Happiness Countries: Parallel Coordinates Comparison"
+) +
+  scale_colour_manual(
+    values = c(
+      "Top 8" = my_teal,
+      "Bottom 8" = my_red
+    )
+  ) +
+  theme_yy +
+  theme(
+    axis.text.x = element_text(angle = 30, hjust = 1)
+  )
+```
+
+## Code
+
+```{r}
+GGally::ggparcoord(
+  data = top_bottom_countries,
+  columns = c(4, 7:12),
+  groupColumn = "Group",
+  scale = "uniminmax",
+  alphaLines = 0.75,
+  boxplot = TRUE,
+  title = "Top and Bottom Happiness Countries: Parallel Coordinates Comparison"
+) +
+  scale_colour_manual(
+    values = c(
+      "Top 8" = my_teal,
+      "Bottom 8" = my_red
+    )
+  ) +
+  theme_yy +
+  theme(
+    axis.text.x = element_text(angle = 30, hjust = 1)
+  )
+```
+
+:::
+
+The top and bottom group comparison makes the multivariate contrast clearer than looking at all 156 countries at once.
+
+## 5.8 Extra Analysis: Relationship Strength with Happiness Score
+
+This final extension supports the parallel coordinates analysis by showing which variables are most associated with happiness score.
+
+### 5.8.1 Computing correlations with happiness score
+
+::: {.panel-tabset}
+
+## View
+
+```{r}
+#| echo: false
+
+happiness_cor <- wh %>%
+  select(
+    `Happiness score`,
+    `GDP per capita`,
+    `Social support`,
+    `Healthy life expectancy`,
+    `Freedom to make life choices`,
+    Generosity,
+    `Perceptions of corruption`
+  ) %>%
+  summarise(
+    across(
+      -`Happiness score`,
+      ~ cor(.x, `Happiness score`, use = "pairwise.complete.obs")
+    )
+  ) %>%
+  pivot_longer(
+    cols = everything(),
+    names_to = "Variable",
+    values_to = "Correlation"
+  ) %>%
+  arrange(desc(Correlation))
+
+DT::datatable(
+  happiness_cor %>%
+    mutate(Correlation = round(Correlation, 3)),
   rownames = FALSE,
   class = "compact stripe hover",
   options = list(dom = "t", scrollX = TRUE),
@@ -1028,53 +1022,33 @@ DT::datatable(
 ## Code
 
 ```{r}
-top_bottom_countries <- bind_rows(
-  wh_scaled %>%
-    arrange(desc(happiness_score)) %>%
-    slice_head(n = 5) %>%
-    mutate(group = "Top 5"),
-  wh_scaled %>%
-    arrange(happiness_score) %>%
-    slice_head(n = 5) %>%
-    mutate(group = "Bottom 5")
-)
-
-top_bottom_heatmap <- top_bottom_countries %>%
+happiness_cor <- wh %>%
   select(
-    country,
-    group,
-    scaled_happiness_score,
-    scaled_gdp_per_capita,
-    scaled_social_support,
-    scaled_healthy_life_expectancy,
-    scaled_freedom_to_make_life_choices,
-    scaled_generosity,
-    scaled_perceptions_of_corruption
+    `Happiness score`,
+    `GDP per capita`,
+    `Social support`,
+    `Healthy life expectancy`,
+    `Freedom to make life choices`,
+    Generosity,
+    `Perceptions of corruption`
+  ) %>%
+  summarise(
+    across(
+      -`Happiness score`,
+      ~ cor(.x, `Happiness score`, use = "pairwise.complete.obs")
+    )
   ) %>%
   pivot_longer(
-    cols = starts_with("scaled_"),
-    names_to = "indicator",
-    values_to = "scaled_value"
+    cols = everything(),
+    names_to = "Variable",
+    values_to = "Correlation"
   ) %>%
-  mutate(
-    indicator = str_remove(indicator, "scaled_"),
-    indicator = str_replace_all(indicator, "_", " "),
-    indicator = str_to_title(indicator)
-  )
-
-DT::datatable(
-  top_bottom_countries %>%
-    select(country, region, group, happiness_score),
-  rownames = FALSE,
-  class = "compact stripe hover",
-  options = list(dom = "t", scrollX = TRUE),
-  width = "100%"
-)
+  arrange(desc(Correlation))
 ```
 
 :::
 
-### 5.8.2 Plotting top and bottom profiles
+### 5.8.2 Bar chart of correlations with happiness score
 
 ::: {.panel-tabset}
 
@@ -1082,96 +1056,82 @@ DT::datatable(
 
 ```{r}
 #| echo: false
-#| fig-width: 10
+#| fig-width: 8
 #| fig-height: 5
 
 ggplot(
-  top_bottom_heatmap,
+  happiness_cor,
   aes(
-    x = indicator,
-    y = fct_reorder(country, scaled_value, .fun = mean),
-    fill = scaled_value
+    x = fct_reorder(Variable, Correlation),
+    y = Correlation
   )
 ) +
-  geom_tile(colour = "white", linewidth = 0.35) +
-  facet_wrap(~ group, scales = "free_y") +
-  scale_fill_gradient(
-    low = my_light_teal,
-    high = my_teal,
-    limits = c(0, 1)
+  geom_col(
+    fill = my_teal,
+    colour = my_dark,
+    linewidth = 0.3
   ) +
+  coord_flip() +
   labs(
-    title = "Top and bottom country profiles",
-    subtitle = "This extension compares the strongest contrast in happiness ranking",
+    title = "Correlation with Happiness Score",
+    subtitle = "This extension helps interpret which axes matter more in the parallel coordinates plot",
     x = NULL,
-    y = NULL,
-    fill = "Rescaled value"
+    y = "Correlation"
   ) +
-  theme_yy +
-  theme(
-    axis.text.x = element_text(angle = 35, hjust = 1),
-    panel.grid = element_blank()
-  )
+  theme_yy
 ```
 
 ## Code
 
 ```{r}
 ggplot(
-  top_bottom_heatmap,
+  happiness_cor,
   aes(
-    x = indicator,
-    y = fct_reorder(country, scaled_value, .fun = mean),
-    fill = scaled_value
+    x = fct_reorder(Variable, Correlation),
+    y = Correlation
   )
 ) +
-  geom_tile(colour = "white", linewidth = 0.35) +
-  facet_wrap(~ group, scales = "free_y") +
-  scale_fill_gradient(
-    low = my_light_teal,
-    high = my_teal,
-    limits = c(0, 1)
+  geom_col(
+    fill = my_teal,
+    colour = my_dark,
+    linewidth = 0.3
   ) +
+  coord_flip() +
   labs(
-    title = "Top and bottom country profiles",
-    subtitle = "This extension compares the strongest contrast in happiness ranking",
+    title = "Correlation with Happiness Score",
+    subtitle = "This extension helps interpret which axes matter more in the parallel coordinates plot",
     x = NULL,
-    y = NULL,
-    fill = "Rescaled value"
+    y = "Correlation"
   ) +
-  theme_yy +
-  theme(
-    axis.text.x = element_text(angle = 35, hjust = 1),
-    panel.grid = element_blank()
-  )
+  theme_yy
 ```
 
 :::
 
-This comparison makes the multivariate differences easier to explain because the two groups are visually separated.
+This bar chart is not a replacement for the parallel coordinates plot. It is a supporting view that helps explain which variables are most closely related to happiness score.
 
 ## 5.9 Final Takeaway
 
-Multivariate heatmaps are useful when we want to compare many observations across many indicators. They are especially effective when values are rescaled, because the reader can compare patterns across different measurement units.
+Parallel coordinates plots are useful for exploring high-dimensional numerical data. They allow many variables to be compared in one visual frame.
 
-In this exercise, the country-level heatmap shows detailed profiles, clustering helps reveal similar countries, and the regional heatmap gives a broader summary.
+In this exercise, the static `ggparcoord()` plots help compare World Happiness indicators by region. The interactive `parallelPlot` charts allow more flexible inspection. The extra regional and top-bottom comparisons reduce visual clutter and make the interpretation clearer.
 
 ::: {.callout-tip}
 ## Final takeaway
 
-Use a multivariate heatmap when the main question is about overall profile, not just one variable.  
-It is strongest when the data has many comparable indicators for the same set of observations.
+Use parallel coordinates plots when the key question is about multivariate profiles.  
+They are strongest for exploration, comparison, and pattern detection across many numerical variables.
 :::
 
-## 5.10 Reference
+## 5.10 References
 
 This exercise covered:
 
-- importing and cleaning World Happiness data,
-- selecting key numerical indicators,
-- rescaling variables,
-- creating a country-level multivariate heatmap,
-- reordering countries using clustering,
-- summarising regional profiles,
-- creating an interactive heatmap,
-- adding a top-versus-bottom comparison.
+- `ggparcoord()` from the `GGally` package,
+- static parallel coordinates plots,
+- grouped and faceted parallel coordinates plots,
+- rotated and adjusted axis labels,
+- interactive parallel coordinates plots using `parallelPlot`,
+- histogram-enhanced interactive plots,
+- regional average profiles,
+- top-versus-bottom happiness country comparison.
