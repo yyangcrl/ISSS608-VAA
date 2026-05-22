@@ -20,8 +20,9 @@ execute:
 #| include: false
 
 required_packages <- c(
-  "tidyverse", "readxl", "janitor", "scales", "ggdist", "ggridges",
-  "patchwork", "broom", "glue", "forcats", "stringr"
+  "tidyverse", "readxl", "janitor", "scales",
+  "patchwork", "broom", "glue", "forcats", "stringr",
+  "ggdist", "ggridges"
 )
 
 missing_packages <- required_packages[!required_packages %in% rownames(installed.packages())]
@@ -220,17 +221,6 @@ tail_tbl <- portfolio |>
 
 top1_loss_share <- tail_tbl |> filter(policy_share <= 0.01) |> summarise(v = max(cum_claim_share)) |> pull(v)
 top5_loss_share <- tail_tbl |> filter(policy_share <= 0.05) |> summarise(v = max(cum_claim_share)) |> pull(v)
-
-method_tbl <- tibble(
-  Stage = c("Distribution", "Fair comparison", "Interaction", "Validation"),
-  Method = c("Raincloud / ridgeline", "Funnel plot", "Heatmap", "Kruskal-Wallis"),
-  Why = c(
-    "Shows skew, median, IQR and tail concentration",
-    "Controls for exposure size before flagging outliers",
-    "Finds risk pockets created by factor combinations",
-    "Checks whether visual differences are statistically visible"
-  )
-)
 ```
 
 ## Cover {.cover-slide}
@@ -329,8 +319,8 @@ method_tbl <- tibble(
   transform: none !important;
 
   width: 100% !important;
-  height: 100vh !important;
-  min-height: 100vh !important;
+  height: 100% !important;
+  min-height: 100% !important;
 
   padding: 0 !important;
   margin: 0 !important;
@@ -361,7 +351,7 @@ method_tbl <- tibble(
   align-items: center !important;
 
   text-align: center !important;
-  transform: translateY(-2vh);
+  transform: translateY(-1vh);
 }
 
 /* Main cover title */
@@ -401,8 +391,8 @@ method_tbl <- tibble(
   top: 0 !important;
   left: 0 !important;
   transform: none !important;
-  height: 100vh !important;
-  min-height: 100vh !important;
+  height: 100% !important;
+  min-height: 100% !important;
   width: 100% !important;
 
   display: flex !important;
@@ -460,42 +450,6 @@ method_tbl <- tibble(
 This executive summary presents the portfolio-level and segment-level findings from the motor insurance portfolio dataset. The analysis follows the assignment requirement: data preparation, univariate visual analytics, bivariate visual analytics, statistical validation, and management implications. The focus is profitability and volatility, measured through premium adequacy, claim frequency, claim severity, and tail-risk behaviour.
 :::
 
-## Contents
-
-::::::::::: columns
-:::::: {.column width="50%"}
-::: content-card
-<strong>1. Data and KPI design</strong><br> Policy-year unit, exposure adjustment, and profitability metrics.
-:::
-
-::: content-card
-<strong>2. Portfolio-level diagnostics</strong><br> Growth, loss-ratio trend, zero claims, and loss-tail behaviour.
-:::
-
-::: content-card
-<strong>3. Segment-level visual discovery</strong><br> Product, bonus score, payment frequency, policy status, and geography.
-:::
-::::::
-
-:::::: {.column width="50%"}
-::: content-card
-<strong>4. Advanced visual analytics</strong><br> Heatmap, funnel plot, raincloud plot, and ridgeline comparison.
-:::
-
-::: content-card
-<strong>5. Statistical support</strong><br> Non-parametric validation of segment differences.
-:::
-
-::: content-card
-<strong>6. Management implications</strong><br> Where underwriting and pricing attention should go first.
-:::
-::::::
-:::::::::::
-
-::: notes
-The presentation is structured as a decision-oriented visual analysis, not a chart gallery. Each section answers a specific management question: whether the portfolio is profitable, where volatility appears, which segments explain the pressure, and which findings are strong enough to guide further underwriting or pricing review.
-:::
-
 ## Observation 1 — The dataset supports exposure-adjusted insurance analysis
 
 ```{r}
@@ -537,7 +491,7 @@ p_records + p_exposure + p_missing
 ```
 
 ::: obs
--   Dataset contains **`r comma(overall$records)` policy-year records** and **\`r comma(round(overall\$exposure, 0)) exposure years**.
+-   Dataset contains **`r comma(overall$records)` policy-year records** and **`r comma(round(overall$exposure, 0))` exposure years**.
 -   The analytical unit is appropriate because premium, claims, incurred losses and exposure are all available.
 -   **Implication: profitability must be analysed using exposure-adjusted and portfolio-weighted metrics, not raw averages.**
 :::
@@ -1125,12 +1079,15 @@ This is an advanced visual analytics method aligned with the R4VA funnel plot to
 ## Method Add-on 2 — Distribution shape confirms why simple averages are unstable
 
 ```{r}
+#| label: method-addon-2-distribution-shape
+#| echo: false
 #| fig-width: 13.2
 #| fig-height: 5.1
+#| out-width: "100%"
 
-# For this slide, zero-claim policies are excluded deliberately.
-# Reason: the earlier slides already established that zero-claim records dominate the portfolio.
-# This view focuses on adverse-experience policies so that distribution shape and segment tails are visible.
+# Zero-claim policies are excluded deliberately for this slide.
+# Reason: earlier slides already show that zero-claim records dominate the portfolio.
+# This view focuses on adverse-experience policies so that severity and tail shape are readable.
 positive_lr <- portfolio |>
   filter(!is.na(loss_ratio), is.finite(loss_ratio), loss_ratio > 0) |>
   mutate(
@@ -1144,15 +1101,21 @@ raincloud_dots <- positive_lr |>
   slice_sample(n = min(3000, nrow(positive_lr)))
 
 p_rain <- ggplot(positive_lr, aes(x = policy_type, y = loss_ratio_display)) +
-  stat_halfeye(
+  ggdist::stat_halfeye(
     adjust = 0.65,
     justification = -0.15,
     .width = 0,
     point_colour = NA,
     fill = my_light_blue
   ) +
-  geom_boxplot(width = 0.13, outlier.shape = NA, fill = "white", colour = my_dark, linewidth = 0.35) +
-  stat_dots(
+  geom_boxplot(
+    width = 0.13,
+    outlier.shape = NA,
+    fill = "white",
+    colour = my_dark,
+    linewidth = 0.35
+  ) +
+  ggdist::stat_dots(
     data = raincloud_dots,
     side = "left",
     justification = 1.08,
@@ -1162,13 +1125,24 @@ p_rain <- ggplot(positive_lr, aes(x = policy_type, y = loss_ratio_display)) +
     alpha = 0.45
   ) +
   coord_flip() +
-  scale_y_continuous(labels = percent_format(accuracy = 1), breaks = pretty_breaks(n = 4)) +
+  scale_y_continuous(
+    labels = percent_format(accuracy = 1),
+    breaks = pretty_breaks(n = 4)
+  ) +
   labs(
     title = "Raincloud: positive loss-ratio by product",
     subtitle = "Zero-claim records excluded; loss ratio capped at 95th percentile for readability",
-    x = NULL, y = "Positive loss ratio"
+    x = NULL,
+    y = "Positive loss ratio"
   ) +
-  theme(plot.title = element_text(size = 18), plot.subtitle = element_text(size = 11))
+  theme(
+    plot.title = element_text(size = 17, face = "bold", hjust = 0.5),
+    plot.subtitle = element_text(size = 10.5, hjust = 0.5),
+    axis.title = element_text(size = 10),
+    axis.text = element_text(size = 9),
+    legend.position = "none",
+    plot.margin = margin(6, 8, 6, 6)
+  )
 
 p_ridge <- positive_lr |>
   ggplot(aes(x = loss_ratio_display, y = payment_frequency, fill = payment_frequency)) +
@@ -1180,26 +1154,37 @@ p_ridge <- positive_lr |>
     show.legend = FALSE
   ) +
   scale_fill_manual(values = rep(my_blue, n_distinct(positive_lr$payment_frequency))) +
-  scale_x_continuous(labels = percent_format(accuracy = 1), breaks = pretty_breaks(n = 4)) +
+  scale_x_continuous(
+    labels = percent_format(accuracy = 1),
+    breaks = pretty_breaks(n = 4)
+  ) +
   labs(
     title = "Ridgeline: positive loss-ratio by payment frequency",
-    subtitle = "Designed to compare distribution shape, not only group averages",
-    x = "Positive loss ratio", y = NULL
+    subtitle = "Compares full distribution shape, not only group averages",
+    x = "Positive loss ratio",
+    y = NULL
   ) +
-  theme(plot.title = element_text(size = 18), plot.subtitle = element_text(size = 11))
+  theme(
+    plot.title = element_text(size = 17, face = "bold", hjust = 0.5),
+    plot.subtitle = element_text(size = 10.5, hjust = 0.5),
+    axis.title = element_text(size = 10),
+    axis.text = element_text(size = 9),
+    legend.position = "none",
+    plot.margin = margin(6, 6, 6, 8)
+  )
 
 p_rain + p_ridge + plot_layout(widths = c(1.08, 0.92))
 ```
 
-::: obs
--   The earlier zero-heavy chart explains claim occurrence; this slide isolates **positive-loss policies** to reveal severity and tail structure.
--   Raincloud is used because it combines density, median/IQR, and observation concentration in one view.
--   Ridgeline is used because payment frequency has multiple groups and the question is whether the **whole distribution shape** differs, not only the mean.
--   **Implication: advanced distribution plots are justified because profitability is skewed and tail-driven.**
+::: {.obs}
+- This slide isolates **positive-loss policies** because zero-claim records already dominate the full portfolio distribution.
+- Raincloud is used for product type because it combines density, median/IQR, and observation concentration.
+- Ridgeline is used for payment frequency because the analytical question is whether the **whole distribution shape** differs.
+- **Implication: advanced distribution plots are justified because profitability is skewed and tail-driven.**
 :::
 
-::: notes
-The previous slide using the full loss-ratio distribution looked almost empty because the 99th percentile cap still allowed a very long x-axis and the portfolio is dominated by zero-claim records. This revised slide is more disciplined: zero-claim records are excluded on purpose, and the x-axis is capped at the 95th percentile of positive loss ratios. Raincloud is used for product type because it shows median, spread, and individual concentration. Ridgeline is used for payment frequency because it compares full distribution shape across several groups.
+::: {.notes}
+This slide is included as a visual analytics add-on beyond basic bar and box plots. Zero-claim records are excluded deliberately because Observation 3 already shows their dominance. The raincloud chart is suitable for product type because it shows distribution shape, median, spread, and individual concentration. The ridgeline chart is suitable for payment frequency because there are multiple groups and the question is whether the overall shape differs, not only whether the average differs. This supports the assignment requirement to use appropriate visual analytics methods and justify why they were selected.
 :::
 
 ## Statistical Validation — Visual differences are not only visual noise
