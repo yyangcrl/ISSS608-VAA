@@ -131,11 +131,18 @@
     <div class="slides">
 
 
-<section id="motor-insurance-portfolio-profitability-and-volatility" class="slide level2 title-cover">
-<h2>Motor Insurance Portfolio Profitability and Volatility</h2>
+<section id="cover" class="slide level2 cover-slide">
+<h2>Cover</h2>
+<div class="cover-container">
+<div class="cover-title">
+Motor Insurance Portfolio Profitability and Volatility
+</div>
 <div class="cover-subtitle">
-<p>ISSS608 Take-home Exercise 1 · Visual Analytics for Data Discovery<br>
-Yang Yang · 23 May 2026</p>
+<pre><code>ISSS608 Take-home Exercise 1 · Visual Analytics for Data Discovery</code></pre>
+</div>
+<div class="cover-meta">
+<pre><code>Yang Yang · 23 May 2026</code></pre>
+</div>
 </div>
 <style>
 /* =========================================================
@@ -211,10 +218,85 @@ Yang Yang · 23 May 2026</p>
 }
 
 /* =========================================================
-   Title slide vertical centering fix
+   Manual cover slide
    ========================================================= */
 
-/* Force the title slide itself to occupy the full slide area */
+/* Force manual cover slide to use full slide height */
+.reveal .slides section.cover-slide,
+.reveal section.cover-slide {
+  top: 0 !important;
+  left: 0 !important;
+  transform: none !important;
+
+  width: 100% !important;
+  height: 100vh !important;
+  min-height: 100vh !important;
+
+  padding: 0 !important;
+  margin: 0 !important;
+
+  display: flex !important;
+  flex-direction: column !important;
+  justify-content: center !important;
+  align-items: center !important;
+
+  text-align: center !important;
+  box-sizing: border-box !important;
+}
+
+/* Hide the dummy slide heading "Cover" */
+.reveal section.cover-slide h2 {
+  display: none !important;
+}
+
+/* Centre title block */
+.reveal section.cover-slide .cover-container {
+  width: 84% !important;
+  max-width: 1200px !important;
+  margin: 0 auto !important;
+
+  display: flex !important;
+  flex-direction: column !important;
+  justify-content: center !important;
+  align-items: center !important;
+
+  text-align: center !important;
+  transform: translateY(-2vh);
+}
+
+/* Main cover title */
+.reveal section.cover-slide .cover-title {
+  font-size: 1.85em !important;
+  font-weight: 700 !important;
+  line-height: 1.12 !important;
+  text-align: center !important;
+  color: #111111 !important;
+  margin-bottom: 0.55em !important;
+}
+
+/* Cover subtitle */
+.reveal section.cover-slide .cover-subtitle {
+  font-size: 0.78em !important;
+  font-weight: 400 !important;
+  line-height: 1.35 !important;
+  text-align: center !important;
+  color: #333333 !important;
+  margin-bottom: 0.45em !important;
+}
+
+/* Cover author/date */
+.reveal section.cover-slide .cover-meta {
+  font-size: 0.68em !important;
+  font-weight: 400 !important;
+  line-height: 1.30 !important;
+  text-align: center !important;
+  color: #333333 !important;
+}
+
+/* =========================================================
+   Fallback: if Quarto auto title slide exists
+   ========================================================= */
+
 .reveal section#title-slide {
   top: 0 !important;
   left: 0 !important;
@@ -233,7 +315,6 @@ Yang Yang · 23 May 2026</p>
   box-sizing: border-box !important;
 }
 
-/* Quarto title container */
 .reveal section#title-slide .quarto-title-block,
 .reveal section#title-slide .quarto-title,
 .reveal section#title-slide .title {
@@ -242,7 +323,6 @@ Yang Yang · 23 May 2026</p>
   margin-right: auto !important;
 }
 
-/* Main title on first slide */
 .reveal section#title-slide h1.title,
 .reveal section#title-slide h1 {
   font-size: 2.05em !important;
@@ -253,7 +333,6 @@ Yang Yang · 23 May 2026</p>
   margin-bottom: 0.35em !important;
 }
 
-/* Subtitle on first slide */
 .reveal section#title-slide .subtitle,
 .reveal section#title-slide p.subtitle {
   font-size: 0.82em !important;
@@ -264,7 +343,6 @@ Yang Yang · 23 May 2026</p>
   margin-bottom: 1.2em !important;
 }
 
-/* Author and date on first slide */
 .reveal section#title-slide .author,
 .reveal section#title-slide .date,
 .reveal section#title-slide p.author,

@@ -1209,5 +1209,12 @@
     "title": "ISSS608-VAA",
     "section": "Method Add-on 2 — Distribution shape confirms why simple averages are unstable",
     "text": "Method Add-on 2 — Distribution shape confirms why simple averages are unstable\n\n\n\nThe earlier zero-heavy chart explains claim occurrence; this slide isolates positive-loss policies to reveal severity and tail structure.\nRaincloud is used because it combines density, median/IQR, and observation concentration in one view.\nRidgeline is used because payment frequency has multiple groups and the question is whether the whole distribution shape differs, not only the mean.\nImplication: advanced distribution plots are justified because profitability is skewed and tail-driven.\n\n\n\nThe previous slide using the full loss-ratio distribution looked almost empty because the 99th percentile cap still allowed a very long x-axis and the portfolio is dominated by zero-claim records. This revised slide is more disciplined: zero-claim records are excluded on purpose, and the x-axis is capped at the 95th percentile of positive loss ratios. Raincloud is used for product type because it shows median, spread, and individual concentration. Ridgeline is used for payment frequency because it compares full distribution shape across several groups."
+  },
+  {
+    "objectID": "Take-home_Ex/Take-home_Ex01/Executive_Summary.html#cover",
+    "href": "Take-home_Ex/Take-home_Ex01/Executive_Summary.html#cover",
+    "title": "ISSS608-VAA",
+    "section": "Cover",
+    "text": "Cover\n\n\nMotor Insurance Portfolio Profitability and Volatility\n\n\nISSS608 Take-home Exercise 1 · Visual Analytics for Data Discovery\n\n\nYang Yang · 23 May 2026\n\n\n\n\nThis executive summary presents the portfolio-level and segment-level findings from the motor insurance portfolio dataset. The analysis follows the assignment requirement: data preparation, univariate visual analytics, bivariate visual analytics, statistical validation, and management implications. The focus is profitability and volatility, measured through premium adequacy, claim frequency, claim severity, and tail-risk behaviour."
   }
 ]
