@@ -880,38 +880,123 @@ The chart compares status groups across profitability, frequency, and severity. 
 ## Insight 5 — Geography and usage context create uneven profitability pockets
 
 ```{r}
-#| fig-width: 13
-#| fig-height: 4.8
+#| label: insight-5-geography-usage
+#| echo: false
+#| fig-width: 13.8
+#| fig-height: 5.7
+#| out-width: "100%"
 
 area_display <- area_summary |>
   mutate(circulation_area = fct_reorder(circulation_area, portfolio_loss_ratio))
 
 p_area_lr <- area_display |>
-  ggplot(aes(x = circulation_area, y = portfolio_loss_ratio)) +
-  geom_col(fill = my_blue, colour = my_dark, linewidth = 0.35) +
-  geom_text(aes(label = percent(portfolio_loss_ratio, accuracy = 0.1)), hjust = -0.05, size = 3.9) +
-  coord_flip() +
-  scale_y_continuous(labels = percent_format(accuracy = 1), expand = expansion(mult = c(0, 0.25))) +
-  labs(title = "Loss ratio by circulation area", x = NULL, y = NULL)
+  ggplot(aes(
+    x = circulation_area,
+    y = portfolio_loss_ratio
+  )) +
+  geom_col(fill = my_blue, color = my_dark, linewidth = 0.3, width = 0.72) +
+  geom_text(
+    aes(label = percent(portfolio_loss_ratio, accuracy = 0.1)),
+    hjust = -0.08,
+    size = 3.3
+  ) +
+  coord_flip(clip = "off") +
+  scale_y_continuous(
+    labels = percent_format(accuracy = 1),
+    expand = expansion(mult = c(0, 0.18))
+  ) +
+  labs(
+    title = "Loss ratio\nby circulation area",
+    x = NULL,
+    y = NULL
+  ) +
+  theme_minimal(base_size = 11) +
+  theme(
+    plot.title = element_text(
+      size = 11,
+      face = "bold",
+      hjust = 0.5,
+      lineheight = 0.95,
+      margin = margin(b = 8)
+    ),
+    axis.text = element_text(size = 9),
+    panel.grid.major.y = element_blank(),
+    plot.margin = margin(6, 20, 6, 6)
+  )
 
 p_area_freq <- area_display |>
-  ggplot(aes(x = circulation_area, y = claim_frequency)) +
-  geom_col(fill = my_light_blue, colour = my_dark, linewidth = 0.35) +
-  geom_text(aes(label = number(claim_frequency, accuracy = 0.01)), hjust = -0.05, size = 3.9) +
-  coord_flip() +
-  scale_y_continuous(expand = expansion(mult = c(0, 0.25))) +
-  labs(title = "Claim frequency by circulation area", x = NULL, y = "Claims / exposure")
+  ggplot(aes(
+    x = circulation_area,
+    y = claim_frequency
+  )) +
+  geom_col(fill = "#D7E6F5", color = my_dark, linewidth = 0.3, width = 0.72) +
+  geom_text(
+    aes(label = number(claim_frequency, accuracy = 0.01)),
+    hjust = -0.08,
+    size = 3.3
+  ) +
+  coord_flip(clip = "off") +
+  scale_y_continuous(
+    expand = expansion(mult = c(0, 0.18))
+  ) +
+  labs(
+    title = "Claim frequency\nby circulation area",
+    x = NULL,
+    y = "Claims / exposure"
+  ) +
+  theme_minimal(base_size = 11) +
+  theme(
+    plot.title = element_text(
+      size = 11,
+      face = "bold",
+      hjust = 0.5,
+      lineheight = 0.95,
+      margin = margin(b = 8)
+    ),
+    axis.text = element_text(size = 9),
+    axis.title.x = element_text(size = 9, margin = margin(t = 6)),
+    panel.grid.major.y = element_blank(),
+    plot.margin = margin(6, 20, 6, 6)
+  )
 
 p_fuel <- fuel_summary |>
   mutate(fuel_type = fct_reorder(fuel_type, portfolio_loss_ratio)) |>
-  ggplot(aes(x = fuel_type, y = portfolio_loss_ratio)) +
-  geom_col(fill = my_mid_blue, colour = my_dark, linewidth = 0.35) +
-  geom_text(aes(label = percent(portfolio_loss_ratio, accuracy = 0.1)), hjust = -0.05, size = 3.9) +
-  coord_flip() +
-  scale_y_continuous(labels = percent_format(accuracy = 1), expand = expansion(mult = c(0, 0.25))) +
-  labs(title = "Loss ratio by fuel type", x = NULL, y = NULL)
+  ggplot(aes(
+    x = fuel_type,
+    y = portfolio_loss_ratio
+  )) +
+  geom_col(fill = "#6FA8DC", color = my_dark, linewidth = 0.3, width = 0.72) +
+  geom_text(
+    aes(label = percent(portfolio_loss_ratio, accuracy = 0.1)),
+    hjust = -0.08,
+    size = 3.3
+  ) +
+  coord_flip(clip = "off") +
+  scale_y_continuous(
+    labels = percent_format(accuracy = 1),
+    expand = expansion(mult = c(0, 0.18))
+  ) +
+  labs(
+    title = "Loss ratio\nby fuel type",
+    x = NULL,
+    y = NULL
+  ) +
+  theme_minimal(base_size = 11) +
+  theme(
+    plot.title = element_text(
+      size = 11,
+      face = "bold",
+      hjust = 0.5,
+      lineheight = 0.95,
+      margin = margin(b = 8)
+    ),
+    axis.text = element_text(size = 9),
+    panel.grid.major.y = element_blank(),
+    plot.margin = margin(6, 20, 6, 6)
+  )
 
-p_area_lr + p_area_freq + p_fuel
+(p_area_lr | p_area_freq | p_fuel) +
+  plot_layout(widths = c(1, 1, 1))
 ```
 
 ::: obs
