@@ -9,9 +9,7 @@
 <link href="../../site_libs/quarto-html/quarto-syntax-highlighting-7f8f88aac4f3542376d5c11b86a4c14d.css" rel="stylesheet" id="quarto-text-highlighting-styles"><meta charset="utf-8">
   <meta name="generator" content="quarto-1.9.37">
 
-  <meta name="author" content="Yang Yang">
-  <meta name="dcterms.date" content="2026-05-23">
-  <title>ISSS608-VAA – Motor Insurance Portfolio Profitability and Volatility</title>
+  <title>ISSS608-VAA – executive_summary</title>
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, minimal-ui">
@@ -132,61 +130,131 @@
   <div class="reveal">
     <div class="slides">
 
-<section id="title-slide" class="quarto-title-block center">
-  <h1 class="title">Motor Insurance Portfolio Profitability and Volatility</h1>
-  <p class="subtitle">ISSS608 Take-home Exercise 1: Visual Analytics for Data Discovery</p>
 
-<div class="quarto-title-authors">
-<div class="quarto-title-author">
-<div class="quarto-title-author-name">
-Yang Yang 
+<section id="motor-insurance-portfolio-profitability-and-volatility" class="slide level2">
+<h2>Motor Insurance Portfolio Profitability and Volatility</h2>
+<div class="subtitle">
+<p>ISSS608 Take-home Exercise 1 · Visual Analytics for Data Discovery<br>
+<br> Yang Yang · 23 May 2026</p>
 </div>
-</div>
-</div>
-
-  <p class="date">2026-05-23</p>
-</section>
-<section class="slide level2">
-
 <style>
-.reveal h1, .reveal h2 {
+.reveal {
+  font-size: 28px;
+}
+.reveal h1 {
   text-align: center;
-  font-weight: 650;
+  font-weight: 700;
+  font-size: 1.55em;
+}
+.reveal h2 {
+  text-align: center;
+  font-weight: 700;
+  font-size: 1.35em;
+  line-height: 1.08;
 }
 .reveal p, .reveal li {
-  font-size: 0.78em;
-}
-.reveal .small-note {
-  font-size: 0.58em;
+  font-size: 0.68em;
   line-height: 1.25;
 }
+.reveal .subtitle {
+  font-size: 0.78em;
+  text-align: center;
+  color: #444444;
+  margin-top: -10px;
+}
 .reveal .obs {
-  font-size: 0.64em;
+  font-size: 0.58em;
   line-height: 1.28;
-  margin-top: 10px;
+  margin-top: 8px;
+}
+.reveal section#title-slide {
+  top: 0 !important;
+  display: flex !important;
+  flex-direction: column !important;
+  justify-content: center !important;
+  align-items: center !important;
+  height: 100% !important;
+  text-align: center !important;
+}
+
+.reveal section#title-slide h1 {
+  font-size: 2.0em !important;
+  line-height: 1.15 !important;
+  margin-bottom: 0.35em !important;
+}
+
+.reveal section#title-slide .subtitle {
+  font-size: 0.78em !important;
+  margin-bottom: 1.1em !important;
+}
+
+.reveal section#title-slide .author,
+.reveal section#title-slide .date {
+  font-size: 0.65em !important;
+}
+.reveal .small-note {
+  font-size: 0.50em;
+  line-height: 1.20;
+}
+.reveal .two-col {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 34px;
+  align-items: start;
+}
+.reveal .content-card {
+  border-left: 7px solid #4F91D9;
+  background: #F6F9FC;
+  padding: 16px 20px;
+  margin-bottom: 14px;
+}
+.reveal .content-card strong {
+  color: #1F4E79;
 }
 .reveal strong {
   color: #1F4E79;
 }
 </style>
+<aside class="notes">
+<p>This executive summary presents the portfolio-level and segment-level findings from the motor insurance portfolio dataset. The analysis follows the assignment requirement: data preparation, univariate visual analytics, bivariate visual analytics, statistical validation, and management implications. The focus is profitability and volatility, measured through premium adequacy, claim frequency, claim severity, and tail-risk behaviour.</p>
+<style type="text/css">
+        span.MJX_Assistive_MathML {
+          position:absolute!important;
+          clip: rect(1px, 1px, 1px, 1px);
+          padding: 1px 0 0 0!important;
+          border: 0!important;
+          height: 1px!important;
+          width: 1px!important;
+          overflow: hidden!important;
+          display:block!important;
+      }</style></aside>
 </section>
 <section id="contents" class="slide level2">
 <h2>Contents</h2>
-<ol type="1">
-<li>Analytical objective and KPI design<br>
-</li>
-<li>Data preparation and portfolio overview<br>
-</li>
-<li>Univariate visual analytics<br>
-</li>
-<li>Bivariate profitability and volatility discovery<br>
-</li>
-<li>Statistical validation<br>
-</li>
-<li>Management implications</li>
-</ol>
+<div class="columns">
+<div class="column" style="width:50%;">
+<div class="content-card">
+<p><strong>1. Data and KPI design</strong><br> Policy-year unit, exposure adjustment, and profitability metrics.</p>
+</div>
+<div class="content-card">
+<p><strong>2. Portfolio-level diagnostics</strong><br> Growth, loss-ratio trend, zero claims, and loss-tail behaviour.</p>
+</div>
+<div class="content-card">
+<p><strong>3. Segment-level visual discovery</strong><br> Product, bonus score, payment frequency, policy status, and geography.</p>
+</div>
+</div><div class="column" style="width:50%;">
+<div class="content-card">
+<p><strong>4. Advanced visual analytics</strong><br> Heatmap, funnel plot, raincloud plot, and ridgeline comparison.</p>
+</div>
+<div class="content-card">
+<p><strong>5. Statistical support</strong><br> Non-parametric validation of segment differences.</p>
+</div>
+<div class="content-card">
+<p><strong>6. Management implications</strong><br> Where underwriting and pricing attention should go first.</p>
+</div>
+</div></div>
 <aside class="notes">
-<p>This presentation follows the assignment requirement: first define the analytical purpose, then show data preparation, univariate exploration, bivariate visual analytics, and final implications. The charts use the actual motor insurance portfolio dataset and the variable dictionary. The focus is not chart decoration. Each visual is selected to answer whether profitability or volatility differs meaningfully across policy, customer, vehicle, and operational segments.</p>
+<p>The presentation is structured as a decision-oriented visual analysis, not a chart gallery. Each section answers a specific management question: whether the portfolio is profitable, where volatility appears, which segments explain the pressure, and which findings are strong enough to guide further underwriting or pricing review.</p>
 <style type="text/css">
         span.MJX_Assistive_MathML {
           position:absolute!important;
@@ -199,38 +267,42 @@ Yang Yang
           display:block!important;
       }</style></aside>
 </section>
-<section id="analytical-framework-profitability-and-volatility" class="slide level2">
-<h2>Analytical Framework: Profitability and Volatility</h2>
+<section id="observation-1-the-dataset-supports-exposure-adjusted-insurance-analysis" class="slide level2">
+<h2>Observation 1 — The dataset supports exposure-adjusted insurance analysis</h2>
 
 <img data-src="Executive_Summary_files/figure-revealjs/unnamed-chunk-1-1.png" width="1248" class="r-stretch"><div class="obs">
-<p>The analysis uses <strong>portfolio-weighted loss ratio</strong> as the primary profitability metric. Policy-level loss ratio is used for distributional diagnostics, not as the main segment-ranking metric.</p>
-</div>
-<aside class="notes">
-<p>This slide defines the logic of the analysis. In insurance, a raw average can mislead because policies have different premiums and exposure durations. Therefore the primary profitability measure is portfolio loss ratio, calculated as total incurred divided by total premium. Volatility is interpreted through claim frequency, severity, and tail dispersion. This structure prevents a common mistake: treating a high-loss segment as bad without checking whether the issue is frequency, severity, underpricing, or random tail events.</p>
-<style type="text/css">
-        span.MJX_Assistive_MathML {
-          position:absolute!important;
-          clip: rect(1px, 1px, 1px, 1px);
-          padding: 1px 0 0 0!important;
-          border: 0!important;
-          height: 1px!important;
-          width: 1px!important;
-          overflow: hidden!important;
-          display:block!important;
-      }</style></aside>
-</section>
-<section id="observation-1-data-is-policy-year-level-and-suitable-for-exposure-adjusted-analysis" class="slide level2">
-<h2>Observation 1 — Data is policy-year level and suitable for exposure-adjusted analysis</h2>
-
-<img data-src="Executive_Summary_files/figure-revealjs/unnamed-chunk-2-1.png" width="1248" class="r-stretch"><div class="obs">
 <ul>
-<li>Dataset contains <strong>354,140 policy-year records</strong> and <strong>`r scales::comma(round(overall$exposure, 0)) exposure years</strong>.<br>
-</li>
-<li>Missingness is limited and concentrated in a few vehicle attributes, so rows are retained and missing categories are handled explicitly.</li>
+<li>Dataset contains <strong>354,140 policy-year records</strong> and <strong>`r comma(round(overall$exposure, 0)) exposure years</strong>.</li>
+<li>The analytical unit is appropriate because premium, claims, incurred losses and exposure are all available.</li>
+<li><strong>Implication: profitability must be analysed using exposure-adjusted and portfolio-weighted metrics, not raw averages.</strong></li>
 </ul>
 </div>
 <aside class="notes">
-<p>The first data check is whether the dataset supports exposure-adjusted insurance analysis. It does. The records are at policy-year level, and the dataset includes premium, incurred loss, claim counts, and exposure. The portfolio grows strongly across the three years, so raw totals alone are not enough. Exposure-normalised measures are required. Missingness is limited, which means a complete-case deletion strategy would be unnecessarily destructive.</p>
+<p>This slide validates the data foundation. The records are policy-year observations, which is suitable for insurance analysis because each row links exposure, premium, claim counts, and incurred losses. The most important methodological choice is to use exposure-adjusted metrics. Without exposure adjustment, a short-duration policy and a full-year policy would be treated as equally informative, which would distort both profitability and frequency analysis.</p>
+<style type="text/css">
+        span.MJX_Assistive_MathML {
+          position:absolute!important;
+          clip: rect(1px, 1px, 1px, 1px);
+          padding: 1px 0 0 0!important;
+          border: 0!important;
+          height: 1px!important;
+          width: 1px!important;
+          overflow: hidden!important;
+          display:block!important;
+      }</style></aside>
+</section>
+<section id="analytical-framework-profitability-and-volatility-are-decomposed" class="slide level2">
+<h2>Analytical Framework — Profitability and volatility are decomposed</h2>
+
+<img data-src="Executive_Summary_files/figure-revealjs/unnamed-chunk-2-1.png" width="1200" class="r-stretch"><div class="obs">
+<ul>
+<li><strong>Loss ratio</strong> is the primary profitability KPI.</li>
+<li><strong>Frequency and severity</strong> explain why the loss ratio changes.</li>
+<li><strong>Tail volatility</strong> identifies segments where averages are unstable because of extreme claims.</li>
+</ul>
+</div>
+<aside class="notes">
+<p>This slide fixes the interpretation logic. A high loss ratio alone is not enough. It could come from too many claims, expensive claims, inadequate premium, or a small number of extreme losses. Therefore the analysis separates profitability, frequency, severity, and volatility. This is also why several chart types are needed rather than a single bar chart.</p>
 <style type="text/css">
         span.MJX_Assistive_MathML {
           position:absolute!important;
@@ -248,15 +320,13 @@ Yang Yang
 
 <img data-src="Executive_Summary_files/figure-revealjs/unnamed-chunk-3-1.png" width="1248" class="r-stretch"><div class="obs">
 <ul>
-<li>Portfolio loss ratio rose by <strong>9.0 percentage points</strong> across the period.<br>
-</li>
-<li>Premium per exposure year changed by <strong>-9.2%</strong>, while claim frequency changed by <strong>3.1%</strong>.<br>
-</li>
-<li><strong>Implication: portfolio growth is accompanied by pricing-pressure risk.</strong></li>
+<li>Premium grew by <strong>173.0%</strong>, while incurred losses grew by <strong>210.6%</strong>.</li>
+<li>Portfolio loss ratio rose by <strong>9.0 percentage points</strong>.</li>
+<li><strong>Implication: growth requires segment-level pricing control; volume alone did not stabilise profitability.</strong></li>
 </ul>
 </div>
 <aside class="notes">
-<p>This is the first core profitability finding. The book of business expanded, but the loss ratio increased over time. At the same time, premium per exposure year declined. This pattern is risky because it suggests that the portfolio may be adding exposure faster than it is pricing the associated risk. The interpretation is not that growth is bad; the point is that growth needs segment-level underwriting control.</p>
+<p>The portfolio expanded, but the profitability trend is less favourable. The key comparison is not only premium against incurred amount, but also the loss ratio and premium rate. This shows whether the insurer is being paid adequately for the exposure it takes on. The visual pattern suggests that growth should be monitored together with underwriting quality.</p>
 <style type="text/css">
         span.MJX_Assistive_MathML {
           position:absolute!important;
@@ -269,18 +339,18 @@ Yang Yang
           display:block!important;
       }</style></aside>
 </section>
-<section id="observation-3-losses-are-zero-heavy-and-tail-driven" class="slide level2">
-<h2>Observation 3 — Losses are zero-heavy and tail-driven</h2>
+<section id="observation-3-claims-are-rare-but-losses-are-tail-driven" class="slide level2">
+<h2>Observation 3 — Claims are rare, but losses are tail-driven</h2>
 
 <img data-src="Executive_Summary_files/figure-revealjs/unnamed-chunk-4-1.png" width="1248" class="r-stretch"><div class="obs">
 <ul>
-<li>Most policy-years have zero claims, but loss ratio has a long right tail.<br>
-</li>
-<li><strong>Implication: frequency and severity must be analysed separately; raw averages alone are unstable.</strong></li>
+<li><strong>85.7%</strong> of policy-year records have zero claims.</li>
+<li>Among positive-loss policies, the top <strong>1%</strong> contributes <strong>20.9%</strong> of incurred loss.</li>
+<li><strong>Implication: frequency and severity must be modelled separately; raw mean loss is unstable.</strong></li>
 </ul>
 </div>
 <aside class="notes">
-<p>This slide explains why standard descriptive statistics are insufficient. Insurance data typically contains many zero-claim policies and a small number of very costly claims. The log scale and capped loss ratio are not used to hide outliers; they are used to make the core distribution readable while preserving the tail-risk interpretation. This justifies the later use of raincloud plots, ridgelines, and segment-level frequency/severity decomposition.</p>
+<p>The previous version looked blank because zero-loss rows dominated the histograms. This revised slide separates claim count, positive incurred loss, and tail concentration. The chart choice is intentional: the bar chart shows claim rarity, the log histogram makes positive losses visible, and the concentration curve quantifies tail dependence.</p>
 <style type="text/css">
         span.MJX_Assistive_MathML {
           position:absolute!important;
@@ -293,20 +363,18 @@ Yang Yang
           display:block!important;
       }</style></aside>
 </section>
-<section id="insight-1-product-type-is-the-strongest-profitability-separator" class="slide level2">
-<h2>Insight 1 — Product type is the strongest profitability separator</h2>
+<section id="insight-1-product-type-is-the-strongest-first-level-profitability-separator" class="slide level2">
+<h2>Insight 1 — Product type is the strongest first-level profitability separator</h2>
 
 <img data-src="Executive_Summary_files/figure-revealjs/unnamed-chunk-5-1.png" width="1248" class="r-stretch"><div class="obs">
 <ul>
-<li><strong>COMP_N</strong> records the highest product loss ratio at <strong>93.9%</strong>.<br>
-</li>
-<li>The best-performing product is <strong>TP</strong>, with loss ratio of <strong>54.3%</strong>.<br>
-</li>
-<li><strong>Implication: product-level pricing adequacy should be reviewed before broad portfolio expansion.</strong></li>
+<li>Worst product: <strong>COMP_N</strong>, loss ratio <strong>93.9%</strong>.</li>
+<li>Best product: <strong>TP</strong>, loss ratio <strong>54.3%</strong>.</li>
+<li><strong>Implication: product review should decompose loss ratio into claim frequency and severity before repricing.</strong></li>
 </ul>
 </div>
 <aside class="notes">
-<p>This slide mirrors the professor’s example style: three charts, each answering one part of the same insight. Product type changes the coverage structure, so it is expected to influence premium, frequency, and severity. The important point is decomposition. A high loss ratio may be caused by high frequency, high severity, or insufficient premium. The product review should therefore not stop at the loss-ratio ranking.</p>
+<p>Product type is a natural first segmentation because it reflects coverage structure. Three charts are used rather than one because loss ratio alone does not explain the mechanism. The frequency and severity panels show whether profitability pressure comes from more claims or more expensive claims. This directly supports underwriting and pricing decisions.</p>
 <style type="text/css">
         span.MJX_Assistive_MathML {
           position:absolute!important;
@@ -319,20 +387,18 @@ Yang Yang
           display:block!important;
       }</style></aside>
 </section>
-<section id="insight-2-bonus-score-works-as-a-risk-signal-but-pricing-does-not-fully-neutralise-it" class="slide level2">
-<h2>Insight 2 — Bonus score works as a risk signal, but pricing does not fully neutralise it</h2>
+<section id="insight-2-bonus-score-carries-risk-information-not-fully-neutralised-by-premium" class="slide level2">
+<h2>Insight 2 — Bonus score carries risk information not fully neutralised by premium</h2>
 
 <img data-src="Executive_Summary_files/figure-revealjs/unnamed-chunk-6-1.png" width="1248" class="r-stretch"><div class="obs">
 <ul>
-<li>Poorer bonus groups show higher claim frequency and higher premium rate.<br>
-</li>
-<li>However, the high-risk groups still retain elevated loss ratios.<br>
-</li>
-<li><strong>Implication: bonus score is useful, but current premium differentiation may not fully offset the realised claims experience.</strong></li>
+<li>Highest-loss bonus group: <strong>N</strong>, loss ratio <strong>81.4%</strong>.</li>
+<li>Lowest-loss bonus group: <strong>G</strong>, loss ratio <strong>69.7%</strong>.</li>
+<li><strong>Implication: bonus score should remain in monitoring because premium adjustment does not fully flatten risk differences.</strong></li>
 </ul>
 </div>
 <aside class="notes">
-<p>Bonus score is designed to capture past claims experience. The charts show whether the dataset behaves consistently with that actuarial logic. If worse bonus groups receive higher premium but still have elevated loss ratios, pricing is directionally correct but may be insufficient. This is exactly the kind of visual analytics finding expected in the assignment: it connects variable meaning, chart evidence, and portfolio action.</p>
+<p>A line chart is appropriate because bonus score is ordered. It reveals whether risk moves monotonically or irregularly across score levels. The slide compares loss ratio, claim frequency, and premium rate to check whether higher-risk groups are being compensated by pricing. This is more informative than a single distribution plot.</p>
 <style type="text/css">
         span.MJX_Assistive_MathML {
           position:absolute!important;
@@ -350,15 +416,13 @@ Yang Yang
 
 <img data-src="Executive_Summary_files/figure-revealjs/unnamed-chunk-7-1.png" width="1248" class="r-stretch"><div class="obs">
 <ul>
-<li><strong>S</strong> has the highest payment-frequency loss ratio at <strong>80.7%</strong>.<br>
-</li>
-<li><strong>Q</strong> has the highest claim frequency at <strong>0.47</strong> claims per exposure year.<br>
-</li>
-<li><strong>Implication: payment structure may proxy customer behaviour and should not be ignored in monitoring.</strong></li>
+<li>Highest claim-frequency payment group: <strong>Q</strong>, <strong>0.47 claims per exposure year</strong>.</li>
+<li>Worst loss-ratio payment group: <strong>S</strong>, loss ratio <strong>80.7%</strong>.</li>
+<li><strong>Implication: payment frequency is a behavioural risk signal, not only an administrative variable.</strong></li>
 </ul>
 </div>
 <aside class="notes">
-<p>Payment frequency is not a classical vehicle-risk variable, so it would be easy to ignore. But data discovery should test operational variables as well. The charts show that payment frequency has a clear relationship with loss ratio and claim frequency. This does not prove causality, but it is a useful underwriting and retention-monitoring signal.</p>
+<p>Payment frequency is not a classic vehicle-risk variable, but it can reveal behaviour and selection effects. The bar chart is suitable here because categories are nominal and the purpose is ranking. The interpretation is careful: this shows association, not causality. It is a useful dashboard variable for underwriting and retention monitoring.</p>
 <style type="text/css">
         span.MJX_Assistive_MathML {
           position:absolute!important;
@@ -376,13 +440,12 @@ Yang Yang
 
 <img data-src="Executive_Summary_files/figure-revealjs/unnamed-chunk-8-1.png" width="1248" class="r-stretch"><div class="obs">
 <ul>
-<li>Cancelled policies show loss ratio of <strong>128.0%</strong>, compared with <strong>64.4%</strong> for active policies.<br>
-</li>
-<li><strong>Implication: cancellation should be monitored as an adverse-experience signal, but causality must not be claimed without temporal sequencing.</strong></li>
+<li>Cancelled policies show loss ratio of <strong>128.0%</strong>, versus <strong>64.4%</strong> for active policies.</li>
+<li><strong>Implication: cancellation is an adverse-experience monitoring signal, but should not be interpreted as causal without event sequencing.</strong></li>
 </ul>
 </div>
 <aside class="notes">
-<p>This is a strong finding, but it needs disciplined interpretation. Cancelled policies are much worse in loss ratio and claim frequency. However, cancellation may happen after a claim event, so policy status may be partly an outcome rather than a cause. The correct conclusion is not “cancellation causes claims”; the correct conclusion is that cancelled policy-years form a high-risk monitoring segment requiring temporal follow-up.</p>
+<p>The chart compares status groups across profitability, frequency, and severity. This slide is strong for decision making but needs cautious wording. A cancelled policy may have cancelled after a claim; therefore, the status variable may partly be an outcome. The correct business action is to monitor cancellations as adverse-experience signals and investigate timing.</p>
 <style type="text/css">
         span.MJX_Assistive_MathML {
           position:absolute!important;
@@ -395,18 +458,18 @@ Yang Yang
           display:block!important;
       }</style></aside>
 </section>
-<section id="insight-5-driver-age-and-vehicle-age-interact-not-just-act-independently" class="slide level2">
-<h2>Insight 5 — Driver age and vehicle age interact, not just act independently</h2>
+<section id="insight-5-geography-and-usage-context-create-uneven-profitability-pockets" class="slide level2">
+<h2>Insight 5 — Geography and usage context create uneven profitability pockets</h2>
 
-<img data-src="Executive_Summary_files/figure-revealjs/unnamed-chunk-9-1.png" width="1104" class="r-stretch"><div class="obs">
+<img data-src="Executive_Summary_files/figure-revealjs/unnamed-chunk-9-1.png" width="1248" class="r-stretch"><div class="obs">
 <ul>
-<li>Heatmap evidence shows that profitability varies by <strong>combination</strong> of driver age and vehicle age.<br>
-</li>
-<li><strong>Implication: interaction-based monitoring is more informative than only checking one variable at a time.</strong></li>
+<li>Circulation area and fuel type show material differences in loss ratio and frequency.</li>
+<li>These variables are useful because they reflect <strong>contextual risk exposure</strong>, not only driver or product characteristics.</li>
+<li><strong>Implication: rating review should check whether contextual variables are adequately priced.</strong></li>
 </ul>
 </div>
 <aside class="notes">
-<p>A heatmap is chosen because the question is interactional: whether driver age and vehicle age jointly form risk pockets. A standard bar chart would miss this. The minimum cell-size filter avoids overinterpreting small cells. In a pricing context, this would suggest that future modelling should include interactions or non-linear terms rather than assuming all rating factors act independently.</p>
+<p>This slide broadens the analysis beyond product and customer variables. Circulation area and fuel type are not causal proofs, but they are plausible risk context variables. The chart design remains simple because the management question is categorical comparison. It identifies which contextual segments deserve deeper pricing review.</p>
 <style type="text/css">
         span.MJX_Assistive_MathML {
           position:absolute!important;
@@ -419,18 +482,18 @@ Yang Yang
           display:block!important;
       }</style></aside>
 </section>
-<section id="visual-method-add-on-raincloud-plot-exposes-distribution-shape" class="slide level2">
-<h2>Visual Method Add-on — Raincloud plot exposes distribution shape</h2>
+<section id="insight-6-driver-age-and-vehicle-age-interact-not-just-act-independently" class="slide level2">
+<h2>Insight 6 — Driver age and vehicle age interact, not just act independently</h2>
 
-<img data-src="Executive_Summary_files/figure-revealjs/unnamed-chunk-10-1.png" width="1152" class="r-stretch"><div class="obs">
+<img data-src="Executive_Summary_files/figure-revealjs/unnamed-chunk-10-1.png" width="1104" class="r-stretch"><div class="obs">
 <ul>
-<li>Raincloud plot combines density, boxplot, and observation concentration.<br>
-</li>
-<li><strong>Implication: it is more suitable than a plain boxplot for skewed insurance profitability data.</strong></li>
+<li>Heatmap evidence shows that profitability varies by <strong>combination</strong> of driver age and vehicle age.</li>
+<li>The chart is used because the analytical question is interactional; a one-variable bar chart would hide joint risk pockets.</li>
+<li><strong>Implication: interaction-based monitoring is more useful than checking one rating factor at a time.</strong></li>
 </ul>
 </div>
 <aside class="notes">
-<p>This slide intentionally uses an advanced method from the R4VA distribution chapter. It is not added for decoration. It is appropriate because policy-level loss ratio is skewed and concentrated around zero for many records, with a long upper tail. The raincloud plot shows density, median and IQR, and distribution concentration in one visual. This supports the assignment’s bonus expectation for methods beyond basic ggplot charts.</p>
+<p>The legend bug is removed because the exact values are printed inside each tile. A heatmap is the correct visual method because it shows interaction between two categorical bands. This satisfies the bivariate visual analytics requirement and gives a more decision-useful insight than two separate bar charts.</p>
 <style type="text/css">
         span.MJX_Assistive_MathML {
           position:absolute!important;
@@ -443,18 +506,67 @@ Yang Yang
           display:block!important;
       }</style></aside>
 </section>
-<section id="statistical-validation-visual-patterns-are-supported-by-tests" class="slide level2">
-<h2>Statistical Validation — Visual patterns are supported by tests</h2>
+<section id="method-add-on-1-funnel-plot-avoids-overreacting-to-small-segments" class="slide level2">
+<h2>Method Add-on 1 — Funnel plot avoids overreacting to small segments</h2>
 
 <img data-src="Executive_Summary_files/figure-revealjs/unnamed-chunk-11-1.png" width="1152" class="r-stretch"><div class="obs">
 <ul>
-<li>Non-parametric tests are used because loss ratio is highly skewed.<br>
-</li>
-<li>Segment differences are statistically visible, but the tests support association rather than causal claims.</li>
+<li>Funnel plot is chosen because segment rankings can be misleading when exposure sizes differ.</li>
+<li>Points outside or near the funnel boundary deserve investigation before being treated as true high-risk brands.</li>
+<li><strong>Implication: fair comparison requires volume adjustment, not just sorting by loss ratio.</strong></li>
 </ul>
 </div>
 <aside class="notes">
-<p>Visual analytics should not stop at visual inspection. Since loss ratio is non-normal and heavily skewed, Kruskal-Wallis is more appropriate than ordinary ANOVA for comparing policy-level loss-ratio distributions across segments. This slide supports the visual findings statistically, while keeping the interpretation disciplined: statistical significance does not equal causality or business materiality by itself.</p>
+<p>This is an advanced visual analytics method aligned with the R4VA funnel plot topic. It directly addresses a common insurance analytics problem: small segments can look extreme simply because they have little exposure. The funnel plot makes the comparison fairer by showing expected variation under different exposure sizes.</p>
+<style type="text/css">
+        span.MJX_Assistive_MathML {
+          position:absolute!important;
+          clip: rect(1px, 1px, 1px, 1px);
+          padding: 1px 0 0 0!important;
+          border: 0!important;
+          height: 1px!important;
+          width: 1px!important;
+          overflow: hidden!important;
+          display:block!important;
+      }</style></aside>
+</section>
+<section id="method-add-on-2-distribution-shape-confirms-why-simple-averages-are-unstable" class="slide level2">
+<h2>Method Add-on 2 — Distribution shape confirms why simple averages are unstable</h2>
+
+<img data-src="Executive_Summary_files/figure-revealjs/unnamed-chunk-12-1.png" width="1267" class="r-stretch"><div class="obs">
+<ul>
+<li>The earlier zero-heavy chart explains claim occurrence; this slide isolates <strong>positive-loss policies</strong> to reveal severity and tail structure.</li>
+<li>Raincloud is used because it combines density, median/IQR, and observation concentration in one view.</li>
+<li>Ridgeline is used because payment frequency has multiple groups and the question is whether the <strong>whole distribution shape</strong> differs, not only the mean.</li>
+<li><strong>Implication: advanced distribution plots are justified because profitability is skewed and tail-driven.</strong></li>
+</ul>
+</div>
+<aside class="notes">
+<p>The previous slide using the full loss-ratio distribution looked almost empty because the 99th percentile cap still allowed a very long x-axis and the portfolio is dominated by zero-claim records. This revised slide is more disciplined: zero-claim records are excluded on purpose, and the x-axis is capped at the 95th percentile of positive loss ratios. Raincloud is used for product type because it shows median, spread, and individual concentration. Ridgeline is used for payment frequency because it compares full distribution shape across several groups.</p>
+<style type="text/css">
+        span.MJX_Assistive_MathML {
+          position:absolute!important;
+          clip: rect(1px, 1px, 1px, 1px);
+          padding: 1px 0 0 0!important;
+          border: 0!important;
+          height: 1px!important;
+          width: 1px!important;
+          overflow: hidden!important;
+          display:block!important;
+      }</style></aside>
+</section>
+<section id="statistical-validation-visual-differences-are-not-only-visual-noise" class="slide level2">
+<h2>Statistical Validation — Visual differences are not only visual noise</h2>
+
+<img data-src="Executive_Summary_files/figure-revealjs/unnamed-chunk-13-1.png" width="1152" class="r-stretch"><div class="obs">
+<ul>
+<li>A non-parametric test is used because loss ratio is heavily skewed and zero-inflated.</li>
+<li>The test supports segment differences, but does <strong>not</strong> prove causality.</li>
+<li><strong>Implication: the visuals are strong enough to guide deeper actuarial modelling, not replace it.</strong></li>
+</ul>
+</div>
+<aside class="notes">
+<p>The statistical validation checks whether the visual differences are likely to be random noise. Kruskal-Wallis is more defensible than ANOVA because policy-level loss ratio is non-normal. The p-values are capped for readability. The conclusion remains disciplined: statistical evidence supports segmentation, but causality and final pricing require a formal actuarial model.</p>
 <style type="text/css">
         span.MJX_Assistive_MathML {
           position:absolute!important;
@@ -470,11 +582,11 @@ Yang Yang
 <section id="final-recommendations" class="slide level2">
 <h2>Final Recommendations</h2>
 
-<img data-src="Executive_Summary_files/figure-revealjs/unnamed-chunk-12-1.png" width="1200" class="r-stretch"><div class="obs">
-<p><strong>Overall conclusion:</strong> profitability pressure is concentrated in identifiable segments. The next analytical step should be a formal actuarial pricing model, but the visual analytics already identifies where management attention should go first.</p>
+<img data-src="Executive_Summary_files/figure-revealjs/unnamed-chunk-14-1.png" width="1286" class="r-stretch"><div class="obs">
+<p><strong>Overall conclusion:</strong> profitability pressure is not random. It is concentrated in identifiable product, payment, cancellation, and exposure-adjusted segment patterns. The next step is formal actuarial modelling, but the visual analytics already gives management a defensible shortlist for investigation.</p>
 </div>
 <aside class="notes">
-<p>The final slide translates evidence into action. The most important recommendation is not simply “increase price”. The portfolio needs targeted review by product type, payment frequency, cancellation status, and claim-history signal. The report is a visual analytics discovery exercise, not a final actuarial pricing model. Its value is in narrowing the management problem and identifying which segments deserve deeper modelling.</p>
+<p>This slide turns the visual findings into management action. The table deliberately separates the action from the evidence so the recommendation is not just descriptive. The key discipline is that the visual analytics does not claim to replace actuarial pricing. It narrows the modelling agenda: product type, payment frequency, cancellation status, and exposure-adjusted outliers should be investigated first.</p>
 <style type="text/css">
         span.MJX_Assistive_MathML {
           position:absolute!important;
@@ -677,7 +789,7 @@ Yang Yang
         height: 900,
 
         // Factor of the display size that should remain empty around the content
-        margin: 6.0e-2,
+        margin: 5.5e-2,
 
         math: {
           mathjax: 'https://cdn.jsdelivr.net/npm/mathjax@2.7.9/MathJax.js',

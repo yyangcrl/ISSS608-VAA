@@ -2,9 +2,9 @@
   {
     "objectID": "Take-home_Ex/Take-home_Ex01/Executive_Summary.html#contents",
     "href": "Take-home_Ex/Take-home_Ex01/Executive_Summary.html#contents",
-    "title": "Motor Insurance Portfolio Profitability and Volatility",
+    "title": "ISSS608-VAA",
     "section": "Contents",
-    "text": "Contents\n\nAnalytical objective and KPI design\n\nData preparation and portfolio overview\n\nUnivariate visual analytics\n\nBivariate profitability and volatility discovery\n\nStatistical validation\n\nManagement implications\n\n\nThis presentation follows the assignment requirement: first define the analytical purpose, then show data preparation, univariate exploration, bivariate visual analytics, and final implications. The charts use the actual motor insurance portfolio dataset and the variable dictionary. The focus is not chart decoration. Each visual is selected to answer whether profitability or volatility differs meaningfully across policy, customer, vehicle, and operational segments."
+    "text": "Contents\n\n\n\n1. Data and KPI design Policy-year unit, exposure adjustment, and profitability metrics.\n\n\n2. Portfolio-level diagnostics Growth, loss-ratio trend, zero claims, and loss-tail behaviour.\n\n\n3. Segment-level visual discovery Product, bonus score, payment frequency, policy status, and geography.\n\n\n\n4. Advanced visual analytics Heatmap, funnel plot, raincloud plot, and ridgeline comparison.\n\n\n5. Statistical support Non-parametric validation of segment differences.\n\n\n6. Management implications Where underwriting and pricing attention should go first.\n\n\n\nThe presentation is structured as a decision-oriented visual analysis, not a chart gallery. Each section answers a specific management question: whether the portfolio is profitable, where volatility appears, which segments explain the pressure, and which findings are strong enough to guide further underwriting or pricing review."
   },
   {
     "objectID": "Take-home_Ex/Take-home_Ex01/Executive_Summary.html#analytical-framework-profitability-and-volatility",
@@ -23,9 +23,9 @@
   {
     "objectID": "Take-home_Ex/Take-home_Ex01/Executive_Summary.html#observation-2-portfolio-growth-did-not-translate-into-stable-profitability",
     "href": "Take-home_Ex/Take-home_Ex01/Executive_Summary.html#observation-2-portfolio-growth-did-not-translate-into-stable-profitability",
-    "title": "Motor Insurance Portfolio Profitability and Volatility",
+    "title": "ISSS608-VAA",
     "section": "Observation 2 — Portfolio growth did not translate into stable profitability",
-    "text": "Observation 2 — Portfolio growth did not translate into stable profitability\n\n\n\nPortfolio loss ratio rose by 9.0 percentage points across the period.\n\nPremium per exposure year changed by -9.2%, while claim frequency changed by 3.1%.\n\nImplication: portfolio growth is accompanied by pricing-pressure risk.\n\n\n\nThis is the first core profitability finding. The book of business expanded, but the loss ratio increased over time. At the same time, premium per exposure year declined. This pattern is risky because it suggests that the portfolio may be adding exposure faster than it is pricing the associated risk. The interpretation is not that growth is bad; the point is that growth needs segment-level underwriting control."
+    "text": "Observation 2 — Portfolio growth did not translate into stable profitability\n\n\n\nPremium grew by 173.0%, while incurred losses grew by 210.6%.\nPortfolio loss ratio rose by 9.0 percentage points.\nImplication: growth requires segment-level pricing control; volume alone did not stabilise profitability.\n\n\n\nThe portfolio expanded, but the profitability trend is less favourable. The key comparison is not only premium against incurred amount, but also the loss ratio and premium rate. This shows whether the insurer is being paid adequately for the exposure it takes on. The visual pattern suggests that growth should be monitored together with underwriting quality."
   },
   {
     "objectID": "Take-home_Ex/Take-home_Ex01/Executive_Summary.html#observation-3-losses-are-zero-heavy-and-tail-driven",
@@ -51,16 +51,16 @@
   {
     "objectID": "Take-home_Ex/Take-home_Ex01/Executive_Summary.html#insight-3-payment-frequency-reveals-behavioural-risk-differences",
     "href": "Take-home_Ex/Take-home_Ex01/Executive_Summary.html#insight-3-payment-frequency-reveals-behavioural-risk-differences",
-    "title": "Motor Insurance Portfolio Profitability and Volatility",
+    "title": "ISSS608-VAA",
     "section": "Insight 3 — Payment frequency reveals behavioural risk differences",
-    "text": "Insight 3 — Payment frequency reveals behavioural risk differences\n\n\n\nS has the highest payment-frequency loss ratio at 80.7%.\n\nQ has the highest claim frequency at 0.47 claims per exposure year.\n\nImplication: payment structure may proxy customer behaviour and should not be ignored in monitoring.\n\n\n\nPayment frequency is not a classical vehicle-risk variable, so it would be easy to ignore. But data discovery should test operational variables as well. The charts show that payment frequency has a clear relationship with loss ratio and claim frequency. This does not prove causality, but it is a useful underwriting and retention-monitoring signal."
+    "text": "Insight 3 — Payment frequency reveals behavioural risk differences\n\n\n\nHighest claim-frequency payment group: Q, 0.47 claims per exposure year.\nWorst loss-ratio payment group: S, loss ratio 80.7%.\nImplication: payment frequency is a behavioural risk signal, not only an administrative variable.\n\n\n\nPayment frequency is not a classic vehicle-risk variable, but it can reveal behaviour and selection effects. The bar chart is suitable here because categories are nominal and the purpose is ranking. The interpretation is careful: this shows association, not causality. It is a useful dashboard variable for underwriting and retention monitoring."
   },
   {
     "objectID": "Take-home_Ex/Take-home_Ex01/Executive_Summary.html#insight-4-cancelled-policies-are-materially-adverse",
     "href": "Take-home_Ex/Take-home_Ex01/Executive_Summary.html#insight-4-cancelled-policies-are-materially-adverse",
-    "title": "Motor Insurance Portfolio Profitability and Volatility",
+    "title": "ISSS608-VAA",
     "section": "Insight 4 — Cancelled policies are materially adverse",
-    "text": "Insight 4 — Cancelled policies are materially adverse\n\n\n\nCancelled policies show loss ratio of 128.0%, compared with 64.4% for active policies.\n\nImplication: cancellation should be monitored as an adverse-experience signal, but causality must not be claimed without temporal sequencing.\n\n\n\nThis is a strong finding, but it needs disciplined interpretation. Cancelled policies are much worse in loss ratio and claim frequency. However, cancellation may happen after a claim event, so policy status may be partly an outcome rather than a cause. The correct conclusion is not “cancellation causes claims”; the correct conclusion is that cancelled policy-years form a high-risk monitoring segment requiring temporal follow-up."
+    "text": "Insight 4 — Cancelled policies are materially adverse\n\n\n\nCancelled policies show loss ratio of 128.0%, versus 64.4% for active policies.\nImplication: cancellation is an adverse-experience monitoring signal, but should not be interpreted as causal without event sequencing.\n\n\n\nThe chart compares status groups across profitability, frequency, and severity. This slide is strong for decision making but needs cautious wording. A cancelled policy may have cancelled after a claim; therefore, the status variable may partly be an outcome. The correct business action is to monitor cancellations as adverse-experience signals and investigate timing."
   },
   {
     "objectID": "Take-home_Ex/Take-home_Ex01/Executive_Summary.html#insight-5-driver-age-and-vehicle-age-interact-not-just-act-independently",
@@ -86,9 +86,9 @@
   {
     "objectID": "Take-home_Ex/Take-home_Ex01/Executive_Summary.html#final-recommendations",
     "href": "Take-home_Ex/Take-home_Ex01/Executive_Summary.html#final-recommendations",
-    "title": "Motor Insurance Portfolio Profitability and Volatility",
+    "title": "ISSS608-VAA",
     "section": "Final Recommendations",
-    "text": "Final Recommendations\n\n\nOverall conclusion: profitability pressure is concentrated in identifiable segments. The next analytical step should be a formal actuarial pricing model, but the visual analytics already identifies where management attention should go first.\n\n\nThe final slide translates evidence into action. The most important recommendation is not simply “increase price”. The portfolio needs targeted review by product type, payment frequency, cancellation status, and claim-history signal. The report is a visual analytics discovery exercise, not a final actuarial pricing model. Its value is in narrowing the management problem and identifying which segments deserve deeper modelling."
+    "text": "Final Recommendations\n\n\nOverall conclusion: profitability pressure is not random. It is concentrated in identifiable product, payment, cancellation, and exposure-adjusted segment patterns. The next step is formal actuarial modelling, but the visual analytics already gives management a defensible shortlist for investigation.\n\n\nThis slide turns the visual findings into management action. The table deliberately separates the action from the evidence so the recommendation is not just descriptive. The key discipline is that the visual analytics does not claim to replace actuarial pricing. It narrows the modelling agenda: product type, payment frequency, cancellation status, and exposure-adjusted outliers should be investigated first."
   },
   {
     "objectID": "about.html",
@@ -1125,5 +1125,89 @@
     "title": "ISSS608 Take-home Exercise 1: Visual Analytics for Motor Insurance Profitability and Volatility",
     "section": "6.3 6.3 Logistic model for claim occurrence",
     "text": "6.3 6.3 Logistic model for claim occurrence\n\n\nCode\nclaim_model_data &lt;- portfolio |&gt;\n  filter(\n    !is.na(driver_age),\n    !is.na(vehicle_age),\n    !is.na(vehicle_value),\n    !is.na(total_exposure),\n    total_exposure &gt; 0\n  ) |&gt;\n  mutate(\n    claim_flag_int = as.integer(claim_flag),\n    log_vehicle_value = log1p(vehicle_value)\n  )\n\nclaim_model &lt;- glm(\n  claim_flag_int ~ policy_type + bonus_score + payment_frequency +\n    policy_status + business_type + fuel_type + municipality_type +\n    circulation_area + driver_age + vehicle_age + log_vehicle_value,\n  data = claim_model_data,\n  family = binomial()\n)\n\nclaim_model_tidy &lt;- broom::tidy(claim_model, exponentiate = TRUE, conf.int = TRUE) |&gt;\n  filter(term != \"(Intercept)\") |&gt;\n  arrange(desc(abs(log(estimate))))\n\nclaim_model_tidy |&gt;\n  slice_head(n = 25) |&gt;\n  mutate(\n    estimate = number(estimate, accuracy = 0.01),\n    conf.low = number(conf.low, accuracy = 0.01),\n    conf.high = number(conf.high, accuracy = 0.01),\n    p.value = scales::pvalue(p.value)\n  ) |&gt;\n  gt::gt()\n\n\n\n\n\n\n\n\nterm\nestimate\nstd.error\nstatistic\np.value\nconf.low\nconf.high\n\n\n\n\npolicy_typeCOMP_N\n3.00\n0.0190093242\n57.852965\n&lt;0.001\n2.89\n3.12\n\n\npolicy_typeTP\n0.59\n0.0530310194\n-9.964121\n&lt;0.001\n0.53\n0.65\n\n\nbusiness_typeP\n1.61\n0.0101871228\n46.659233\n&lt;0.001\n1.58\n1.64\n\n\npolicy_typeCOMP_E\n1.58\n0.0115316932\n39.539675\n&lt;0.001\n1.54\n1.61\n\n\nbonus_scoreG\n0.66\n0.0369623123\n-11.088145\n&lt;0.001\n0.62\n0.71\n\n\npayment_frequencyQ\n1.39\n0.0217802946\n15.065420\n&lt;0.001\n1.33\n1.45\n\n\nbonus_scoreN\n0.81\n0.0473116811\n-4.524752\n&lt;0.001\n0.74\n0.89\n\n\nlog_vehicle_value\n1.24\n0.0135717018\n15.611161\n&lt;0.001\n1.20\n1.27\n\n\npayment_frequencyS\n1.20\n0.0135901385\n13.685109\n&lt;0.001\n1.17\n1.24\n\n\nfuel_typeG\n0.87\n0.0115550945\n-12.047294\n&lt;0.001\n0.85\n0.89\n\n\nfuel_typeUnknown\n1.15\n0.0698671275\n1.942203\n0.052\n1.00\n1.31\n\n\ncirculation_areaU\n1.10\n0.0100406792\n9.726438\n&lt;0.001\n1.08\n1.12\n\n\npolicy_typeTPG\n0.92\n0.0183599462\n-4.512585\n&lt;0.001\n0.89\n0.95\n\n\nmunicipality_typeIS\n1.09\n0.0218850550\n3.735818\n&lt;0.001\n1.04\n1.13\n\n\nmunicipality_typeI\n1.08\n0.0112122716\n6.818310\n&lt;0.001\n1.06\n1.10\n\n\npolicy_statusC\n1.04\n0.0154960393\n2.812590\n0.005\n1.01\n1.08\n\n\nvehicle_age\n0.99\n0.0008210124\n-13.617396\n&lt;0.001\n0.99\n0.99\n\n\ndriver_age\n1.00\n0.0007862664\n3.486205\n&lt;0.001\n1.00\n1.00\n\n\n\n\n\n\n\nThe logistic model is not used as a final pricing model. It is used as a validation layer to check whether variables that looked important visually still carry signal after adjusting for other observed characteristics.\n\n\nCode\nclaim_model_tidy |&gt;\n  filter(!str_detect(term, \"vehicle_brand\")) |&gt;\n  slice_head(n = 18) |&gt;\n  mutate(term = fct_reorder(term, estimate)) |&gt;\n  ggplot(aes(x = estimate, y = term)) +\n  geom_vline(xintercept = 1, linetype = \"dashed\", colour = \"grey50\") +\n  geom_pointrange(aes(xmin = conf.low, xmax = conf.high), colour = my_blue) +\n  scale_x_log10() +\n  labs(\n    title = \"Adjusted odds ratios for claim occurrence\",\n    subtitle = \"Values above 1 indicate higher odds of at least one claim\",\n    x = \"Odds ratio, log scale\", y = NULL\n  )"
+  },
+  {
+    "objectID": "Take-home_Ex/Take-home_Ex01/Executive_Summary.html#observation-1-the-dataset-supports-exposure-adjusted-insurance-analysis",
+    "href": "Take-home_Ex/Take-home_Ex01/Executive_Summary.html#observation-1-the-dataset-supports-exposure-adjusted-insurance-analysis",
+    "title": "ISSS608-VAA",
+    "section": "Observation 1 — The dataset supports exposure-adjusted insurance analysis",
+    "text": "Observation 1 — The dataset supports exposure-adjusted insurance analysis\n\n\n\nDataset contains 354,140 policy-year records and `r comma(round(overall$exposure, 0)) exposure years.\nThe analytical unit is appropriate because premium, claims, incurred losses and exposure are all available.\nImplication: profitability must be analysed using exposure-adjusted and portfolio-weighted metrics, not raw averages.\n\n\n\nThis slide validates the data foundation. The records are policy-year observations, which is suitable for insurance analysis because each row links exposure, premium, claim counts, and incurred losses. The most important methodological choice is to use exposure-adjusted metrics. Without exposure adjustment, a short-duration policy and a full-year policy would be treated as equally informative, which would distort both profitability and frequency analysis."
+  },
+  {
+    "objectID": "Take-home_Ex/Take-home_Ex01/Executive_Summary.html#analytical-framework-profitability-and-volatility-are-decomposed",
+    "href": "Take-home_Ex/Take-home_Ex01/Executive_Summary.html#analytical-framework-profitability-and-volatility-are-decomposed",
+    "title": "ISSS608-VAA",
+    "section": "Analytical Framework — Profitability and volatility are decomposed",
+    "text": "Analytical Framework — Profitability and volatility are decomposed\n\n\n\nLoss ratio is the primary profitability KPI.\nFrequency and severity explain why the loss ratio changes.\nTail volatility identifies segments where averages are unstable because of extreme claims.\n\n\n\nThis slide fixes the interpretation logic. A high loss ratio alone is not enough. It could come from too many claims, expensive claims, inadequate premium, or a small number of extreme losses. Therefore the analysis separates profitability, frequency, severity, and volatility. This is also why several chart types are needed rather than a single bar chart."
+  },
+  {
+    "objectID": "Take-home_Ex/Take-home_Ex01/Executive_Summary.html#observation-3-claims-are-rare-but-losses-are-tail-driven",
+    "href": "Take-home_Ex/Take-home_Ex01/Executive_Summary.html#observation-3-claims-are-rare-but-losses-are-tail-driven",
+    "title": "ISSS608-VAA",
+    "section": "Observation 3 — Claims are rare, but losses are tail-driven",
+    "text": "Observation 3 — Claims are rare, but losses are tail-driven\n\n\n\n85.7% of policy-year records have zero claims.\nAmong positive-loss policies, the top 1% contributes 20.9% of incurred loss.\nImplication: frequency and severity must be modelled separately; raw mean loss is unstable.\n\n\n\nThe previous version looked blank because zero-loss rows dominated the histograms. This revised slide separates claim count, positive incurred loss, and tail concentration. The chart choice is intentional: the bar chart shows claim rarity, the log histogram makes positive losses visible, and the concentration curve quantifies tail dependence."
+  },
+  {
+    "objectID": "Take-home_Ex/Take-home_Ex01/Executive_Summary.html#insight-1-product-type-is-the-strongest-first-level-profitability-separator",
+    "href": "Take-home_Ex/Take-home_Ex01/Executive_Summary.html#insight-1-product-type-is-the-strongest-first-level-profitability-separator",
+    "title": "ISSS608-VAA",
+    "section": "Insight 1 — Product type is the strongest first-level profitability separator",
+    "text": "Insight 1 — Product type is the strongest first-level profitability separator\n\n\n\nWorst product: COMP_N, loss ratio 93.9%.\nBest product: TP, loss ratio 54.3%.\nImplication: product review should decompose loss ratio into claim frequency and severity before repricing.\n\n\n\nProduct type is a natural first segmentation because it reflects coverage structure. Three charts are used rather than one because loss ratio alone does not explain the mechanism. The frequency and severity panels show whether profitability pressure comes from more claims or more expensive claims. This directly supports underwriting and pricing decisions."
+  },
+  {
+    "objectID": "Take-home_Ex/Take-home_Ex01/Executive_Summary.html#insight-2-bonus-score-carries-risk-information-not-fully-neutralised-by-premium",
+    "href": "Take-home_Ex/Take-home_Ex01/Executive_Summary.html#insight-2-bonus-score-carries-risk-information-not-fully-neutralised-by-premium",
+    "title": "ISSS608-VAA",
+    "section": "Insight 2 — Bonus score carries risk information not fully neutralised by premium",
+    "text": "Insight 2 — Bonus score carries risk information not fully neutralised by premium\n\n\n\nHighest-loss bonus group: N, loss ratio 81.4%.\nLowest-loss bonus group: G, loss ratio 69.7%.\nImplication: bonus score should remain in monitoring because premium adjustment does not fully flatten risk differences.\n\n\n\nA line chart is appropriate because bonus score is ordered. It reveals whether risk moves monotonically or irregularly across score levels. The slide compares loss ratio, claim frequency, and premium rate to check whether higher-risk groups are being compensated by pricing. This is more informative than a single distribution plot."
+  },
+  {
+    "objectID": "Take-home_Ex/Take-home_Ex01/Executive_Summary.html#insight-5-geography-and-usage-context-create-uneven-profitability-pockets",
+    "href": "Take-home_Ex/Take-home_Ex01/Executive_Summary.html#insight-5-geography-and-usage-context-create-uneven-profitability-pockets",
+    "title": "ISSS608-VAA",
+    "section": "Insight 5 — Geography and usage context create uneven profitability pockets",
+    "text": "Insight 5 — Geography and usage context create uneven profitability pockets\n\n\n\nCirculation area and fuel type show material differences in loss ratio and frequency.\nThese variables are useful because they reflect contextual risk exposure, not only driver or product characteristics.\nImplication: rating review should check whether contextual variables are adequately priced.\n\n\n\nThis slide broadens the analysis beyond product and customer variables. Circulation area and fuel type are not causal proofs, but they are plausible risk context variables. The chart design remains simple because the management question is categorical comparison. It identifies which contextual segments deserve deeper pricing review."
+  },
+  {
+    "objectID": "Take-home_Ex/Take-home_Ex01/Executive_Summary.html#insight-6-driver-age-and-vehicle-age-interact-not-just-act-independently",
+    "href": "Take-home_Ex/Take-home_Ex01/Executive_Summary.html#insight-6-driver-age-and-vehicle-age-interact-not-just-act-independently",
+    "title": "ISSS608-VAA",
+    "section": "Insight 6 — Driver age and vehicle age interact, not just act independently",
+    "text": "Insight 6 — Driver age and vehicle age interact, not just act independently\n\n\n\nHeatmap evidence shows that profitability varies by combination of driver age and vehicle age.\nThe chart is used because the analytical question is interactional; a one-variable bar chart would hide joint risk pockets.\nImplication: interaction-based monitoring is more useful than checking one rating factor at a time.\n\n\n\nThe legend bug is removed because the exact values are printed inside each tile. A heatmap is the correct visual method because it shows interaction between two categorical bands. This satisfies the bivariate visual analytics requirement and gives a more decision-useful insight than two separate bar charts."
+  },
+  {
+    "objectID": "Take-home_Ex/Take-home_Ex01/Executive_Summary.html#method-add-on-1-funnel-plot-avoids-overreacting-to-small-segments",
+    "href": "Take-home_Ex/Take-home_Ex01/Executive_Summary.html#method-add-on-1-funnel-plot-avoids-overreacting-to-small-segments",
+    "title": "ISSS608-VAA",
+    "section": "Method Add-on 1 — Funnel plot avoids overreacting to small segments",
+    "text": "Method Add-on 1 — Funnel plot avoids overreacting to small segments\n\n\n\nFunnel plot is chosen because segment rankings can be misleading when exposure sizes differ.\nPoints outside or near the funnel boundary deserve investigation before being treated as true high-risk brands.\nImplication: fair comparison requires volume adjustment, not just sorting by loss ratio.\n\n\n\nThis is an advanced visual analytics method aligned with the R4VA funnel plot topic. It directly addresses a common insurance analytics problem: small segments can look extreme simply because they have little exposure. The funnel plot makes the comparison fairer by showing expected variation under different exposure sizes."
+  },
+  {
+    "objectID": "Take-home_Ex/Take-home_Ex01/Executive_Summary.html#method-add-on-2-raincloud-and-ridgeline-reveal-distribution-shape",
+    "href": "Take-home_Ex/Take-home_Ex01/Executive_Summary.html#method-add-on-2-raincloud-and-ridgeline-reveal-distribution-shape",
+    "title": "ISSS608-VAA",
+    "section": "Method Add-on 2 — Raincloud and ridgeline reveal distribution shape",
+    "text": "Method Add-on 2 — Raincloud and ridgeline reveal distribution shape\n\n\n\nRaincloud is used because it combines density, boxplot, and observation concentration.\nRidgeline is used because it compares distribution shape across multiple categories without hiding skew.\nImplication: advanced distribution charts are justified here because insurance profitability is zero-heavy and right-skewed.\n\n\n\nThis slide explicitly justifies the advanced methods rather than using them decoratively. A boxplot alone would show median and IQR but hide distribution concentration. A histogram alone would not compare categories well. Raincloud and ridgeline plots are suitable because the data is skewed, zero-heavy, and segment-based."
+  },
+  {
+    "objectID": "Take-home_Ex/Take-home_Ex01/Executive_Summary.html#statistical-validation-visual-differences-are-not-only-visual-noise",
+    "href": "Take-home_Ex/Take-home_Ex01/Executive_Summary.html#statistical-validation-visual-differences-are-not-only-visual-noise",
+    "title": "ISSS608-VAA",
+    "section": "Statistical Validation — Visual differences are not only visual noise",
+    "text": "Statistical Validation — Visual differences are not only visual noise\n\n\n\nA non-parametric test is used because loss ratio is heavily skewed and zero-inflated.\nThe test supports segment differences, but does not prove causality.\nImplication: the visuals are strong enough to guide deeper actuarial modelling, not replace it.\n\n\n\nThe statistical validation checks whether the visual differences are likely to be random noise. Kruskal-Wallis is more defensible than ANOVA because policy-level loss ratio is non-normal. The p-values are capped for readability. The conclusion remains disciplined: statistical evidence supports segmentation, but causality and final pricing require a formal actuarial model."
+  },
+  {
+    "objectID": "Take-home_Ex/Take-home_Ex01/Executive_Summary.html#motor-insurance-portfolio-profitability-and-volatility",
+    "href": "Take-home_Ex/Take-home_Ex01/Executive_Summary.html#motor-insurance-portfolio-profitability-and-volatility",
+    "title": "ISSS608-VAA",
+    "section": "Motor Insurance Portfolio Profitability and Volatility",
+    "text": "Motor Insurance Portfolio Profitability and Volatility\n\nISSS608 Take-home Exercise 1 · Visual Analytics for Data Discovery\n Yang Yang · 23 May 2026\n\n\n\nThis executive summary presents the portfolio-level and segment-level findings from the motor insurance portfolio dataset. The analysis follows the assignment requirement: data preparation, univariate visual analytics, bivariate visual analytics, statistical validation, and management implications. The focus is profitability and volatility, measured through premium adequacy, claim frequency, claim severity, and tail-risk behaviour."
+  },
+  {
+    "objectID": "Take-home_Ex/Take-home_Ex01/Executive_Summary.html#method-add-on-2-distribution-shape-confirms-why-simple-averages-are-unstable",
+    "href": "Take-home_Ex/Take-home_Ex01/Executive_Summary.html#method-add-on-2-distribution-shape-confirms-why-simple-averages-are-unstable",
+    "title": "ISSS608-VAA",
+    "section": "Method Add-on 2 — Distribution shape confirms why simple averages are unstable",
+    "text": "Method Add-on 2 — Distribution shape confirms why simple averages are unstable\n\n\n\nThe earlier zero-heavy chart explains claim occurrence; this slide isolates positive-loss policies to reveal severity and tail structure.\nRaincloud is used because it combines density, median/IQR, and observation concentration in one view.\nRidgeline is used because payment frequency has multiple groups and the question is whether the whole distribution shape differs, not only the mean.\nImplication: advanced distribution plots are justified because profitability is skewed and tail-driven.\n\n\n\nThe previous slide using the full loss-ratio distribution looked almost empty because the 99th percentile cap still allowed a very long x-axis and the portfolio is dominated by zero-claim records. This revised slide is more disciplined: zero-claim records are excluded on purpose, and the x-axis is capped at the 95th percentile of positive loss ratios. Raincloud is used for product type because it shows median, spread, and individual concentration. Ridgeline is used for payment frequency because it compares full distribution shape across several groups."
   }
 ]
