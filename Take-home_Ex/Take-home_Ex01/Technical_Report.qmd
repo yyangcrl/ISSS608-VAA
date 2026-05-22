@@ -7,8 +7,10 @@ format:
     toc: true
     toc-depth: 3
     number-sections: true
-    code-fold: show
+    code-fold: true
+    code-summary: "Code"
     code-tools: true
+    code-overflow: wrap
     theme: cosmo
     df-print: paged
 execute:
@@ -81,7 +83,7 @@ The report uses the following logic:
 The technical report is written to support the Executive Summary rather than repeat it. The Executive Summary presents the decision story; this report documents the reproducible analytical evidence behind that story. The following table maps the report design to the assignment assessment logic.
 
 | Assessment area | How this report addresses it |
-|---|---|
+|----|----|
 | Data wrangling | Imports the raw semicolon-delimited portfolio file, reconciles the data dictionary, audits row structure, checks duplicates and missingness, converts categorical fields, and engineers exposure-adjusted performance metrics. |
 | Visual analysis | Uses univariate and bivariate visual analytics to examine premium adequacy, claim frequency, severity, loss-ratio skewness, product effects, customer/vehicle/geography effects, and interaction effects. |
 | Visual communication | Uses chart types selected for the structure of each question: bar charts for segment comparison, histograms for skewness, raincloud and ridgeline plots for distribution shape, funnel plots for exposure-adjusted outliers, and heatmaps for interactions. |
@@ -586,7 +588,6 @@ p_positive_raincloud + p_positive_ridgeline
 
 The raincloud plot is appropriate because it combines distribution density, boxplot summary, and observation concentration in one view. The ridgeline plot is appropriate because it compares distribution shape across multiple ordered groups without forcing the reader to inspect separate charts. Together, these methods justify the executive conclusion that simple averages are unstable for this portfolio.
 
-
 # Bivariate visual analytics
 
 ## Segment-performance function
@@ -1062,8 +1063,8 @@ The analytical recommendations are:
 
 The report is fully reproducible in RStudio/Quarto if the two data files are placed in the `data/` folder with these exact names:
 
-- `Dataset of motor insurance portfolio.csv`
-- `Descriptive of variables.xlsx`
+-   `Dataset of motor insurance portfolio.csv`
+-   `Descriptive of variables.xlsx`
 
 The report intentionally keeps the full analytical workflow in executable R code chunks: package loading, data import, dictionary reconciliation, data cleaning, metric engineering, visual analytics, and statistical validation. No chart or table is manually typed from external software.
 
@@ -1071,20 +1072,20 @@ The Executive Summary is derived from this report. The two deliverables therefor
 
 # References
 
-- ISSS608 course assignment page. (2026). *Take-home Exercise 1: Visual Analytics for Data Discovery*. Retrieved from <https://isss608-ay2025-26apr.netlify.app/th_ex/th_ex1>
-- Kam, T. S. (2023–2026). *R for Visual Analytics*. Retrieved from <https://r4va.netlify.app/>
-- Kam, T. S. (2023–2026). *Chapter 9: Visualising Distribution*. R for Visual Analytics. Retrieved from <https://r4va.netlify.app/chap09>
-- Quarto. (n.d.). *Revealjs presentations*. Retrieved from <https://quarto.org/docs/presentations/revealjs/>
-- R Core Team. (n.d.). *R: The R Project for Statistical Computing*. Retrieved from <https://www.r-project.org/>
-- Wickham, H. (2016). *ggplot2: Elegant Graphics for Data Analysis*. Springer. DOI: <https://doi.org/10.1007/978-3-319-24277-4>
-- Wickham, H., Çetinkaya-Rundel, M., & Grolemund, G. (n.d.). *R for Data Science (2e)*. Retrieved from <https://r4ds.hadley.nz/>
-- tidyverse. (n.d.). *Tidyverse: R packages for data science*. Retrieved from <https://tidyverse.org/>
-- Wickham, H., François, R., Henry, L., Müller, K., & Vaughan, D. (n.d.). *dplyr documentation*. Retrieved from <https://dplyr.tidyverse.org/>
-- Wickham, H., Vaughan, D., & Girlich, M. (n.d.). *tidyr documentation*. Retrieved from <https://tidyr.tidyverse.org/>
-- Wickham, H., & Seidel, D. (n.d.). *scales documentation*. Retrieved from <https://scales.r-lib.org/>
-- Wickham, H. (n.d.). *forcats: Tools for working with categorical variables*. Retrieved from <https://forcats.tidyverse.org/>
-- Kay, M. (n.d.). *ggdist: Visualizations of distributions and uncertainty*. Retrieved from <https://mjskay.github.io/ggdist/>
-- Wilke, C. O. (n.d.). *ggridges: Ridgeline plots in ggplot2*. Retrieved from <https://wilkelab.org/ggridges/>
-- Pedersen, T. L. (n.d.). *patchwork: The composer of plots*. Retrieved from <https://patchwork.data-imaginist.com/>
-- Robinson, D., Hayes, A., & Couch, S. (n.d.). *broom: Convert statistical objects into tidy tibbles*. Retrieved from <https://broom.tidymodels.org/>
-- Iannone, R., Cheng, J., Schloerke, B., Hughes, E., Lauer, A., & Seo, J. (n.d.). *gt: Easily create presentation-ready display tables*. Retrieved from <https://gt.rstudio.com/>
+-   ISSS608 course assignment page. (2026). *Take-home Exercise 1: Visual Analytics for Data Discovery*. Retrieved from <https://isss608-ay2025-26apr.netlify.app/th_ex/th_ex1>
+-   Kam, T. S. (2023–2026). *R for Visual Analytics*. Retrieved from <https://r4va.netlify.app/>
+-   Kam, T. S. (2023–2026). *Chapter 9: Visualising Distribution*. R for Visual Analytics. Retrieved from <https://r4va.netlify.app/chap09>
+-   Quarto. (n.d.). *Revealjs presentations*. Retrieved from <https://quarto.org/docs/presentations/revealjs/>
+-   R Core Team. (n.d.). *R: The R Project for Statistical Computing*. Retrieved from <https://www.r-project.org/>
+-   Wickham, H. (2016). *ggplot2: Elegant Graphics for Data Analysis*. Springer. DOI: <https://doi.org/10.1007/978-3-319-24277-4>
+-   Wickham, H., Çetinkaya-Rundel, M., & Grolemund, G. (n.d.). *R for Data Science (2e)*. Retrieved from <https://r4ds.hadley.nz/>
+-   tidyverse. (n.d.). *Tidyverse: R packages for data science*. Retrieved from <https://tidyverse.org/>
+-   Wickham, H., François, R., Henry, L., Müller, K., & Vaughan, D. (n.d.). *dplyr documentation*. Retrieved from <https://dplyr.tidyverse.org/>
+-   Wickham, H., Vaughan, D., & Girlich, M. (n.d.). *tidyr documentation*. Retrieved from <https://tidyr.tidyverse.org/>
+-   Wickham, H., & Seidel, D. (n.d.). *scales documentation*. Retrieved from <https://scales.r-lib.org/>
+-   Wickham, H. (n.d.). *forcats: Tools for working with categorical variables*. Retrieved from <https://forcats.tidyverse.org/>
+-   Kay, M. (n.d.). *ggdist: Visualizations of distributions and uncertainty*. Retrieved from <https://mjskay.github.io/ggdist/>
+-   Wilke, C. O. (n.d.). *ggridges: Ridgeline plots in ggplot2*. Retrieved from <https://wilkelab.org/ggridges/>
+-   Pedersen, T. L. (n.d.). *patchwork: The composer of plots*. Retrieved from <https://patchwork.data-imaginist.com/>
+-   Robinson, D., Hayes, A., & Couch, S. (n.d.). *broom: Convert statistical objects into tidy tibbles*. Retrieved from <https://broom.tidymodels.org/>
+-   Iannone, R., Cheng, J., Schloerke, B., Hughes, E., Lauer, A., & Seo, J. (n.d.). *gt: Easily create presentation-ready display tables*. Retrieved from <https://gt.rstudio.com/>
