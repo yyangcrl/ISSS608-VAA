@@ -1201,7 +1201,7 @@
     "href": "Take-home_Ex/Take-home_Ex01/Executive_Summary.html#motor-insurance-portfolio-profitability-and-volatility",
     "title": "ISSS608-VAA",
     "section": "Motor Insurance Portfolio Profitability and Volatility",
-    "text": "Motor Insurance Portfolio Profitability and Volatility\n\nISSS608 Take-home Exercise 1 · Visual Analytics for Data Discovery\n Yang Yang · 23 May 2026\n\n\n\nThis executive summary presents the portfolio-level and segment-level findings from the motor insurance portfolio dataset. The analysis follows the assignment requirement: data preparation, univariate visual analytics, bivariate visual analytics, statistical validation, and management implications. The focus is profitability and volatility, measured through premium adequacy, claim frequency, claim severity, and tail-risk behaviour."
+    "text": "Motor Insurance Portfolio Profitability and Volatility\n\nISSS608 Take-home Exercise 1 · Visual Analytics for Data Discovery\nYang Yang · 23 May 2026\n\n\n\nThis executive summary presents the portfolio-level and segment-level findings from the motor insurance portfolio dataset. The analysis follows the assignment requirement: data preparation, univariate visual analytics, bivariate visual analytics, statistical validation, and management implications. The focus is profitability and volatility, measured through premium adequacy, claim frequency, claim severity, and tail-risk behaviour."
   },
   {
     "objectID": "Take-home_Ex/Take-home_Ex01/Executive_Summary.html#method-add-on-2-distribution-shape-confirms-why-simple-averages-are-unstable",

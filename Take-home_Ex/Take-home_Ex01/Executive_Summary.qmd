@@ -233,93 +233,153 @@ method_tbl <- tibble(
 )
 ```
 
-## Motor Insurance Portfolio Profitability and Volatility
+## Motor Insurance Portfolio Profitability and Volatility {.title-cover}
 
-::: subtitle
-ISSS608 Take-home Exercise 1 · Visual Analytics for Data Discovery\
-<br> Yang Yang · 23 May 2026
+::: {.cover-subtitle}
+ISSS608 Take-home Exercise 1 · Visual Analytics for Data Discovery  
+Yang Yang · 23 May 2026
 :::
 
-```{=html}
 <style>
+/* =========================================================
+   Global RevealJS slide styling
+   ========================================================= */
+
 .reveal {
   font-size: 28px;
 }
+
+/* Normal slide titles */
 .reveal h1 {
   text-align: center;
   font-weight: 700;
   font-size: 1.55em;
+  line-height: 1.10;
 }
+
 .reveal h2 {
   text-align: center;
   font-weight: 700;
   font-size: 1.35em;
   line-height: 1.08;
 }
-.reveal p, .reveal li {
+
+/* Normal paragraph and bullet text */
+.reveal p,
+.reveal li {
   font-size: 0.68em;
   line-height: 1.25;
 }
+
+/* Subtitle used in normal slides */
 .reveal .subtitle {
   font-size: 0.78em;
   text-align: center;
   color: #444444;
   margin-top: -10px;
 }
+
+/* Observation text under charts */
 .reveal .obs {
   font-size: 0.58em;
   line-height: 1.28;
   margin-top: 8px;
 }
-.reveal section#title-slide {
-  top: 0 !important;
-  display: flex !important;
-  flex-direction: column !important;
-  justify-content: center !important;
-  align-items: center !important;
-  height: 100% !important;
-  text-align: center !important;
-}
 
-.reveal section#title-slide h1 {
-  font-size: 2.0em !important;
-  line-height: 1.15 !important;
-  margin-bottom: 0.35em !important;
-}
-
-.reveal section#title-slide .subtitle {
-  font-size: 0.78em !important;
-  margin-bottom: 1.1em !important;
-}
-
-.reveal section#title-slide .author,
-.reveal section#title-slide .date {
-  font-size: 0.65em !important;
-}
+/* Smaller notes */
 .reveal .small-note {
   font-size: 0.50em;
   line-height: 1.20;
 }
+
+/* Two-column layout */
 .reveal .two-col {
   display: grid;
   grid-template-columns: 1fr 1fr;
   gap: 34px;
   align-items: start;
 }
+
+/* Card layout */
 .reveal .content-card {
   border-left: 7px solid #4F91D9;
   background: #F6F9FC;
   padding: 16px 20px;
   margin-bottom: 14px;
 }
-.reveal .content-card strong {
-  color: #1F4E79;
-}
+
+.reveal .content-card strong,
 .reveal strong {
   color: #1F4E79;
 }
+
+/* =========================================================
+   Title slide vertical centering fix
+   ========================================================= */
+
+/* Force the title slide itself to occupy the full slide area */
+.reveal section#title-slide {
+  top: 0 !important;
+  left: 0 !important;
+  transform: none !important;
+  height: 100vh !important;
+  min-height: 100vh !important;
+  width: 100% !important;
+
+  display: flex !important;
+  flex-direction: column !important;
+  justify-content: center !important;
+  align-items: center !important;
+
+  text-align: center !important;
+  padding: 0 7% !important;
+  box-sizing: border-box !important;
+}
+
+/* Quarto title container */
+.reveal section#title-slide .quarto-title-block,
+.reveal section#title-slide .quarto-title,
+.reveal section#title-slide .title {
+  text-align: center !important;
+  margin-left: auto !important;
+  margin-right: auto !important;
+}
+
+/* Main title on first slide */
+.reveal section#title-slide h1.title,
+.reveal section#title-slide h1 {
+  font-size: 2.05em !important;
+  line-height: 1.12 !important;
+  font-weight: 700 !important;
+  text-align: center !important;
+  margin-top: 0 !important;
+  margin-bottom: 0.35em !important;
+}
+
+/* Subtitle on first slide */
+.reveal section#title-slide .subtitle,
+.reveal section#title-slide p.subtitle {
+  font-size: 0.82em !important;
+  line-height: 1.25 !important;
+  color: #444444 !important;
+  text-align: center !important;
+  margin-top: 0 !important;
+  margin-bottom: 1.2em !important;
+}
+
+/* Author and date on first slide */
+.reveal section#title-slide .author,
+.reveal section#title-slide .date,
+.reveal section#title-slide p.author,
+.reveal section#title-slide p.date {
+  font-size: 0.68em !important;
+  line-height: 1.20 !important;
+  text-align: center !important;
+  color: #333333 !important;
+  margin-top: 0.20em !important;
+  margin-bottom: 0.20em !important;
+}
 </style>
-```
 
 ::: notes
 This executive summary presents the portfolio-level and segment-level findings from the motor insurance portfolio dataset. The analysis follows the assignment requirement: data preparation, univariate visual analytics, bivariate visual analytics, statistical validation, and management implications. The focus is profitability and volatility, measured through premium adequacy, claim frequency, claim severity, and tail-risk behaviour.
