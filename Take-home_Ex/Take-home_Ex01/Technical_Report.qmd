@@ -1,0 +1,982 @@
+---
+title: "ISSS608 Take-home Exercise 1: Visual Analytics for Motor Insurance Profitability and Volatility"
+author: "Yang Yang"
+date: "23 May 2026"
+format:
+  html:
+    toc: true
+    toc-depth: 3
+    number-sections: true
+    code-fold: true
+    code-tools: true
+    theme: cosmo
+    df-print: paged
+execute:
+  echo: true
+  warning: false
+  message: false
+---
+
+```{r}
+#| label: setup
+#| include: false
+
+required_packages <- c(
+  "tidyverse", "readxl", "janitor", "scales", "ggridges", "ggdist",
+  "ggthemes", "colorspace", "patchwork", "broom", "glue", "knitr", "forcats", "gt"
+)
+
+missing_packages <- required_packages[!required_packages %in% rownames(installed.packages())]
+if (length(missing_packages) > 0) {
+  install.packages(missing_packages, repos = "https://cloud.r-project.org")
+}
+
+invisible(lapply(required_packages, library, character.only = TRUE))
+
+theme_set(
+  theme_minimal(base_size = 11) +
+    theme(
+      plot.title = element_text(face = "bold", size = 13),
+      plot.subtitle = element_text(size = 10, colour = "grey30"),
+      axis.title = element_text(size = 10),
+      panel.grid.minor = element_blank(),
+      legend.position = "bottom"
+    )
+)
+
+my_teal <- "#2A6F6F"
+my_dark <- "#1F1F1F"
+my_blue <- "#2F6DAE"
+my_light <- "#A9C7E8"
+
+safe_ratio <- function(numerator, denominator) {
+  if_else(!is.na(denominator) & denominator > 0, numerator / denominator, NA_real_)
+}
+
+winsorise_upper <- function(x, p = 0.99) {
+  cap <- quantile(x, probs = p, na.rm = TRUE)
+  pmin(x, cap)
+}
+
+fmt_dollar <- function(x) scales::dollar(x, prefix = "€", accuracy = 1)
+fmt_num <- function(x) scales::number(x, accuracy = 0.01)
+fmt_pct <- function(x) scales::percent(x, accuracy = 0.1)
+```
+
+# 1. Assignment purpose and analytical design
+
+This report addresses the ISSS608 Take-home Exercise 1 requirement: use **visual analytics for data discovery** on a motor vehicle insurance portfolio dataset. The analytical target is not only to describe the portfolio, but to identify where profitability and volatility differ across policy, customer, vehicle, and exposure characteristics.
+
+The report uses the following logic:
+
+1.  **Data audit and preparation**: verify row structure, missingness, duplicates, variable types, and construct actuarial performance metrics.
+2.  **Univariate visual analytics**: examine the standalone distributions of premium, claims, incurred losses, exposure, loss ratio, and portfolio composition.
+3.  **Bivariate visual analytics**: test how profitability and volatility differ by product, payment, claims-history, geography, vehicle, and policy-status segments.
+4.  **Statistical validation**: support visual patterns with non-parametric tests and frequency modelling.
+5.  **Business interpretation**: translate visual evidence into underwriting, pricing, and portfolio-management implications.
+
+The methods are selected from the R for Visual Analytics materials only when they fit the data structure. Because insurance losses are highly right-skewed and zero-inflated, the report avoids relying only on means. It uses **weighted portfolio loss ratios**, **exposure-adjusted claim frequency**, **winsorised distributions**, **raincloud plots**, **ridgeline plots**, **heatmaps**, and **model-supported visual diagnostics**.
+
+# 2. Data import and dictionary reconciliation
+
+```{r}
+#| label: data-import
+
+portfolio_raw <- readr::read_delim(
+  "data/Dataset of motor insurance portfolio.csv",
+  delim = ";",
+  show_col_types = FALSE,
+  trim_ws = TRUE
+) |>
+  janitor::clean_names()
+
+dictionary_raw <- readxl::read_excel(
+  "data/Descriptive of variables.xlsx",
+  sheet = "Cartera"
+) |>
+  janitor::clean_names()
+
+portfolio_raw |>
+  glimpse()
+
+dictionary_raw |>
+  select(variables, description, group) |>
+  filter(!is.na(variables)) |>
+  gt::gt()
+```
+
+The CSV is semicolon-delimited. The data dictionary is used to verify variable meanings before metric engineering. The unit of observation is a policy-year record: the same `insured_id` may appear across multiple years.
+
+```{r}
+#| label: variable-check
+
+dictionary_variables <- dictionary_raw |>
+  filter(!is.na(variables)) |>
+  pull(variables) |>
+  janitor::make_clean_names()
+
+column_check <- tibble(
+  variable = union(names(portfolio_raw), dictionary_variables)
+) |>
+  mutate(
+    in_dataset = variable %in% names(portfolio_raw),
+    in_dictionary = variable %in% dictionary_variables
+  )
+
+column_check |>
+  filter(!in_dataset | !in_dictionary) |>
+  gt::gt()
+```
+
+A clean analysis should explicitly check whether dataset columns match the variable dictionary. Any mismatch would undermine reproducibility and interpretation.
+
+# 3. Data audit and preparation
+
+## 3.1 Structural checks
+
+```{r}
+#| label: structural-checks
+
+audit_summary <- tibble(
+  metric = c(
+    "Rows",
+    "Columns",
+    "Distinct insured_id",
+    "Duplicate rows",
+    "Years covered"
+  ),
+  value = c(
+    nrow(portfolio_raw),
+    ncol(portfolio_raw),
+    n_distinct(portfolio_raw$insured_id),
+    sum(duplicated(portfolio_raw)),
+    paste(sort(unique(portfolio_raw$year)), collapse = ", ")
+  )
+)
+
+audit_summary |>
+  gt::gt()
+```
+
+```{r}
+#| label: missingness-table
+
+missingness <- portfolio_raw |>
+  summarise(across(everything(), ~sum(is.na(.x)))) |>
+  pivot_longer(everything(), names_to = "variable", values_to = "missing_n") |>
+  mutate(missing_pct = missing_n / nrow(portfolio_raw)) |>
+  filter(missing_n > 0) |>
+  arrange(desc(missing_pct))
+
+missingness |>
+  mutate(missing_pct = percent(missing_pct, accuracy = 0.01)) |>
+  gt::gt()
+```
+
+Only a small number of variables contain missing values. They are not dropped wholesale because insurance missingness may itself be informative. For visual analytics, missing categories are explicitly retained as `"Unknown"` where relevant.
+
+## 3.2 Metric engineering
+
+```{r}
+#| label: metric-engineering
+
+portfolio <- portfolio_raw |>
+  mutate(
+    across(
+      c(policy_type, policy_status, business_type, payment_frequency,
+        bonus_score, fuel_type, vehicle_brand, municipality_type, circulation_area),
+      ~fct_explicit_na(as.factor(.x), na_level = "Unknown")
+    ),
+    claim_flag = total_claims > 0,
+    loss_ratio = safe_ratio(total_incurred, total_premium),
+    profit = total_premium - total_incurred,
+    profit_margin = safe_ratio(total_premium - total_incurred, total_premium),
+    claim_frequency = safe_ratio(total_claims, total_exposure),
+    premium_rate = safe_ratio(total_premium, total_exposure),
+    incurred_rate = safe_ratio(total_incurred, total_exposure),
+    claim_severity = safe_ratio(total_incurred, total_claims),
+    log_total_premium = log1p(total_premium),
+    log_total_incurred = log1p(total_incurred),
+    loss_ratio_w99 = winsorise_upper(loss_ratio, 0.99),
+    incurred_w99 = winsorise_upper(total_incurred, 0.99),
+    driver_age_band = cut(
+      driver_age,
+      breaks = c(-Inf, 25, 35, 45, 55, 65, Inf),
+      labels = c("≤25", "26–35", "36–45", "46–55", "56–65", "66+")
+    ),
+    vehicle_age_band = cut(
+      vehicle_age,
+      breaks = c(-Inf, 3, 7, 12, 20, Inf),
+      labels = c("≤3", "4–7", "8–12", "13–20", "21+")
+    ),
+    vehicle_value_band = ntile(vehicle_value, 5),
+    vehicle_value_band = factor(
+      vehicle_value_band,
+      levels = 1:5,
+      labels = c("Lowest value", "Q2", "Q3", "Q4", "Highest value")
+    )
+  )
+```
+
+The key profitability measure is the **portfolio loss ratio**:
+
+\[ \text{Loss Ratio} = \frac{\text{Total Incurred Claims}}{\text{Total Premium}} \]
+
+A value below 1 indicates underwriting profit before expenses; a value above 1 indicates that incurred claims exceed premium. For segment comparison, this report prioritises **portfolio-level weighted loss ratio** (`sum(total_incurred) / sum(total_premium)`) over simple average policy-level loss ratio, because large-premium policies should carry proportionate weight in portfolio profitability.
+
+Volatility is represented by:
+
+-   dispersion of policy-level loss ratio;
+-   extreme incurred losses;
+-   claim frequency per exposure year;
+-   coefficient of variation of incurred cost;
+-   outlier-sensitive segment loss ratios.
+
+```{r}
+#| label: derived-metric-summary
+
+portfolio |>
+  summarise(
+    records = n(),
+    total_exposure = sum(total_exposure, na.rm = TRUE),
+    total_premium = sum(total_premium, na.rm = TRUE),
+    total_incurred = sum(total_incurred, na.rm = TRUE),
+    total_claims = sum(total_claims, na.rm = TRUE),
+    portfolio_loss_ratio = sum(total_incurred, na.rm = TRUE) / sum(total_premium, na.rm = TRUE),
+    claim_frequency = sum(total_claims, na.rm = TRUE) / sum(total_exposure, na.rm = TRUE),
+    avg_premium_rate = sum(total_premium, na.rm = TRUE) / sum(total_exposure, na.rm = TRUE),
+    avg_claim_severity = sum(total_incurred, na.rm = TRUE) / sum(total_claims, na.rm = TRUE)
+  ) |>
+  mutate(
+    across(c(total_exposure, total_premium, total_incurred, total_claims,
+             portfolio_loss_ratio, claim_frequency, avg_premium_rate, avg_claim_severity),
+           ~round(.x, 3))
+  ) |>
+  gt::gt()
+```
+
+# 4. Univariate visual analytics
+
+## 4.1 Portfolio growth and exposure composition
+
+```{r}
+#| label: annual-summary
+
+annual_summary <- portfolio |>
+  group_by(year) |>
+  summarise(
+    policies = n(),
+    exposure = sum(total_exposure, na.rm = TRUE),
+    premium = sum(total_premium, na.rm = TRUE),
+    incurred = sum(total_incurred, na.rm = TRUE),
+    claims = sum(total_claims, na.rm = TRUE),
+    portfolio_loss_ratio = incurred / premium,
+    claim_frequency = claims / exposure,
+    premium_rate = premium / exposure,
+    avg_severity = incurred / claims,
+    .groups = "drop"
+  )
+
+annual_summary |>
+  mutate(
+    portfolio_loss_ratio = percent(portfolio_loss_ratio, accuracy = 0.1),
+    claim_frequency = number(claim_frequency, accuracy = 0.001),
+    premium_rate = dollar(premium_rate, prefix = "€", accuracy = 1),
+    avg_severity = dollar(avg_severity, prefix = "€", accuracy = 1)
+  ) |>
+  gt::gt()
+```
+
+```{r}
+#| label: annual-trend-plot
+#| fig-width: 10
+#| fig-height: 4.8
+
+p_annual_volume <- annual_summary |>
+  pivot_longer(c(premium, incurred), names_to = "measure", values_to = "value") |>
+  ggplot(aes(x = factor(year), y = value, fill = measure)) +
+  geom_col(position = "dodge", colour = my_dark, linewidth = 0.25) +
+  scale_y_continuous(labels = label_number(scale_cut = cut_short_scale())) +
+  scale_fill_manual(values = c("premium" = my_light, "incurred" = my_blue)) +
+  labs(
+    title = "Premium and incurred losses both increased with portfolio growth",
+    x = NULL, y = "Amount", fill = NULL
+  )
+
+p_annual_lr <- annual_summary |>
+  ggplot(aes(x = year, y = portfolio_loss_ratio)) +
+  geom_line(linewidth = 1.1, colour = my_blue) +
+  geom_point(size = 3, colour = my_blue) +
+  scale_x_continuous(breaks = sort(unique(annual_summary$year))) +
+  scale_y_continuous(labels = percent_format(accuracy = 1)) +
+  labs(
+    title = "Portfolio loss ratio rose over time",
+    x = NULL, y = "Portfolio loss ratio"
+  )
+
+p_annual_volume + p_annual_lr
+```
+
+The annual summary is essential because the assignment asks for discovery of profitability and volatility. The portfolio is not static: exposure, premium, incurred losses, and claim frequency all change over time.
+
+## 4.2 Distribution of premium, incurred losses, and loss ratio
+
+```{r}
+#| label: univariate-distributions
+#| fig-width: 11
+#| fig-height: 4.5
+
+p_premium <- portfolio |>
+  ggplot(aes(x = total_premium)) +
+  geom_histogram(bins = 50, fill = my_blue, colour = "white") +
+  scale_x_continuous(labels = dollar_format(prefix = "€")) +
+  labs(
+    title = "Premium distribution is right-skewed",
+    x = "Total premium", y = "Policy-year count"
+  )
+
+p_incurred <- portfolio |>
+  ggplot(aes(x = log1p(total_incurred))) +
+  geom_histogram(bins = 50, fill = my_blue, colour = "white") +
+  labs(
+    title = "Incurred loss is zero-heavy and extreme-tailed",
+    x = "log(1 + total incurred)", y = "Policy-year count"
+  )
+
+p_lr <- portfolio |>
+  filter(!is.na(loss_ratio_w99)) |>
+  ggplot(aes(x = loss_ratio_w99)) +
+  geom_histogram(bins = 60, fill = my_blue, colour = "white") +
+  scale_x_continuous(labels = percent_format(accuracy = 1)) +
+  labs(
+    title = "Winsorised loss ratio reveals core risk distribution",
+    x = "Loss ratio capped at 99th percentile", y = "Policy-year count"
+  )
+
+p_premium + p_incurred + p_lr
+```
+
+The incurred-loss distribution is structurally different from the premium distribution. Premium is continuous and right-skewed, whereas incurred loss has many zero values and a heavy tail. This supports the use of robust visualisations and exposure-weighted metrics rather than raw averages alone.
+
+## 4.3 Claim count distribution
+
+```{r}
+#| label: claim-count-distribution
+#| fig-width: 8
+#| fig-height: 4.8
+
+portfolio |>
+  count(total_claims) |>
+  mutate(
+    claim_count_label = if_else(total_claims >= 5, "5+", as.character(total_claims))
+  ) |>
+  group_by(claim_count_label) |>
+  summarise(n = sum(n), .groups = "drop") |>
+  mutate(
+    claim_count_label = factor(claim_count_label, levels = c("0", "1", "2", "3", "4", "5+")),
+    pct = n / sum(n)
+  ) |>
+  ggplot(aes(x = claim_count_label, y = pct)) +
+  geom_col(fill = my_blue, colour = my_dark, linewidth = 0.25) +
+  scale_y_continuous(labels = percent_format(accuracy = 1)) +
+  labs(
+    title = "Most policy-years have no claim, so claim occurrence must be modelled separately",
+    x = "Total claims in policy-year", y = "Share of policy-years"
+  )
+```
+
+This confirms a typical insurance portfolio pattern: most policies do not claim, while a minority drives incurred losses. That is why frequency and severity should be separated analytically.
+
+## 4.4 Product composition
+
+```{r}
+#| label: product-composition
+#| fig-width: 10
+#| fig-height: 5
+
+policy_composition <- portfolio |>
+  group_by(policy_type) |>
+  summarise(
+    policies = n(),
+    exposure = sum(total_exposure, na.rm = TRUE),
+    premium = sum(total_premium, na.rm = TRUE),
+    incurred = sum(total_incurred, na.rm = TRUE),
+    .groups = "drop"
+  ) |>
+  mutate(
+    policy_share = policies / sum(policies),
+    exposure_share = exposure / sum(exposure),
+    premium_share = premium / sum(premium),
+    incurred_share = incurred / sum(incurred)
+  )
+
+policy_composition |>
+  pivot_longer(
+    c(policy_share, exposure_share, premium_share, incurred_share),
+    names_to = "basis", values_to = "share"
+  ) |>
+  mutate(
+    basis = recode(
+      basis,
+      policy_share = "Policy count",
+      exposure_share = "Exposure",
+      premium_share = "Premium",
+      incurred_share = "Incurred"
+    ),
+    policy_type = fct_reorder(policy_type, share, .fun = max)
+  ) |>
+  ggplot(aes(x = policy_type, y = share, fill = basis)) +
+  geom_col(position = "dodge", colour = my_dark, linewidth = 0.2) +
+  scale_y_continuous(labels = percent_format(accuracy = 1)) +
+  scale_fill_manual(values = c("#D8E6F3", "#A9C7E8", "#6B9FD3", "#2F6DAE")) +
+  labs(
+    title = "Product mix is not the same as premium and incurred-loss mix",
+    x = "Policy type", y = "Share of portfolio", fill = NULL
+  )
+```
+
+Portfolio management should distinguish between count share, exposure share, premium share, and incurred share. A product with modest policy count can still dominate premium or loss contribution if coverage is broader or riskier.
+
+## 4.5 Ridgeline plot of premium rate by product
+
+```{r}
+#| label: ridgeline-premium-rate
+#| fig-width: 9
+#| fig-height: 5.5
+
+portfolio |>
+  filter(!is.na(premium_rate), is.finite(premium_rate)) |>
+  mutate(premium_rate_w99 = winsorise_upper(premium_rate, 0.99)) |>
+  ggplot(aes(x = premium_rate_w99, y = fct_reorder(policy_type, premium_rate_w99, .fun = median))) +
+  geom_density_ridges(
+    scale = 2.4,
+    rel_min_height = 0.01,
+    fill = lighten(my_blue, 0.3),
+    colour = "white",
+    linewidth = 0.3
+  ) +
+  theme_ridges() +
+  scale_x_continuous(labels = dollar_format(prefix = "€")) +
+  labs(
+    title = "Ridgeline plot shows premium-rate separation across policy types",
+    x = "Premium per exposure year, capped at 99th percentile",
+    y = NULL
+  )
+```
+
+This method is taken from the R4VA distribution chapter. It is suitable here because `policy_type` has multiple ordered groups and `premium_rate` is a continuous metric.
+
+## 4.6 Raincloud plot of loss ratio by product
+
+```{r}
+#| label: raincloud-loss-ratio-policy
+#| fig-width: 9
+#| fig-height: 6
+
+portfolio |>
+  filter(!is.na(loss_ratio_w99), is.finite(loss_ratio_w99)) |>
+  ggplot(aes(x = fct_reorder(policy_type, loss_ratio_w99, .fun = median), y = loss_ratio_w99)) +
+  stat_halfeye(
+    adjust = 0.5,
+    justification = -0.18,
+    .width = 0,
+    point_colour = NA,
+    fill = lighten(my_blue, 0.35)
+  ) +
+  geom_boxplot(width = 0.16, outlier.shape = NA, fill = "white", colour = my_dark) +
+  stat_dots(
+    side = "left",
+    justification = 1.12,
+    binwidth = 0.05,
+    dotsize = 0.6,
+    colour = my_blue
+  ) +
+  coord_flip() +
+  scale_y_continuous(labels = percent_format(accuracy = 1)) +
+  labs(
+    title = "Raincloud plot combines density, boxplot, and individual concentration",
+    x = NULL, y = "Loss ratio capped at 99th percentile"
+  )
+```
+
+The raincloud plot is stronger than a standard boxplot for this task because it exposes distribution shape and concentration while retaining median and IQR information. This directly supports the visual-discovery requirement.
+
+# 5. Bivariate visual analytics
+
+## 5.1 Segment-performance function
+
+```{r}
+#| label: segment-function
+
+segment_summary <- function(data, segment_var) {
+  data |>
+    group_by({{ segment_var }}) |>
+    summarise(
+      policies = n(),
+      exposure = sum(total_exposure, na.rm = TRUE),
+      premium = sum(total_premium, na.rm = TRUE),
+      incurred = sum(total_incurred, na.rm = TRUE),
+      claims = sum(total_claims, na.rm = TRUE),
+      portfolio_loss_ratio = incurred / premium,
+      claim_frequency = claims / exposure,
+      premium_rate = premium / exposure,
+      avg_severity = incurred / claims,
+      mean_policy_loss_ratio = mean(loss_ratio, na.rm = TRUE),
+      sd_policy_loss_ratio = sd(loss_ratio, na.rm = TRUE),
+      cv_incurred = sd(total_incurred, na.rm = TRUE) / mean(total_incurred, na.rm = TRUE),
+      .groups = "drop"
+    ) |>
+    arrange(desc(portfolio_loss_ratio))
+}
+```
+
+For profitability, `portfolio_loss_ratio` is the primary measure. For volatility, this report uses claim frequency, average severity, policy-level loss-ratio dispersion, and incurred-loss coefficient of variation.
+
+## 5.2 Product type and profitability
+
+```{r}
+#| label: policy-type-summary
+
+policy_type_summary <- segment_summary(portfolio, policy_type)
+
+policy_type_summary |>
+  mutate(
+    portfolio_loss_ratio = percent(portfolio_loss_ratio, accuracy = 0.1),
+    claim_frequency = number(claim_frequency, accuracy = 0.001),
+    premium_rate = dollar(premium_rate, prefix = "€", accuracy = 1),
+    avg_severity = dollar(avg_severity, prefix = "€", accuracy = 1)
+  ) |>
+  gt::gt()
+```
+
+```{r}
+#| label: policy-type-plots
+#| fig-width: 11
+#| fig-height: 4.8
+
+p_policy_lr <- policy_type_summary |>
+  ggplot(aes(x = fct_reorder(policy_type, portfolio_loss_ratio), y = portfolio_loss_ratio)) +
+  geom_col(fill = my_blue, colour = my_dark, linewidth = 0.25) +
+  geom_hline(yintercept = 1, linetype = "dashed", colour = "firebrick") +
+  coord_flip() +
+  scale_y_continuous(labels = percent_format(accuracy = 1)) +
+  labs(title = "Policy type: loss ratio", x = NULL, y = "Portfolio loss ratio")
+
+p_policy_freq <- policy_type_summary |>
+  ggplot(aes(x = fct_reorder(policy_type, claim_frequency), y = claim_frequency)) +
+  geom_col(fill = my_light, colour = my_dark, linewidth = 0.25) +
+  coord_flip() +
+  labs(title = "Policy type: claim frequency", x = NULL, y = "Claims per exposure year")
+
+p_policy_sev <- policy_type_summary |>
+  ggplot(aes(x = fct_reorder(policy_type, avg_severity), y = avg_severity)) +
+  geom_col(fill = lighten(my_blue, 0.15), colour = my_dark, linewidth = 0.25) +
+  coord_flip() +
+  scale_y_continuous(labels = dollar_format(prefix = "€")) +
+  labs(title = "Policy type: average severity", x = NULL, y = "Incurred per claim")
+
+p_policy_lr + p_policy_freq + p_policy_sev
+```
+
+Policy type is a central segmentation variable because coverage structure changes both expected premium and claim behaviour. This set of charts separates whether higher loss ratios are driven by frequency, severity, or premium adequacy.
+
+## 5.3 Claims-history signal: bonus score
+
+```{r}
+#| label: bonus-score-summary
+
+bonus_summary <- segment_summary(portfolio, bonus_score)
+
+bonus_summary |>
+  mutate(
+    portfolio_loss_ratio = percent(portfolio_loss_ratio, accuracy = 0.1),
+    claim_frequency = number(claim_frequency, accuracy = 0.001),
+    premium_rate = dollar(premium_rate, prefix = "€", accuracy = 1),
+    avg_severity = dollar(avg_severity, prefix = "€", accuracy = 1)
+  ) |>
+  gt::gt()
+```
+
+```{r}
+#| label: bonus-score-plots
+#| fig-width: 10
+#| fig-height: 4.5
+
+p_bonus_lr <- bonus_summary |>
+  ggplot(aes(x = fct_reorder(bonus_score, portfolio_loss_ratio), y = portfolio_loss_ratio)) +
+  geom_col(fill = my_blue, colour = my_dark, linewidth = 0.25) +
+  scale_y_continuous(labels = percent_format(accuracy = 1)) +
+  labs(title = "Bonus score: profitability", x = "Bonus score", y = "Portfolio loss ratio")
+
+p_bonus_freq <- bonus_summary |>
+  ggplot(aes(x = fct_reorder(bonus_score, claim_frequency), y = claim_frequency)) +
+  geom_col(fill = my_light, colour = my_dark, linewidth = 0.25) +
+  labs(title = "Bonus score: claim frequency", x = "Bonus score", y = "Claims per exposure year")
+
+p_bonus_premium <- bonus_summary |>
+  ggplot(aes(x = fct_reorder(bonus_score, premium_rate), y = premium_rate)) +
+  geom_col(fill = lighten(my_blue, 0.2), colour = my_dark, linewidth = 0.25) +
+  scale_y_continuous(labels = dollar_format(prefix = "€")) +
+  labs(title = "Bonus score: premium rate", x = "Bonus score", y = "Premium per exposure year")
+
+p_bonus_lr + p_bonus_freq + p_bonus_premium
+```
+
+Bonus score is expected to reflect historical claims experience. The visual check evaluates whether pricing and actual risk move in the same direction.
+
+## 5.4 Payment frequency and operational risk
+
+```{r}
+#| label: payment-frequency-summary
+
+payment_summary <- segment_summary(portfolio, payment_frequency)
+
+payment_summary |>
+  mutate(
+    portfolio_loss_ratio = percent(portfolio_loss_ratio, accuracy = 0.1),
+    claim_frequency = number(claim_frequency, accuracy = 0.001),
+    premium_rate = dollar(premium_rate, prefix = "€", accuracy = 1),
+    avg_severity = dollar(avg_severity, prefix = "€", accuracy = 1)
+  ) |>
+  gt::gt()
+```
+
+```{r}
+#| label: payment-frequency-plot
+#| fig-width: 10
+#| fig-height: 4.5
+
+p_payment_lr <- payment_summary |>
+  ggplot(aes(x = fct_reorder(payment_frequency, portfolio_loss_ratio), y = portfolio_loss_ratio)) +
+  geom_col(fill = my_blue, colour = my_dark, linewidth = 0.25) +
+  scale_y_continuous(labels = percent_format(accuracy = 1)) +
+  labs(title = "Payment frequency: loss ratio", x = "Payment frequency", y = "Portfolio loss ratio")
+
+p_payment_freq <- payment_summary |>
+  ggplot(aes(x = fct_reorder(payment_frequency, claim_frequency), y = claim_frequency)) +
+  geom_col(fill = my_light, colour = my_dark, linewidth = 0.25) +
+  labs(title = "Payment frequency: claim frequency", x = "Payment frequency", y = "Claims per exposure year")
+
+p_payment_sev <- payment_summary |>
+  ggplot(aes(x = fct_reorder(payment_frequency, avg_severity), y = avg_severity)) +
+  geom_col(fill = lighten(my_blue, 0.2), colour = my_dark, linewidth = 0.25) +
+  scale_y_continuous(labels = dollar_format(prefix = "€")) +
+  labs(title = "Payment frequency: severity", x = "Payment frequency", y = "Incurred per claim")
+
+p_payment_lr + p_payment_freq + p_payment_sev
+```
+
+Payment frequency is not a pure actuarial variable, but it may proxy customer liquidity, retention, or contract-management behaviour. It is included because the assignment asks for data discovery, not only predetermined actuarial rating variables.
+
+## 5.5 Policy status and cancellation effect
+
+```{r}
+#| label: policy-status-summary
+
+status_summary <- segment_summary(portfolio, policy_status)
+
+status_summary |>
+  mutate(
+    portfolio_loss_ratio = percent(portfolio_loss_ratio, accuracy = 0.1),
+    claim_frequency = number(claim_frequency, accuracy = 0.001),
+    premium_rate = dollar(premium_rate, prefix = "€", accuracy = 1),
+    avg_severity = dollar(avg_severity, prefix = "€", accuracy = 1)
+  ) |>
+  gt::gt()
+```
+
+```{r}
+#| label: policy-status-plots
+#| fig-width: 10
+#| fig-height: 4.5
+
+p_status_lr <- status_summary |>
+  ggplot(aes(x = policy_status, y = portfolio_loss_ratio)) +
+  geom_col(fill = my_blue, colour = my_dark, linewidth = 0.25) +
+  geom_hline(yintercept = 1, linetype = "dashed", colour = "firebrick") +
+  scale_y_continuous(labels = percent_format(accuracy = 1)) +
+  labs(title = "Cancelled policies show materially worse loss ratio", x = "Policy status", y = "Portfolio loss ratio")
+
+p_status_freq <- status_summary |>
+  ggplot(aes(x = policy_status, y = claim_frequency)) +
+  geom_col(fill = my_light, colour = my_dark, linewidth = 0.25) +
+  labs(title = "Cancelled policies also show higher claim frequency", x = "Policy status", y = "Claims per exposure year")
+
+p_status_lr + p_status_freq
+```
+
+This is a high-value discovery. However, interpretation must be careful: cancellation may occur after adverse claim experience, so this should not be treated as a causal driver without temporal modelling.
+
+## 5.6 Fuel type, circulation area, and geography
+
+```{r}
+#| label: location-fuel-summaries
+
+fuel_summary <- segment_summary(portfolio, fuel_type)
+area_summary <- segment_summary(portfolio, circulation_area)
+municipality_summary <- segment_summary(portfolio, municipality_type)
+
+bind_rows(
+  fuel_summary |> mutate(segment = paste("Fuel:", fuel_type)) |> select(segment, portfolio_loss_ratio, claim_frequency, premium_rate, avg_severity),
+  area_summary |> mutate(segment = paste("Area:", circulation_area)) |> select(segment, portfolio_loss_ratio, claim_frequency, premium_rate, avg_severity),
+  municipality_summary |> mutate(segment = paste("Municipality:", municipality_type)) |> select(segment, portfolio_loss_ratio, claim_frequency, premium_rate, avg_severity)
+) |>
+  mutate(
+    portfolio_loss_ratio = percent(portfolio_loss_ratio, accuracy = 0.1),
+    claim_frequency = number(claim_frequency, accuracy = 0.001),
+    premium_rate = dollar(premium_rate, prefix = "€", accuracy = 1),
+    avg_severity = dollar(avg_severity, prefix = "€", accuracy = 1)
+  ) |>
+  gt::gt()
+```
+
+```{r}
+#| label: geo-fuel-plot
+#| fig-width: 11
+#| fig-height: 5
+
+p_fuel <- fuel_summary |>
+  ggplot(aes(x = fct_reorder(fuel_type, portfolio_loss_ratio), y = portfolio_loss_ratio)) +
+  geom_col(fill = my_blue, colour = my_dark, linewidth = 0.25) +
+  coord_flip() +
+  scale_y_continuous(labels = percent_format(accuracy = 1)) +
+  labs(title = "Fuel type", x = NULL, y = "Loss ratio")
+
+p_area <- area_summary |>
+  ggplot(aes(x = fct_reorder(circulation_area, portfolio_loss_ratio), y = portfolio_loss_ratio)) +
+  geom_col(fill = my_blue, colour = my_dark, linewidth = 0.25) +
+  coord_flip() +
+  scale_y_continuous(labels = percent_format(accuracy = 1)) +
+  labs(title = "Circulation area", x = NULL, y = "Loss ratio")
+
+p_muni <- municipality_summary |>
+  ggplot(aes(x = fct_reorder(municipality_type, portfolio_loss_ratio), y = portfolio_loss_ratio)) +
+  geom_col(fill = my_blue, colour = my_dark, linewidth = 0.25) +
+  coord_flip() +
+  scale_y_continuous(labels = percent_format(accuracy = 1)) +
+  labs(title = "Municipality type", x = NULL, y = "Loss ratio")
+
+p_fuel + p_area + p_muni
+```
+
+Geographic and vehicle-use variables may not dominate the portfolio, but they are useful for risk refinement and interaction effects.
+
+## 5.7 Driver age and vehicle age heatmap
+
+```{r}
+#| label: age-heatmap-data
+
+age_heatmap <- portfolio |>
+  filter(!is.na(driver_age_band), !is.na(vehicle_age_band)) |>
+  group_by(driver_age_band, vehicle_age_band) |>
+  summarise(
+    policies = n(),
+    exposure = sum(total_exposure, na.rm = TRUE),
+    premium = sum(total_premium, na.rm = TRUE),
+    incurred = sum(total_incurred, na.rm = TRUE),
+    claims = sum(total_claims, na.rm = TRUE),
+    portfolio_loss_ratio = incurred / premium,
+    claim_frequency = claims / exposure,
+    .groups = "drop"
+  ) |>
+  filter(policies >= 100)
+```
+
+```{r}
+#| label: age-heatmap
+#| fig-width: 9
+#| fig-height: 5.5
+
+age_heatmap |>
+  ggplot(aes(x = vehicle_age_band, y = driver_age_band, fill = portfolio_loss_ratio)) +
+  geom_tile(colour = "white", linewidth = 0.4) +
+  geom_text(aes(label = percent(portfolio_loss_ratio, accuracy = 1)), size = 3) +
+  scale_fill_gradient(low = "#D8E6F3", high = "#1F4E79", labels = percent_format(accuracy = 1)) +
+  labs(
+    title = "Heatmap reveals interaction between driver age and vehicle age",
+    subtitle = "Cells with fewer than 100 policy-years are excluded",
+    x = "Vehicle age band", y = "Driver age band", fill = "Loss ratio"
+  )
+```
+
+A heatmap is appropriate here because the question is not simply whether driver age or vehicle age matters individually, but whether specific combinations produce worse profitability.
+
+# 6. Statistical validation
+
+Visual analytics should lead discovery, but the strongest submission should not rely only on visual judgement. This section uses statistical tests to check whether observed group differences are unlikely to be random noise.
+
+## 6.1 Non-parametric comparison of policy-level loss ratio
+
+Insurance loss ratio is extremely skewed, so the Kruskal-Wallis test is more appropriate than standard one-way ANOVA for policy-level loss-ratio comparisons.
+
+```{r}
+#| label: kruskal-tests
+
+kruskal_variables <- c(
+  "policy_type", "bonus_score", "payment_frequency", "policy_status",
+  "fuel_type", "municipality_type", "circulation_area", "business_type"
+)
+
+kruskal_results <- map_dfr(
+  kruskal_variables,
+  \(v) {
+    formula <- as.formula(paste("loss_ratio_w99 ~", v))
+    broom::tidy(kruskal.test(formula, data = portfolio))
+  },
+  .id = "variable_index"
+) |>
+  mutate(variable = kruskal_variables[as.integer(variable_index)]) |>
+  select(variable, statistic, p.value, parameter, method)
+
+kruskal_results |>
+  mutate(
+    statistic = number(statistic, accuracy = 0.01),
+    p.value = scales::pvalue(p.value)
+  ) |>
+  gt::gt()
+```
+
+A significant result does not prove business causality, but it supports that the visual segment differences are not merely random sampling fluctuation.
+
+## 6.2 Claim occurrence and categorical association
+
+```{r}
+#| label: chi-square-tests
+
+chi_square_results <- map_dfr(
+  kruskal_variables,
+  \(v) {
+    tbl <- table(portfolio[[v]], portfolio$claim_flag)
+    broom::tidy(chisq.test(tbl))
+  },
+  .id = "variable_index"
+) |>
+  mutate(variable = kruskal_variables[as.integer(variable_index)]) |>
+  select(variable, statistic, p.value, parameter, method)
+
+chi_square_results |>
+  mutate(
+    statistic = number(statistic, accuracy = 0.01),
+    p.value = scales::pvalue(p.value)
+  ) |>
+  gt::gt()
+```
+
+The chi-square tests focus on claim occurrence, not incurred amount. This separates frequency risk from severity risk.
+
+## 6.3 Logistic model for claim occurrence
+
+```{r}
+#| label: logistic-model
+
+claim_model_data <- portfolio |>
+  filter(
+    !is.na(driver_age),
+    !is.na(vehicle_age),
+    !is.na(vehicle_value),
+    !is.na(total_exposure),
+    total_exposure > 0
+  ) |>
+  mutate(
+    claim_flag_int = as.integer(claim_flag),
+    log_vehicle_value = log1p(vehicle_value)
+  )
+
+claim_model <- glm(
+  claim_flag_int ~ policy_type + bonus_score + payment_frequency +
+    policy_status + business_type + fuel_type + municipality_type +
+    circulation_area + driver_age + vehicle_age + log_vehicle_value,
+  data = claim_model_data,
+  family = binomial()
+)
+
+claim_model_tidy <- broom::tidy(claim_model, exponentiate = TRUE, conf.int = TRUE) |>
+  filter(term != "(Intercept)") |>
+  arrange(desc(abs(log(estimate))))
+
+claim_model_tidy |>
+  slice_head(n = 25) |>
+  mutate(
+    estimate = number(estimate, accuracy = 0.01),
+    conf.low = number(conf.low, accuracy = 0.01),
+    conf.high = number(conf.high, accuracy = 0.01),
+    p.value = scales::pvalue(p.value)
+  ) |>
+  gt::gt()
+```
+
+The logistic model is not used as a final pricing model. It is used as a validation layer to check whether variables that looked important visually still carry signal after adjusting for other observed characteristics.
+
+```{r}
+#| label: model-coef-plot
+#| fig-width: 8
+#| fig-height: 7
+
+claim_model_tidy |>
+  filter(!str_detect(term, "vehicle_brand")) |>
+  slice_head(n = 18) |>
+  mutate(term = fct_reorder(term, estimate)) |>
+  ggplot(aes(x = estimate, y = term)) +
+  geom_vline(xintercept = 1, linetype = "dashed", colour = "grey50") +
+  geom_pointrange(aes(xmin = conf.low, xmax = conf.high), colour = my_blue) +
+  scale_x_log10() +
+  labs(
+    title = "Adjusted odds ratios for claim occurrence",
+    subtitle = "Values above 1 indicate higher odds of at least one claim",
+    x = "Odds ratio, log scale", y = NULL
+  )
+```
+
+# 7. Synthesis of findings
+
+```{r}
+#| label: key-findings-objects
+#| include: false
+
+overall_lr <- sum(portfolio$total_incurred, na.rm = TRUE) / sum(portfolio$total_premium, na.rm = TRUE)
+
+worst_policy <- policy_type_summary |> slice_max(portfolio_loss_ratio, n = 1, with_ties = FALSE)
+best_policy <- policy_type_summary |> slice_min(portfolio_loss_ratio, n = 1, with_ties = FALSE)
+
+worst_payment <- payment_summary |> slice_max(portfolio_loss_ratio, n = 1, with_ties = FALSE)
+highest_freq_payment <- payment_summary |> slice_max(claim_frequency, n = 1, with_ties = FALSE)
+
+cancelled <- status_summary |> filter(policy_status == "C")
+active <- status_summary |> filter(policy_status == "A")
+
+annual_change <- annual_summary |>
+  arrange(year) |>
+  summarise(
+    premium_rate_change = last(premium_rate) / first(premium_rate) - 1,
+    loss_ratio_change_pp = (last(portfolio_loss_ratio) - first(portfolio_loss_ratio)) * 100,
+    claim_frequency_change = last(claim_frequency) / first(claim_frequency) - 1
+  )
+```
+
+The main findings are:
+
+1.  **Portfolio profitability weakened over time.** The loss ratio increased by `r number(annual_change$loss_ratio_change_pp, accuracy = 0.1)` percentage points from the first to the last year, while premium per exposure year changed by `r percent(annual_change$premium_rate_change, accuracy = 0.1)`. This is a pricing adequacy warning.
+2.  **Product type is a major source of profitability variation.** `r as.character(worst_policy$policy_type)` has the highest portfolio loss ratio at `r percent(worst_policy$portfolio_loss_ratio, accuracy = 0.1)`, compared with `r percent(best_policy$portfolio_loss_ratio, accuracy = 0.1)` for `r as.character(best_policy$policy_type)`.
+3.  **Cancellation is strongly associated with adverse experience.** Cancelled policies show a portfolio loss ratio of `r percent(cancelled$portfolio_loss_ratio, accuracy = 0.1)`, compared with `r percent(active$portfolio_loss_ratio, accuracy = 0.1)` for active policies. This should be investigated as an adverse-selection or post-claim cancellation signal.
+4.  **Payment frequency carries risk signal.** `r as.character(worst_payment$payment_frequency)` has the highest loss ratio, while `r as.character(highest_freq_payment$payment_frequency)` has the highest claim frequency. This suggests payment structure may proxy behavioural or retention risk.
+5.  **Volatility is concentrated in the tail.** Policy-level incurred losses and loss ratios are highly skewed; robust visual methods are necessary.
+
+# 8. Recommendations
+
+The analytical recommendations are:
+
+-   **Reprice or review high-loss product segments**, especially policy types whose portfolio loss ratio approaches or exceeds the portfolio average by a large margin.
+-   **Separate frequency and severity in management dashboards.** A high loss ratio may result from frequent small claims or rare severe claims; the remediation differs.
+-   **Monitor cancelled policies as an early-warning segment.** The result is association, not causality, but the gap is too large to ignore.
+-   **Use bonus score and payment frequency jointly for underwriting review.** These variables are operationally simple and visually meaningful.
+-   **Retain advanced distribution charts in the executive deck.** Raincloud and ridgeline plots provide higher information density than basic boxplots while remaining interpretable.
+-   **Avoid treating this report as a pricing model.** It is a visual analytics discovery report. Pricing would require actuarial modelling, temporal validation, exposure offsets, expense assumptions, and regulatory review.
+
+# 9. Reproducibility notes
+
+The report is fully reproducible in RStudio/Quarto if the two data files are placed in the `data/` folder with these exact names:
+
+-   `Dataset of motor insurance portfolio.csv`
+-   `Descriptive of variables.xlsx`
+
+The report intentionally keeps all data wrangling, metric engineering, visual analytics, and statistical checks in executable R code chunks. No chart or table is manually typed from external software.

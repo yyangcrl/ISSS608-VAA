@@ -61,16 +61,16 @@ In this exercise, we use the World Happiness 2018 dataset. Each country is repre
 
 By the end of this exercise, we will be able to:
 
-- create static parallel coordinates plots using `ggparcoord()` from the `GGally` package,
-- group parallel coordinate lines by geographical region,
-- improve readability using scaling, transparency, boxplots, facets, and rotated labels,
-- create interactive parallel coordinates plots using `parallelPlot`,
-- add a small extension to compare regional happiness profiles.
+-   create static parallel coordinates plots using `ggparcoord()` from the `GGally` package,
+-   group parallel coordinate lines by geographical region,
+-   improve readability using scaling, transparency, boxplots, facets, and rotated labels,
+-   create interactive parallel coordinates plots using `parallelPlot`,
+-   add a small extension to compare regional happiness profiles.
 
-::: {.callout-important}
+::: callout-important
 ## Important
 
-Parallel coordinates plot is mainly an analytical visualisation.  
+Parallel coordinates plot is mainly an analytical visualisation.\
 It is useful for exploring multivariate patterns, but it can become visually crowded when there are many observations.
 :::
 
@@ -78,8 +78,7 @@ It is useful for exploring multivariate patterns, but it can become visually cro
 
 For this exercise, the main packages are `GGally`, `parallelPlot`, and `tidyverse`.
 
-::: {.panel-tabset}
-
+::: panel-tabset
 ## View
 
 ```{r}
@@ -120,7 +119,6 @@ pacman::p_load(
   scales
 )
 ```
-
 :::
 
 ## 5.3 Data Preparation
@@ -129,8 +127,7 @@ The dataset used in this exercise is `WHData-2018.csv`. It contains country-leve
 
 ### 5.3.1 Importing data
 
-::: {.panel-tabset}
-
+::: panel-tabset
 ## View
 
 ```{r}
@@ -152,15 +149,13 @@ wh <- read_csv(csv_file, show_col_types = FALSE)
 
 glimpse(wh)
 ```
-
 :::
 
 Using `list.files()` makes the render safer because the code will still work if the file name contains a small suffix such as `(2)`.
 
 ### 5.3.2 Checking the data structure
 
-::: {.panel-tabset}
-
+::: panel-tabset
 ## View
 
 ```{r}
@@ -186,22 +181,20 @@ DT::datatable(
   width = "100%"
 )
 ```
-
 :::
 
 The key numerical variables are located from column 7 to column 12:
 
-- GDP per capita
-- Social support
-- Healthy life expectancy
-- Freedom to make life choices
-- Generosity
-- Perceptions of corruption
+-   GDP per capita
+-   Social support
+-   Healthy life expectancy
+-   Freedom to make life choices
+-   Generosity
+-   Perceptions of corruption
 
 ### 5.3.3 Creating colour palette by region
 
-::: {.panel-tabset}
-
+::: panel-tabset
 ## View
 
 ```{r}
@@ -264,7 +257,6 @@ region_palette <- setNames(
   region_levels
 )
 ```
-
 :::
 
 The palette keeps the page consistent with the deep muted teal style while still giving enough colours for the different regions.
@@ -275,8 +267,7 @@ This section follows the `ggparcoord()` method from the `GGally` package.
 
 ### 5.4.1 Plotting a simple parallel coordinates plot
 
-::: {.panel-tabset}
-
+::: panel-tabset
 ## View
 
 ```{r}
@@ -314,15 +305,13 @@ GGally::ggparcoord(
     legend.position = "none"
   )
 ```
-
 :::
 
 This first version is useful as a starting point, but it is visually crowded. Since all countries are drawn together, the regional pattern is not easy to see.
 
 ### 5.4.2 Plotting a parallel coordinates plot with boxplot
 
-::: {.panel-tabset}
-
+::: panel-tabset
 ## View
 
 ```{r}
@@ -364,22 +353,20 @@ GGally::ggparcoord(
     axis.text.x = element_text(angle = 25, hjust = 1)
   )
 ```
-
 :::
 
 The `groupColumn` argument colours the lines by region. The `scale = "uniminmax"` argument rescales each variable from 0 to 1, making variables with different units comparable.
 
-::: {.callout-tip}
+::: callout-tip
 ## What can we learn?
 
-The boxplot layer gives a quick view of the distribution of each variable.  
+The boxplot layer gives a quick view of the distribution of each variable.\
 The lines show country-level profiles, while the boxplots summarise the overall spread.
 :::
 
 ### 5.4.3 Parallel coordinates with facet
 
-::: {.panel-tabset}
-
+::: panel-tabset
 ## View
 
 ```{r}
@@ -425,15 +412,13 @@ GGally::ggparcoord(
     legend.position = "none"
   )
 ```
-
 :::
 
 Faceting makes the plot easier to read because each region is shown separately. This is helpful when the full plot is too dense.
 
 ### 5.4.4 Rotating x-axis text labels
 
-::: {.panel-tabset}
-
+::: panel-tabset
 ## View
 
 ```{r}
@@ -479,15 +464,13 @@ GGally::ggparcoord(
     legend.position = "none"
   )
 ```
-
 :::
 
 Rotating the x-axis labels reduces label overlap, but the text may still sit too close to the plot.
 
 ### 5.4.5 Adjusting the rotated x-axis text labels
 
-::: {.panel-tabset}
-
+::: panel-tabset
 ## View
 
 ```{r}
@@ -533,7 +516,6 @@ GGally::ggparcoord(
     legend.position = "none"
   )
 ```
-
 :::
 
 The `hjust = 1` setting aligns the rotated labels better and makes the plot easier to read.
@@ -544,8 +526,7 @@ The `parallelPlot` package creates interactive parallel coordinates plots using 
 
 ### 5.5.1 Preparing data for interactive plot
 
-::: {.panel-tabset}
-
+::: panel-tabset
 ## View
 
 ```{r}
@@ -593,15 +574,13 @@ DT::datatable(
   width = "100%"
 )
 ```
-
 :::
 
 Only numerical variables are selected for the interactive parallel coordinates plot.
 
 ### 5.5.2 The basic interactive plot
 
-::: {.panel-tabset}
-
+::: panel-tabset
 ## View
 
 ```{r}
@@ -623,15 +602,13 @@ parallelPlot::parallelPlot(
   height = 420
 )
 ```
-
 :::
 
 The basic interactive plot allows the reader to inspect patterns across several variables. However, some axis labels are long and can overlap.
 
 ### 5.5.3 Rotating axis labels
 
-::: {.panel-tabset}
-
+::: panel-tabset
 ## View
 
 ```{r}
@@ -655,15 +632,13 @@ parallelPlot::parallelPlot(
   height = 420
 )
 ```
-
 :::
 
 The `rotateTitle = TRUE` argument makes the axis labels easier to read.
 
 ### 5.5.4 Changing the colour scheme
 
-::: {.panel-tabset}
-
+::: panel-tabset
 ## View
 
 ```{r}
@@ -689,15 +664,13 @@ parallelPlot::parallelPlot(
   height = 420
 )
 ```
-
 :::
 
 The `continuousCS` argument changes the continuous colour scheme. This helps when the reader wants stronger colour contrast during interactive inspection.
 
 ### 5.5.5 Parallel coordinates plot with histogram
 
-::: {.panel-tabset}
-
+::: panel-tabset
 ## View
 
 ```{r}
@@ -727,15 +700,14 @@ parallelPlot::parallelPlot(
   height = 420
 )
 ```
-
 :::
 
 The histogram layer shows the distribution of each variable along its axis. This makes the interactive plot more informative.
 
-::: {.callout-tip}
+::: callout-tip
 ## What can we learn?
 
-Interactive parallel coordinates are useful because users can inspect relationships dynamically.  
+Interactive parallel coordinates are useful because users can inspect relationships dynamically.\
 The histogram option adds distribution information to each axis.
 :::
 
@@ -745,8 +717,7 @@ This small extension summarises the average World Happiness profile by region. I
 
 ### 5.6.1 Preparing regional average data
 
-::: {.panel-tabset}
-
+::: panel-tabset
 ## View
 
 ```{r}
@@ -800,13 +771,11 @@ DT::datatable(
   width = "100%"
 )
 ```
-
 :::
 
 ### 5.6.2 Parallel coordinates plot of regional averages
 
-::: {.panel-tabset}
-
+::: panel-tabset
 ## View
 
 ```{r}
@@ -846,7 +815,6 @@ GGally::ggparcoord(
     axis.text.x = element_text(angle = 30, hjust = 1)
   )
 ```
-
 :::
 
 This regional version is less crowded than the country-level plot. It helps compare the broad profile of each region.
@@ -857,8 +825,7 @@ This extension compares the highest and lowest happiness score countries. It is 
 
 ### 5.7.1 Preparing top and bottom countries
 
-::: {.panel-tabset}
-
+::: panel-tabset
 ## View
 
 ```{r}
@@ -910,13 +877,11 @@ top_bottom_countries <- bind_rows(
     mutate(Group = "Bottom 8")
 )
 ```
-
 :::
 
 ### 5.7.2 Parallel coordinates plot for top and bottom countries
 
-::: {.panel-tabset}
-
+::: panel-tabset
 ## View
 
 ```{r}
@@ -968,7 +933,6 @@ GGally::ggparcoord(
     axis.text.x = element_text(angle = 30, hjust = 1)
   )
 ```
-
 :::
 
 The top and bottom group comparison makes the multivariate contrast clearer than looking at all 156 countries at once.
@@ -979,8 +943,7 @@ This final extension supports the parallel coordinates analysis by showing which
 
 ### 5.8.1 Computing correlations with happiness score
 
-::: {.panel-tabset}
-
+::: panel-tabset
 ## View
 
 ```{r}
@@ -1045,13 +1008,11 @@ happiness_cor <- wh %>%
   ) %>%
   arrange(desc(Correlation))
 ```
-
 :::
 
 ### 5.8.2 Bar chart of correlations with happiness score
 
-::: {.panel-tabset}
-
+::: panel-tabset
 ## View
 
 ```{r}
@@ -1105,7 +1066,6 @@ ggplot(
   ) +
   theme_yy
 ```
-
 :::
 
 This bar chart is not a replacement for the parallel coordinates plot. It is a supporting view that helps explain which variables are most closely related to happiness score.
@@ -1116,10 +1076,10 @@ Parallel coordinates plots are useful for exploring high-dimensional numerical d
 
 In this exercise, the static `ggparcoord()` plots help compare World Happiness indicators by region. The interactive `parallelPlot` charts allow more flexible inspection. The extra regional and top-bottom comparisons reduce visual clutter and make the interpretation clearer.
 
-::: {.callout-tip}
+::: callout-tip
 ## Final takeaway
 
-Use parallel coordinates plots when the key question is about multivariate profiles.  
+Use parallel coordinates plots when the key question is about multivariate profiles.\
 They are strongest for exploration, comparison, and pattern detection across many numerical variables.
 :::
 
@@ -1127,11 +1087,11 @@ They are strongest for exploration, comparison, and pattern detection across man
 
 This exercise covered:
 
-- `ggparcoord()` from the `GGally` package,
-- static parallel coordinates plots,
-- grouped and faceted parallel coordinates plots,
-- rotated and adjusted axis labels,
-- interactive parallel coordinates plots using `parallelPlot`,
-- histogram-enhanced interactive plots,
-- regional average profiles,
-- top-versus-bottom happiness country comparison.
+-   `ggparcoord()` from the `GGally` package,
+-   static parallel coordinates plots,
+-   grouped and faceted parallel coordinates plots,
+-   rotated and adjusted axis labels,
+-   interactive parallel coordinates plots using `parallelPlot`,
+-   histogram-enhanced interactive plots,
+-   regional average profiles,
+-   top-versus-bottom happiness country comparison.

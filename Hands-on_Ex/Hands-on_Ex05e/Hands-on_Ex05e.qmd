@@ -60,24 +60,24 @@ Treemap visualisation is useful when we need to display hierarchical data. Inste
 
 In this hands-on exercise, we use `realis2018.csv`, which contains Singapore private residential property transaction records in 2018. The hierarchy used in this exercise is:
 
-- Planning Region
-- Planning Area
-- Project Name
+-   Planning Region
+-   Planning Area
+-   Project Name
 
 By the end of this exercise, we will be able to:
 
-- import and clean private residential transaction data,
-- summarise transaction records into a treemap-ready structure,
-- design static treemaps using the `treemap` package,
-- compare different colour settings in treemap design,
-- build treemaps using `treemapify`,
-- create a simple interactive treemap using `plotly`,
-- add a small extension to compare resale condominium activity by planning area.
+-   import and clean private residential transaction data,
+-   summarise transaction records into a treemap-ready structure,
+-   design static treemaps using the `treemap` package,
+-   compare different colour settings in treemap design,
+-   build treemaps using `treemapify`,
+-   create a simple interactive treemap using `plotly`,
+-   add a small extension to compare resale condominium activity by planning area.
 
-::: {.callout-important}
+::: callout-important
 ## Important
 
-A treemap works best when the data has a clear hierarchy.  
+A treemap works best when the data has a clear hierarchy.\
 For this exercise, the hierarchy is geographic: Planning Region → Planning Area → Project Name.
 :::
 
@@ -85,8 +85,7 @@ For this exercise, the hierarchy is geographic: Planning Region → Planning Are
 
 Before creating the treemap, the required R packages need to be loaded. The main packages are `treemap`, `treemapify`, and `tidyverse`.
 
-::: {.panel-tabset}
-
+::: panel-tabset
 ## View
 
 ```{r}
@@ -127,13 +126,12 @@ pacman::p_load(
   plotly
 )
 ```
-
 :::
 
-::: {.callout-note}
+::: callout-note
 ## Package note
 
-This version uses `plotly` for the interactive treemap instead of `d3treeR`.  
+This version uses `plotly` for the interactive treemap instead of `d3treeR`.\
 `d3treeR` is not always stable because it is installed from GitHub, not directly from CRAN.
 :::
 
@@ -143,8 +141,7 @@ The raw transaction data is too detailed for a treemap. Each row is one transact
 
 ### 5.3.1 Importing the data set
 
-::: {.panel-tabset}
-
+::: panel-tabset
 ## View
 
 ```{r}
@@ -168,15 +165,13 @@ realis_raw <- read_csv(csv_file, show_col_types = FALSE)
 
 glimpse(realis_raw)
 ```
-
 :::
 
 The data is imported from the current exercise folder. Using `list.files()` avoids path errors when the website is rendered.
 
 ### 5.3.2 Cleaning the data
 
-::: {.panel-tabset}
-
+::: panel-tabset
 ## View
 
 ```{r}
@@ -232,7 +227,6 @@ DT::datatable(
   width = "100%"
 )
 ```
-
 :::
 
 Column names are cleaned into a consistent format. For example, `Project Name` becomes `project_name`, and `Unit Price ($ psm)` becomes `unit_price_psm`.
@@ -241,8 +235,7 @@ Column names are cleaned into a consistent format. For example, `Project Name` b
 
 The basic idea is to group the transaction records by project and location, then calculate summary measures.
 
-::: {.panel-tabset}
-
+::: panel-tabset
 ## View
 
 ```{r}
@@ -304,15 +297,13 @@ DT::datatable(
   width = "100%"
 )
 ```
-
 :::
 
 This approach works, but it creates an intermediate grouped object. The pipe version is cleaner.
 
 ### 5.3.4 Grouped summaries with the pipe
 
-::: {.panel-tabset}
-
+::: panel-tabset
 ## View
 
 ```{r}
@@ -384,13 +375,12 @@ DT::datatable(
   width = "100%"
 )
 ```
-
 :::
 
-::: {.callout-tip}
+::: callout-tip
 ## What can we learn?
 
-The pipe version is easier to read because each operation follows the previous one.  
+The pipe version is easier to read because each operation follows the previous one.\
 This is useful for treemap preparation because the data needs to be grouped, summarised, filtered, and checked.
 :::
 
@@ -398,15 +388,14 @@ This is useful for treemap preparation because the data needs to be grouped, sum
 
 The `treemap` package is designed specifically for treemap visualisation. The key arguments are:
 
-- `index`: hierarchy of rectangles,
-- `vSize`: variable used for rectangle size,
-- `vColor`: variable used for rectangle colour,
-- `type`: how colour values should be interpreted.
+-   `index`: hierarchy of rectangles,
+-   `vSize`: variable used for rectangle size,
+-   `vColor`: variable used for rectangle colour,
+-   `type`: how colour values should be interpreted.
 
 ### 5.4.1 Selecting resale condominium records
 
-::: {.panel-tabset}
-
+::: panel-tabset
 ## View
 
 ```{r}
@@ -444,15 +433,13 @@ DT::datatable(
   width = "100%"
 )
 ```
-
 :::
 
 The selected data focuses only on resale condominium transactions. This keeps the treemap closer to one property market segment.
 
 ### 5.4.2 Using basic treemap arguments
 
-::: {.panel-tabset}
-
+::: panel-tabset
 ## View
 
 ```{r}
@@ -482,22 +469,20 @@ treemap(
   title.legend = "Median Unit Price (S$ per sq. m)"
 )
 ```
-
 :::
 
 This first treemap uses the hierarchy and two quantitative variables, but the colour setting is not yet ideal.
 
-::: {.callout-note}
+::: callout-note
 ## Reading the treemap
 
-The larger rectangles represent projects with more units sold.  
+The larger rectangles represent projects with more units sold.\
 The colour is controlled by median unit price, but the default colour behaviour needs to be adjusted.
 :::
 
 ### 5.4.3 Working with vColor and type arguments
 
-::: {.panel-tabset}
-
+::: panel-tabset
 ## View
 
 ```{r}
@@ -531,7 +516,6 @@ treemap(
   title.legend = "Median Unit Price (S$ per sq. m)"
 )
 ```
-
 :::
 
 With `type = "value"`, the colour intensity reflects median unit price more directly.
@@ -542,8 +526,7 @@ Colour choice matters because a poor palette can make the treemap difficult to i
 
 ### 5.5.1 The value type treemap
 
-::: {.panel-tabset}
-
+::: panel-tabset
 ## View
 
 ```{r}
@@ -577,15 +560,13 @@ treemap(
   title.legend = "Median Unit Price (S$ per sq. m)"
 )
 ```
-
 :::
 
 The value type treats the colour scale as a value-based mapping. Since unit prices are positive, the diverging palette may not fully use both ends of the colour range.
 
 ### 5.5.2 The manual type treemap
 
-::: {.panel-tabset}
-
+::: panel-tabset
 ## View
 
 ```{r}
@@ -619,15 +600,13 @@ treemap(
   title.legend = "Median Unit Price (S$ per sq. m)"
 )
 ```
-
 :::
 
 The manual type maps the value range more directly to the colour palette. A single-colour palette is cleaner here because price is a positive continuous variable.
 
 ### 5.5.3 Small extension: using a custom teal ggplot version
 
-::: {.panel-tabset}
-
+::: panel-tabset
 ## View
 
 ```{r}
@@ -695,7 +674,6 @@ ggplot(
   ) +
   theme_yy
 ```
-
 :::
 
 This extension uses the same treemap idea but applies the customised teal colour style.
@@ -706,8 +684,7 @@ The layout algorithm affects how rectangles are arranged. The `treemap` package 
 
 ### 5.6.1 Working with algorithm argument
 
-::: {.panel-tabset}
-
+::: panel-tabset
 ## View
 
 ```{r}
@@ -743,15 +720,13 @@ treemap(
   title.legend = "Median Unit Price (S$ per sq. m)"
 )
 ```
-
 :::
 
 The squarified layout tries to make rectangles closer to square shapes, which can improve readability.
 
 ### 5.6.2 Using sortID
 
-::: {.panel-tabset}
-
+::: panel-tabset
 ## View
 
 ```{r}
@@ -789,15 +764,14 @@ treemap(
   title.legend = "Median Unit Price (S$ per sq. m)"
 )
 ```
-
 :::
 
 The `sortID` argument controls the rectangle ordering when the selected layout supports sorting.
 
-::: {.callout-tip}
+::: callout-tip
 ## What can we learn?
 
-Treemap design is not only about colour.  
+Treemap design is not only about colour.\
 Hierarchy, size variable, colour variable, layout, and sorting all affect how the reader interprets the chart.
 :::
 
@@ -807,8 +781,7 @@ The `treemapify` package allows treemaps to be created using the grammar of grap
 
 ### 5.7.1 Designing a basic treemap
 
-::: {.panel-tabset}
-
+::: panel-tabset
 ## View
 
 ```{r}
@@ -860,13 +833,11 @@ ggplot(
   ) +
   theme_yy
 ```
-
 :::
 
 ### 5.7.2 Defining hierarchy by Planning Region
 
-::: {.panel-tabset}
-
+::: panel-tabset
 ## View
 
 ```{r}
@@ -934,13 +905,11 @@ ggplot(
   ) +
   theme_yy
 ```
-
 :::
 
 ### 5.7.3 Defining hierarchy by Planning Area
 
-::: {.panel-tabset}
-
+::: panel-tabset
 ## View
 
 ```{r}
@@ -1000,13 +969,11 @@ ggplot(
   ) +
   theme_yy
 ```
-
 :::
 
 ### 5.7.4 Adding boundary line and labels
 
-::: {.panel-tabset}
-
+::: panel-tabset
 ## View
 
 ```{r}
@@ -1080,7 +1047,6 @@ ggplot(
   ) +
   theme_yy
 ```
-
 :::
 
 This version is visually cleaner because the hierarchy is easier to identify.
@@ -1091,8 +1057,7 @@ The original chapter uses `d3treeR` for interactive treemap design. To avoid ins
 
 ### 5.8.1 Preparing data for interactive treemap
 
-::: {.panel-tabset}
-
+::: panel-tabset
 ## View
 
 ```{r}
@@ -1224,13 +1189,11 @@ DT::datatable(
   width = "100%"
 )
 ```
-
 :::
 
 ### 5.8.2 Plotting interactive treemap
 
-::: {.panel-tabset}
-
+::: panel-tabset
 ## View
 
 ```{r}
@@ -1298,7 +1261,6 @@ plot_ly(
     title = "Interactive Treemap of Resale Condominium Transactions, 2018"
   )
 ```
-
 :::
 
 The interactive treemap allows the reader to move through the hierarchy and inspect details by hovering.
@@ -1309,8 +1271,7 @@ This small extension summarises the largest planning areas by total units sold. 
 
 ### 5.9.1 Ranking planning areas
 
-::: {.panel-tabset}
-
+::: panel-tabset
 ## View
 
 ```{r}
@@ -1364,13 +1325,11 @@ DT::datatable(
   width = "100%"
 )
 ```
-
 :::
 
 ### 5.9.2 Bar chart of top planning areas
 
-::: {.panel-tabset}
-
+::: panel-tabset
 ## View
 
 ```{r}
@@ -1444,7 +1403,6 @@ ggplot(
   ) +
   theme_yy
 ```
-
 :::
 
 ## 5.10 Final Takeaway
@@ -1453,10 +1411,10 @@ Treemap visualisation is useful when the data has a hierarchy and when both size
 
 The `treemap` package gives a quick way to create traditional treemaps. The `treemapify` package gives more control through the ggplot2 grammar. The interactive version helps readers inspect the hierarchy more directly.
 
-::: {.callout-tip}
+::: callout-tip
 ## Final takeaway
 
-Use treemaps when the main question is about hierarchical composition.  
+Use treemaps when the main question is about hierarchical composition.\
 For property transactions, treemaps help show how sales volume and price differ across region, area, and project level.
 :::
 
@@ -1464,10 +1422,10 @@ For property transactions, treemaps help show how sales volume and price differ 
 
 This exercise covered:
 
-- importing and cleaning `realis2018.csv`,
-- summarising transaction records for treemap design,
-- creating static treemaps using `treemap`,
-- adjusting `vColor`, `type`, palette, algorithm, and `sortID`,
-- creating ggplot-style treemaps using `treemapify`,
-- creating an interactive treemap using `plotly`,
-- adding a simple top planning area ranking as a small extension.
+-   importing and cleaning `realis2018.csv`,
+-   summarising transaction records for treemap design,
+-   creating static treemaps using `treemap`,
+-   adjusting `vColor`, `type`, palette, algorithm, and `sortID`,
+-   creating ggplot-style treemaps using `treemapify`,
+-   creating an interactive treemap using `plotly`,
+-   adding a simple top planning area ranking as a small extension.

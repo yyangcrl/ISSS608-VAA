@@ -63,25 +63,25 @@ theme_yy <- theme_minimal(base_size = 13) +
 
 A ternary plot is useful when the data contains three components that form one complete whole. In this exercise, we use Singapore resident population data to study the balance between three age groups:
 
-- young population,
-- economically active population,
-- aged population.
+-   young population,
+-   economically active population,
+-   aged population.
 
 Each point in a ternary plot represents one composition. The position of the point depends on how much of the total population belongs to each of the three groups.
 
 By the end of this exercise, we will be able to:
 
-- prepare population data for ternary plotting,
-- classify detailed age groups into three broad age components,
-- calculate the percentage share of each component,
-- create ternary plots using the `ggtern` package,
-- compare population structure across planning areas and years,
-- use supporting charts to explain the ternary plot more clearly.
+-   prepare population data for ternary plotting,
+-   classify detailed age groups into three broad age components,
+-   calculate the percentage share of each component,
+-   create ternary plots using the `ggtern` package,
+-   compare population structure across planning areas and years,
+-   use supporting charts to explain the ternary plot more clearly.
 
-::: {.callout-important}
+::: callout-important
 ## Important
 
-A ternary plot should only be used when the three variables are parts of a whole.  
+A ternary plot should only be used when the three variables are parts of a whole.\
 In this exercise, the three shares must add up to approximately 100%.
 :::
 
@@ -91,8 +91,7 @@ In this exercise, the three shares must add up to approximately 100%.
 
 This exercise mainly uses `ggtern`, an extension of `ggplot2` for creating ternary diagrams. The other packages are used for data cleaning, wrangling, and displaying tables.
 
-::: {.panel-tabset}
-
+::: panel-tabset
 ## View
 
 ```{r}
@@ -131,15 +130,14 @@ pacman::p_load(
   scales
 )
 ```
-
 :::
 
-::: {.callout-note}
+::: callout-note
 ## Package note
 
 If `ggtern` is not installed, run this once in the Console:
 
-```r
+``` r
 install.packages("ggtern")
 ```
 :::
@@ -148,8 +146,7 @@ install.packages("ggtern")
 
 The dataset used in this exercise is `respopagsex2000to2018_tidy.csv`.
 
-::: {.panel-tabset}
-
+::: panel-tabset
 ## View
 
 ```{r}
@@ -173,7 +170,6 @@ pop_raw <- read_csv(csv_file, show_col_types = FALSE)
 
 glimpse(pop_raw)
 ```
-
 :::
 
 The code uses `list.files()` to read the CSV file in the folder. This avoids render errors caused by small filename differences.
@@ -182,14 +178,13 @@ The code uses `list.files()` to read the CSV file in the folder. This avoids ren
 
 The raw dataset contains the following key variables:
 
-- `PA`: Planning Area,
-- `SZ`: Subzone,
-- `AG`: Age Group,
-- `Year`: Year,
-- `Population`: Resident population count.
+-   `PA`: Planning Area,
+-   `SZ`: Subzone,
+-   `AG`: Age Group,
+-   `Year`: Year,
+-   `Population`: Resident population count.
 
-::: {.panel-tabset}
-
+::: panel-tabset
 ## View
 
 ```{r}
@@ -211,12 +206,11 @@ pop_clean <- pop_raw %>%
 
 names(pop_clean)
 ```
-
 :::
 
 After cleaning, the column names become easier to use in R:
 
-```text
+``` text
 pa, sz, ag, year, population
 ```
 
@@ -224,14 +218,13 @@ pa, sz, ag, year, population
 
 A ternary plot needs three numeric variables. Here, detailed age groups are collapsed into three demographic components:
 
-- **Young**: age 0–14,
-- **Economically active**: age 15–64,
-- **Aged**: age 65 and above.
+-   **Young**: age 0–14,
+-   **Economically active**: age 15–64,
+-   **Aged**: age 65 and above.
 
 ### 5.3.1 Standardising the data
 
-::: {.panel-tabset}
-
+::: panel-tabset
 ## View
 
 ```{r}
@@ -291,7 +284,6 @@ DT::datatable(
   width = "100%"
 )
 ```
-
 :::
 
 The dataset is now standardised into readable names. The key fields are planning area, subzone, age group, year, and population.
@@ -300,8 +292,7 @@ The dataset is now standardised into readable names. The key fields are planning
 
 The `AG` variable is converted into a numeric lower-bound age. This allows each age group to be classified into one of the three age components.
 
-::: {.panel-tabset}
-
+::: panel-tabset
 ## View
 
 ```{r}
@@ -363,13 +354,12 @@ DT::datatable(
   width = "100%"
 )
 ```
-
 :::
 
-::: {.callout-tip}
+::: callout-tip
 ## What can we learn?
 
-The original dataset has many detailed age groups.  
+The original dataset has many detailed age groups.\
 For a ternary plot, these detailed groups must first be summarised into exactly three meaningful components.
 :::
 
@@ -377,8 +367,7 @@ For a ternary plot, these detailed groups must first be summarised into exactly 
 
 Each planning area and year is converted into one row. The three age components are then converted into percentage shares.
 
-::: {.panel-tabset}
-
+::: panel-tabset
 ## View
 
 ```{r}
@@ -448,7 +437,6 @@ DT::datatable(
   width = "100%"
 )
 ```
-
 :::
 
 The `check_total` column should be close to 100. This confirms that the data is suitable for ternary plotting.
@@ -459,16 +447,15 @@ The `check_total` column should be close to 100. This confirms that the data is 
 
 In this exercise:
 
-- x-axis represents young population share,
-- y-axis represents economically active population share,
-- z-axis represents aged population share.
+-   x-axis represents young population share,
+-   y-axis represents economically active population share,
+-   z-axis represents aged population share.
 
 ### 5.4.1 Basic ternary plot
 
 The first ternary plot shows the population structure of all planning areas across all years.
 
-::: {.panel-tabset}
-
+::: panel-tabset
 ## View
 
 ```{r}
@@ -536,15 +523,14 @@ ggtern(
   ) +
   theme_tern_yy
 ```
-
 :::
 
 A point closer to the aged corner means the planning area has a larger aged population share. A point closer to the young corner means the planning area has a larger young population share.
 
-::: {.callout-tip}
+::: callout-tip
 ## What can we learn?
 
-The ternary plot helps us compare three population shares at the same time.  
+The ternary plot helps us compare three population shares at the same time.\
 This is useful because demographic structure is about balance, not only one variable.
 :::
 
@@ -552,8 +538,7 @@ This is useful because demographic structure is about balance, not only one vari
 
 To reduce visual clutter, the next plot focuses only on the latest year in the dataset.
 
-::: {.panel-tabset}
-
+::: panel-tabset
 ## View
 
 ```{r}
@@ -625,7 +610,6 @@ ggtern(
   ) +
   theme_tern_yy
 ```
-
 :::
 
 This plot is easier to read because it removes year-to-year overlap and focuses on cross-sectional comparison.
@@ -634,8 +618,7 @@ This plot is easier to read because it removes year-to-year overlap and focuses 
 
 The full dataset contains many planning areas. To make the movement clearer, the next chart highlights several large planning areas and connects their changes over time.
 
-::: {.panel-tabset}
-
+::: panel-tabset
 ## View
 
 ```{r}
@@ -721,7 +704,6 @@ ggtern(
   ) +
   theme_tern_yy
 ```
-
 :::
 
 The line paths show the direction of demographic change. If a planning area moves closer to the aged corner, it suggests a stronger ageing pattern.
@@ -732,8 +714,7 @@ A ternary plot is compact, but some readers may not be familiar with triangular 
 
 ### 5.5.1 Supporting line chart of population shares
 
-::: {.panel-tabset}
-
+::: panel-tabset
 ## View
 
 ```{r}
@@ -829,7 +810,6 @@ ggplot(
   theme_yy +
   theme(legend.position = "top")
 ```
-
 :::
 
 This chart makes it easier to see which component is driving the movement inside the ternary plot.
@@ -838,14 +818,13 @@ This chart makes it easier to see which component is driving the movement inside
 
 As an additional analytical layer, we calculate an ageing ratio:
 
-```text
+``` text
 aged share / young share
 ```
 
 A higher ageing ratio means the aged population is larger relative to the young population.
 
-::: {.panel-tabset}
-
+::: panel-tabset
 ## View
 
 ```{r}
@@ -911,20 +890,18 @@ DT::datatable(
   width = "100%"
 )
 ```
-
 :::
 
-::: {.callout-tip}
+::: callout-tip
 ## Extra interpretation
 
-The ageing ratio gives a simple summary of demographic ageing.  
+The ageing ratio gives a simple summary of demographic ageing.\
 If this ratio increases over time, the planning area is ageing relative to its young population.
 :::
 
 ### 5.5.3 Visualising ageing ratio for selected planning areas
 
-::: {.panel-tabset}
-
+::: panel-tabset
 ## View
 
 ```{r}
@@ -968,7 +945,6 @@ ageing_indicator %>%
   theme_yy +
   theme(legend.position = "bottom")
 ```
-
 :::
 
 This extra chart makes the ageing pattern more explicit. It complements the ternary plot by turning the age balance into a direct indicator.
@@ -979,10 +955,10 @@ Ternary plots are useful when the main task is to compare three parts of a whole
 
 The ternary plot keeps the composition intact, while the supporting line charts help explain the direction of change more clearly.
 
-::: {.callout-tip}
+::: callout-tip
 ## Final takeaway
 
-Use a ternary plot when three components must be interpreted together.  
+Use a ternary plot when three components must be interpreted together.\
 For population data, it is especially useful for showing how the age structure shifts across places and over time.
 :::
 
@@ -990,10 +966,10 @@ For population data, it is especially useful for showing how the age structure s
 
 This exercise covered:
 
-- cleaning Singapore resident population data,
-- converting detailed age groups into three age components,
-- calculating percentage shares,
-- creating ternary plots with `ggtern`,
-- using supporting charts to improve interpretation.
+-   cleaning Singapore resident population data,
+-   converting detailed age groups into three age components,
+-   calculating percentage shares,
+-   creating ternary plots with `ggtern`,
+-   using supporting charts to improve interpretation.
 
 The main interpretation principle is simple: a ternary plot shows **composition**, not absolute population size.
