@@ -11,3 +11,15 @@ pacman::p_load(tidyverse,jsonlite,
 ```{r}
 mc1_data <- fromJSON("MC1_final_00.json")
 ```
+
+```{r}
+mc1_data <- as.data.frame(mc1_data$rounds)
+```
+
+```{r}
+write_rds(mc1_data, "mc1_data.rds")
+```
+
+```{r}
+mc1_data <- read_rds("mc1_data.rds")
+```
