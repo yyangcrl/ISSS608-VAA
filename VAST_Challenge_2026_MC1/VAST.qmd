@@ -1,0 +1,13 @@
+---
+title: "VAST"
+format: html
+---
+
+```{r}
+pacman::p_load(tidyverse,jsonlite,
+               tidygraph,ggraph)
+```
+
+```{r}
+mc1_data <- fromJSON("MC1_final_00.json")
+```
