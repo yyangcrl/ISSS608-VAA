@@ -196,6 +196,10 @@ highest_freq_payment <- payment_summary |> slice_max(claim_frequency, n = 1, wit
 highest_bonus <- bonus_summary |> slice_max(portfolio_loss_ratio, n = 1, with_ties = FALSE)
 lowest_bonus <- bonus_summary |> slice_min(portfolio_loss_ratio, n = 1, with_ties = FALSE)
 
+worst_area <- area_summary |> slice_max(portfolio_loss_ratio, n = 1, with_ties = FALSE)
+highest_freq_area <- area_summary |> slice_max(claim_frequency, n = 1, with_ties = FALSE)
+worst_fuel <- fuel_summary |> slice_max(portfolio_loss_ratio, n = 1, with_ties = FALSE)
+
 missing_tbl <- portfolio_raw |>
   summarise(across(everything(), ~sum(is.na(.x))/n())) |>
   pivot_longer(everything(), names_to = "variable", values_to = "missing_pct") |>
@@ -444,7 +448,34 @@ top5_loss_share <- tail_tbl |> filter(policy_share <= 0.05) |> summarise(v = max
   margin-top: 0.20em !important;
   margin-bottom: 0.20em !important;
 }
+
+/* Slide-specific topic hyperlink to matching technical report section */
+.reveal .topic-link {
+  position: fixed;
+  right: 24px;
+  bottom: 18px;
+  z-index: 9999;
+  font-size: 0.40em;
+  line-height: 1;
+  opacity: 0.72;
+}
+
+.reveal .topic-link a {
+  color: #1F4E79;
+  text-decoration: none;
+  border-bottom: 1px solid #1F4E79;
+}
+
+.reveal .topic-link a:hover {
+  opacity: 1;
+  text-decoration: none;
+}
+
 </style>
+
+<div class="topic-link">
+  <a href="Technical_Report.html" target="_blank">Technical report →</a>
+</div>
 
 ::: notes
 This executive summary presents the portfolio-level and segment-level findings from the motor insurance portfolio dataset. The analysis follows the assignment requirement: data preparation, univariate visual analytics, bivariate visual analytics, statistical validation, and management implications. The focus is profitability and volatility, measured through premium adequacy, claim frequency, claim severity, and tail-risk behaviour.
@@ -496,6 +527,10 @@ p_records + p_exposure + p_missing
 -   **Implication: profitability must be analysed using exposure-adjusted and portfolio-weighted metrics, not raw averages.**
 :::
 
+<div class="topic-link">
+  <a href="Technical_Report.html#data-audit" target="_blank">Technical details →</a>
+</div>
+
 ::: notes
 This slide validates the data foundation. The records are policy-year observations, which is suitable for insurance analysis because each row links exposure, premium, claim counts, and incurred losses. The most important methodological choice is to use exposure-adjusted metrics. Without exposure adjustment, a short-duration policy and a full-year policy would be treated as equally informative, which would distort both profitability and frequency analysis.
 :::
@@ -536,6 +571,10 @@ kpi_tbl |>
 -   **Frequency and severity** explain why the loss ratio changes.
 -   **Tail volatility** identifies segments where averages are unstable because of extreme claims.
 :::
+
+<div class="topic-link">
+  <a href="Technical_Report.html#assignment-purpose" target="_blank">Technical details →</a>
+</div>
 
 ::: notes
 This slide fixes the interpretation logic. A high loss ratio alone is not enough. It could come from too many claims, expensive claims, inadequate premium, or a small number of extreme losses. Therefore the analysis separates profitability, frequency, severity, and volatility. This is also why several chart types are needed rather than a single bar chart.
@@ -582,6 +621,10 @@ p_money + p_lr_trend + p_rate
 -   Portfolio loss ratio rose by **`r number(annual_change$loss_ratio_change_pp, accuracy = 0.1)` percentage points**.
 -   **Implication: growth requires segment-level pricing control; volume alone did not stabilise profitability.**
 :::
+
+<div class="topic-link">
+  <a href="Technical_Report.html#portfolio-overview" target="_blank">Technical details →</a>
+</div>
 
 ::: notes
 The portfolio expanded, but the profitability trend is less favourable. The key comparison is not only premium against incurred amount, but also the loss ratio and premium rate. This shows whether the insurer is being paid adequately for the exposure it takes on. The visual pattern suggests that growth should be monitored together with underwriting quality.
@@ -635,6 +678,10 @@ p_claim_count + p_incurred_positive + p_tail
 -   **Implication: frequency and severity must be modelled separately; raw mean loss is unstable.**
 :::
 
+<div class="topic-link">
+  <a href="Technical_Report.html#loss-distribution" target="_blank">Technical details →</a>
+</div>
+
 ::: notes
 The previous version looked blank because zero-loss rows dominated the histograms. This revised slide separates claim count, positive incurred loss, and tail concentration. The chart choice is intentional: the bar chart shows claim rarity, the log histogram makes positive losses visible, and the concentration curve quantifies tail dependence.
 :::
@@ -681,6 +728,10 @@ p_policy_lr + p_policy_freq + p_policy_sev
 -   Best product: **`r as.character(best_policy$policy_type)`**, loss ratio **`r percent(best_policy$portfolio_loss_ratio, accuracy = 0.1)`**.
 -   **Implication: product review should decompose loss ratio into claim frequency and severity before repricing.**
 :::
+
+<div class="topic-link">
+  <a href="Technical_Report.html#segment-loss-ratio" target="_blank">Technical details →</a>
+</div>
 
 ::: notes
 Product type is a natural first segmentation because it reflects coverage structure. Three charts are used rather than one because loss ratio alone does not explain the mechanism. The frequency and severity panels show whether profitability pressure comes from more claims or more expensive claims. This directly supports underwriting and pricing decisions.
@@ -739,6 +790,10 @@ p_bonus_lr + p_bonus_freq + p_bonus_rate
 -   **Implication: bonus score should remain in monitoring because premium adjustment does not fully flatten risk differences.**
 :::
 
+<div class="topic-link">
+  <a href="Technical_Report.html#bonus-score" target="_blank">Technical details →</a>
+</div>
+
 ::: notes
 A line chart is appropriate because bonus score is ordered. It reveals whether risk moves monotonically or irregularly across score levels. The slide compares loss ratio, claim frequency, and premium rate to check whether higher-risk groups are being compensated by pricing. This is more informative than a single distribution plot.
 :::
@@ -785,6 +840,10 @@ p_pay_lr + p_pay_freq + p_pay_rate
 -   **Implication: payment frequency is a behavioural risk signal, not only an administrative variable.**
 :::
 
+<div class="topic-link">
+  <a href="Technical_Report.html#payment-frequency" target="_blank">Technical details →</a>
+</div>
+
 ::: notes
 Payment frequency is not a classic vehicle-risk variable, but it can reveal behaviour and selection effects. The bar chart is suitable here because categories are nominal and the purpose is ranking. The interpretation is careful: this shows association, not causality. It is a useful dashboard variable for underwriting and retention monitoring.
 :::
@@ -826,6 +885,10 @@ p_status_lr + p_status_freq + p_status_sev
 -   Cancelled policies show loss ratio of **`r percent(cancelled$portfolio_loss_ratio, accuracy = 0.1)`**, versus **`r percent(active$portfolio_loss_ratio, accuracy = 0.1)`** for active policies.
 -   **Implication: cancellation is an adverse-experience monitoring signal, but should not be interpreted as causal without event sequencing.**
 :::
+
+<div class="topic-link">
+  <a href="Technical_Report.html#policy-status" target="_blank">Technical details →</a>
+</div>
 
 ::: notes
 The chart compares status groups across profitability, frequency, and severity. This slide is strong for decision making but needs cautious wording. A cancelled policy may have cancelled after a claim; therefore, the status variable may partly be an outcome. The correct business action is to monitor cancellations as adverse-experience signals and investigate timing.
@@ -954,10 +1017,15 @@ p_fuel <- fuel_summary |>
 ```
 
 ::: obs
--   Circulation area and fuel type show material differences in loss ratio and frequency.
--   These variables are useful because they reflect **contextual risk exposure**, not only driver or product characteristics.
--   **Implication: rating review should check whether contextual variables are adequately priced.**
+-   Highest-loss circulation area: **`r as.character(worst_area$circulation_area)`**, loss ratio **`r percent(worst_area$portfolio_loss_ratio, accuracy = 0.1)`**.
+-   Highest claim-frequency area: **`r as.character(highest_freq_area$circulation_area)`**, **`r number(highest_freq_area$claim_frequency, accuracy = 0.01)` claims per exposure year**.
+-   Highest-loss fuel type: **`r as.character(worst_fuel$fuel_type)`**, loss ratio **`r percent(worst_fuel$portfolio_loss_ratio, accuracy = 0.1)`**.
+-   **Implication: contextual variables should be checked for pricing adequacy, not treated as background descriptors.**
 :::
+
+<div class="topic-link">
+  <a href="Technical_Report.html#geography-usage" target="_blank">Technical details →</a>
+</div>
 
 ::: notes
 This slide broadens the analysis beyond product and customer variables. Circulation area and fuel type are not causal proofs, but they are plausible risk context variables. The chart design remains simple because the management question is categorical comparison. It identifies which contextual segments deserve deeper pricing review.
@@ -984,6 +1052,9 @@ age_heatmap <- portfolio |>
   ) |>
   filter(policies >= 100)
 
+age_hotspot <- age_heatmap |>
+  slice_max(portfolio_loss_ratio, n = 1, with_ties = FALSE)
+
 age_heatmap |>
   ggplot(aes(x = vehicle_age_band, y = driver_age_band, fill = portfolio_loss_ratio)) +
   geom_tile(colour = "white", linewidth = 0.5) +
@@ -997,10 +1068,14 @@ age_heatmap |>
 ```
 
 ::: obs
--   Heatmap evidence shows that profitability varies by **combination** of driver age and vehicle age.
--   The chart is used because the analytical question is interactional; a one-variable bar chart would hide joint risk pockets.
+-   Highest-risk displayed cell: driver age **`r as.character(age_hotspot$driver_age_band)`** × vehicle age **`r as.character(age_hotspot$vehicle_age_band)`**.
+-   This cell records loss ratio of **`r percent(age_hotspot$portfolio_loss_ratio, accuracy = 0.1)`** across **`r comma(age_hotspot$policies)` policy-year records**.
 -   **Implication: interaction-based monitoring is more useful than checking one rating factor at a time.**
 :::
+
+<div class="topic-link">
+  <a href="Technical_Report.html#interaction-heatmap" target="_blank">Technical details →</a>
+</div>
 
 ::: notes
 The legend bug is removed because the exact values are printed inside each tile. A heatmap is the correct visual method because it shows interaction between two categorical bands. This satisfies the bivariate visual analytics requirement and gives a more decision-useful insight than two separate bar charts.
@@ -1044,6 +1119,14 @@ flagged_brand <- brand_funnel |>
   mutate(distance = abs(claim_frequency - overall_rate)) |>
   slice_max(distance, n = 6, with_ties = FALSE)
 
+flagged_count <- brand_funnel |>
+  filter(claim_frequency > overall_rate + 1.96 * sqrt(overall_rate / exposure) |
+           claim_frequency < pmax(overall_rate - 1.96 * sqrt(overall_rate / exposure), 0)) |>
+  nrow()
+
+most_deviant_brand <- flagged_brand |>
+  slice_max(distance, n = 1, with_ties = FALSE)
+
 ggplot() +
   geom_ribbon(
     data = funnel_curve,
@@ -1067,10 +1150,15 @@ ggplot() +
 ```
 
 ::: obs
--   Funnel plot is chosen because segment rankings can be misleading when exposure sizes differ.
--   Points outside or near the funnel boundary deserve investigation before being treated as true high-risk brands.
+-   The funnel screens **`r comma(nrow(brand_funnel))` vehicle-brand groups** after low-exposure brands are filtered or lumped.
+-   **`r flagged_count` brand groups** fall outside the approximate 95% expected range.
+-   Most deviant displayed brand: **`r as.character(most_deviant_brand$vehicle_brand)`**, claim frequency **`r number(most_deviant_brand$claim_frequency, accuracy = 0.01)`**.
 -   **Implication: fair comparison requires volume adjustment, not just sorting by loss ratio.**
 :::
+
+<div class="topic-link">
+  <a href="Technical_Report.html#funnel-plot" target="_blank">Technical details →</a>
+</div>
 
 ::: notes
 This is an advanced visual analytics method aligned with the R4VA funnel plot topic. It directly addresses a common insurance analytics problem: small segments can look extreme simply because they have little exposure. The funnel plot makes the comparison fairer by showing expected variation under different exposure sizes.
@@ -1183,6 +1271,10 @@ p_rain + p_ridge + plot_layout(widths = c(1.08, 0.92))
 - **Implication: advanced distribution plots are justified because profitability is skewed and tail-driven.**
 :::
 
+<div class="topic-link">
+  <a href="Technical_Report.html#distribution-shape" target="_blank">Technical details →</a>
+</div>
+
 ::: {.notes}
 This slide is included as a visual analytics add-on beyond basic bar and box plots. Zero-claim records are excluded deliberately because Observation 3 already shows their dominance. The raincloud chart is suitable for product type because it shows distribution shape, median, spread, and individual concentration. The ridgeline chart is suitable for payment frequency because there are multiple groups and the question is whether the overall shape differs, not only whether the average differs. This supports the assignment requirement to use appropriate visual analytics methods and justify why they were selected.
 :::
@@ -1230,6 +1322,10 @@ kruskal_results |>
 -   The test supports segment differences, but does **not** prove causality.
 -   **Implication: the visuals are strong enough to guide deeper actuarial modelling, not replace it.**
 :::
+
+<div class="topic-link">
+  <a href="Technical_Report.html#statistical-validation" target="_blank">Technical details →</a>
+</div>
 
 ::: notes
 The statistical validation checks whether the visual differences are likely to be random noise. Kruskal-Wallis is more defensible than ANOVA because policy-level loss ratio is non-normal. The p-values are capped for readability. The conclusion remains disciplined: statistical evidence supports segmentation, but causality and final pricing require a formal actuarial model.
@@ -1285,6 +1381,10 @@ ggplot(rec_tbl, aes(x = Column, y = Priority)) +
 ::: obs
 **Overall conclusion:** profitability pressure is not random. It is concentrated in identifiable product, payment, cancellation, and exposure-adjusted segment patterns. The next step is formal actuarial modelling, but the visual analytics already gives management a defensible shortlist for investigation.
 :::
+
+<div class="topic-link">
+  <a href="Technical_Report.html#recommendations" target="_blank">Technical details →</a>
+</div>
 
 ::: notes
 This slide turns the visual findings into management action. The table deliberately separates the action from the evidence so the recommendation is not just descriptive. The key discipline is that the visual analytics does not claim to replace actuarial pricing. It narrows the modelling agenda: product type, payment frequency, cancellation status, and exposure-adjusted outliers should be investigated first.

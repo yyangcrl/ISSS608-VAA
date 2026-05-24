@@ -66,8 +66,7 @@ fmt_num <- function(x) scales::number(x, accuracy = 0.01)
 fmt_pct <- function(x) scales::percent(x, accuracy = 0.1)
 ```
 
-# Assignment purpose and analytical design
-
+# Assignment purpose and analytical design {#assignment-purpose}
 This report addresses the ISSS608 Take-home Exercise 1 requirement: use **visual analytics for data discovery** on a motor vehicle insurance portfolio dataset. The analytical target is not only to describe the portfolio, but to identify where profitability and volatility differ across policy, customer, vehicle, and exposure characteristics.
 
 The report uses the following logic:
@@ -78,8 +77,7 @@ The report uses the following logic:
 4.  **Statistical validation**: support visual patterns with non-parametric tests and frequency modelling.
 5.  **Business interpretation**: translate visual evidence into underwriting, pricing, and portfolio-management implications.
 
-## Rubric alignment and deliverable logic
-
+## Rubric alignment and deliverable logic {#rubric-alignment}
 The technical report is written to support the Executive Summary rather than repeat it. The Executive Summary presents the decision story; this report documents the reproducible analytical evidence behind that story. The following table maps the report design to the assignment assessment logic.
 
 | Assessment area | How this report addresses it |
@@ -92,8 +90,7 @@ The technical report is written to support the Executive Summary rather than rep
 
 The methods are selected from the R for Visual Analytics materials only when they fit the data structure. Because insurance losses are highly right-skewed and zero-inflated, the report avoids relying only on means. It uses **weighted portfolio loss ratios**, **exposure-adjusted claim frequency**, **winsorised distributions**, **raincloud plots**, **ridgeline plots**, **heatmaps**, and **model-supported visual diagnostics**.
 
-# Data import and dictionary reconciliation
-
+# Data import and dictionary reconciliation {#data-preparation}
 ```{r}
 #| label: data-import
 
@@ -145,10 +142,8 @@ column_check |>
 
 A clean analysis should explicitly check whether dataset columns match the variable dictionary. Any mismatch would undermine reproducibility and interpretation.
 
-# Data audit and preparation
-
-## Structural checks
-
+# Data audit and preparation {#data-audit}
+## Structural checks {#structural-checks}
 ```{r}
 #| label: structural-checks
 
@@ -190,8 +185,7 @@ missingness |>
 
 Only a small number of variables contain missing values. They are not dropped wholesale because insurance missingness may itself be informative. For visual analytics, missing categories are explicitly retained as `"Unknown"` where relevant.
 
-## Metric engineering
-
+## Metric engineering {#metric-engineering}
 ```{r}
 #| label: metric-engineering
 
@@ -270,10 +264,8 @@ portfolio |>
   gt::gt()
 ```
 
-# Univariate visual analytics
-
-## Portfolio growth and exposure composition
-
+# Univariate visual analytics {#univariate-visual-analytics}
+## Portfolio growth and exposure composition {#portfolio-overview}
 ```{r}
 #| label: annual-summary
 
@@ -334,8 +326,7 @@ p_annual_volume + p_annual_lr
 
 The annual summary is essential because the assignment asks for discovery of profitability and volatility. The portfolio is not static: exposure, premium, incurred losses, and claim frequency all change over time.
 
-## Distribution of premium, incurred losses, and loss ratio
-
+## Distribution of premium, incurred losses, and loss ratio {#loss-distribution}
 ```{r}
 #| label: univariate-distributions
 #| fig-width: 11
@@ -373,8 +364,7 @@ p_premium + p_incurred + p_lr
 
 The incurred-loss distribution is structurally different from the premium distribution. Premium is continuous and right-skewed, whereas incurred loss has many zero values and a heavy tail. This supports the use of robust visualisations and exposure-weighted metrics rather than raw averages alone.
 
-## Claim count distribution
-
+## Claim count distribution {#claim-count-distribution}
 ```{r}
 #| label: claim-count-distribution
 #| fig-width: 8
@@ -402,8 +392,7 @@ portfolio |>
 
 This confirms a typical insurance portfolio pattern: most policies do not claim, while a minority drives incurred losses. That is why frequency and severity should be separated analytically.
 
-## Product composition
-
+## Product composition {#product-composition}
 ```{r}
 #| label: product-composition
 #| fig-width: 10
@@ -452,8 +441,7 @@ policy_composition |>
 
 Portfolio management should distinguish between count share, exposure share, premium share, and incurred share. A product with modest policy count can still dominate premium or loss contribution if coverage is broader or riskier.
 
-## Ridgeline plot of premium rate by product
-
+## Ridgeline plot of premium rate by product {#premium-ridgeline}
 ```{r}
 #| label: ridgeline-premium-rate
 #| fig-width: 9
@@ -481,8 +469,7 @@ portfolio |>
 
 This method is taken from the R4VA distribution chapter. It is suitable here because `policy_type` has multiple ordered groups and `premium_rate` is a continuous metric.
 
-## Raincloud plot of loss ratio by product
-
+## Raincloud plot of loss ratio by product {#product-raincloud}
 ```{r}
 #| label: raincloud-loss-ratio-policy
 #| fig-width: 9
@@ -516,8 +503,7 @@ portfolio |>
 
 The raincloud plot is stronger than a standard boxplot for this task because it exposes distribution shape and concentration while retaining median and IQR information. This directly supports the visual-discovery requirement.
 
-## Distribution-shape add-on for adverse-experience policies
-
+## Distribution-shape add-on for adverse-experience policies {#distribution-shape}
 The Executive Summary includes a distribution-shape add-on because the portfolio is zero-heavy: most policy-year records have no claims, while a small tail of adverse-experience policies drives volatility. This technical view deliberately filters to positive loss-ratio records and caps the displayed tail at the 95th percentile. The purpose is not to hide severe losses; the purpose is to make the shape among adverse records readable after the report has already established the scale of zero-claim dominance.
 
 ```{r}
@@ -588,10 +574,8 @@ p_positive_raincloud + p_positive_ridgeline
 
 The raincloud plot is appropriate because it combines distribution density, boxplot summary, and observation concentration in one view. The ridgeline plot is appropriate because it compares distribution shape across multiple ordered groups without forcing the reader to inspect separate charts. Together, these methods justify the executive conclusion that simple averages are unstable for this portfolio.
 
-# Bivariate visual analytics
-
-## Segment-performance function
-
+# Bivariate visual analytics {#bivariate-visual-analytics}
+## Segment-performance function {#segment-performance-function}
 ```{r}
 #| label: segment-function
 
@@ -619,8 +603,7 @@ segment_summary <- function(data, segment_var) {
 
 For profitability, `portfolio_loss_ratio` is the primary measure. For volatility, this report uses claim frequency, average severity, policy-level loss-ratio dispersion, and incurred-loss coefficient of variation.
 
-## Product type and profitability
-
+## Product type and profitability {#segment-loss-ratio}
 ```{r}
 #| label: policy-type-summary
 
@@ -667,8 +650,7 @@ p_policy_lr + p_policy_freq + p_policy_sev
 
 Policy type is a central segmentation variable because coverage structure changes both expected premium and claim behaviour. This set of charts separates whether higher loss ratios are driven by frequency, severity, or premium adequacy.
 
-## Claims-history signal: bonus score
-
+## Claims-history signal: bonus score {#bonus-score}
 ```{r}
 #| label: bonus-score-summary
 
@@ -711,8 +693,7 @@ p_bonus_lr + p_bonus_freq + p_bonus_premium
 
 Bonus score is expected to reflect historical claims experience. The visual check evaluates whether pricing and actual risk move in the same direction.
 
-## Payment frequency and operational risk
-
+## Payment frequency and operational risk {#payment-frequency}
 ```{r}
 #| label: payment-frequency-summary
 
@@ -755,8 +736,7 @@ p_payment_lr + p_payment_freq + p_payment_sev
 
 Payment frequency is not a pure actuarial variable, but it may proxy customer liquidity, retention, or contract-management behaviour. It is included because the assignment asks for data discovery, not only predetermined actuarial rating variables.
 
-## Policy status and cancellation effect
-
+## Policy status and cancellation effect {#policy-status}
 ```{r}
 #| label: policy-status-summary
 
@@ -794,8 +774,7 @@ p_status_lr + p_status_freq
 
 This is a high-value discovery. However, interpretation must be careful: cancellation may occur after adverse claim experience, so this should not be treated as a causal driver without temporal modelling.
 
-## Fuel type, circulation area, and geography
-
+## Fuel type, circulation area, and geography {#geography-usage}
 ```{r}
 #| label: location-fuel-summaries
 
@@ -848,8 +827,7 @@ p_fuel + p_area + p_muni
 
 Geographic and vehicle-use variables may not dominate the portfolio, but they are useful for risk refinement and interaction effects.
 
-## Driver age and vehicle age heatmap
-
+## Driver age and vehicle age heatmap {#interaction-heatmap}
 ```{r}
 #| label: age-heatmap-data
 
@@ -888,12 +866,93 @@ age_heatmap |>
 
 A heatmap is appropriate here because the question is not simply whether driver age or vehicle age matters individually, but whether specific combinations produce worse profitability.
 
-# Statistical validation
 
+## Funnel plot for exposure-adjusted brand screening {#funnel-plot}
+
+The Executive Summary includes a funnel plot because raw segment rankings can overreact to small-volume groups. In insurance portfolios, a vehicle brand with limited exposure can show an extreme claim frequency simply because the denominator is small. A funnel plot is therefore more defensible than a simple sorted bar chart when the analytical question is whether a segment is unusually high after accounting for exposure volume.
+
+The funnel uses claim frequency as the outcome and exposure years as the denominator. The centre line is the overall portfolio claim frequency. The approximate 95% band widens at low exposure and narrows at high exposure, reflecting the higher random variation expected in small segments.
+
+```{r}
+#| label: funnel-plot-data
+#| fig-width: 10
+#| fig-height: 5
+
+brand_funnel <- portfolio |>
+  group_by(vehicle_brand) |>
+  summarise(
+    exposure = sum(total_exposure, na.rm = TRUE),
+    claims = sum(total_claims, na.rm = TRUE),
+    claim_frequency = claims / exposure,
+    .groups = "drop"
+  ) |>
+  filter(exposure >= quantile(exposure, 0.50, na.rm = TRUE)) |>
+  mutate(vehicle_brand = fct_lump_n(vehicle_brand, n = 25, w = exposure)) |>
+  group_by(vehicle_brand) |>
+  summarise(
+    exposure = sum(exposure),
+    claims = sum(claims),
+    claim_frequency = claims / exposure,
+    .groups = "drop"
+  ) |>
+  filter(vehicle_brand != "Other")
+
+overall_rate <- sum(portfolio$total_claims, na.rm = TRUE) / sum(portfolio$total_exposure, na.rm = TRUE)
+
+funnel_curve <- tibble(
+  exposure = seq(min(brand_funnel$exposure), max(brand_funnel$exposure), length.out = 200),
+  expected = overall_rate,
+  upper_95 = overall_rate + 1.96 * sqrt(overall_rate / exposure),
+  lower_95 = pmax(overall_rate - 1.96 * sqrt(overall_rate / exposure), 0)
+)
+
+flagged_brand <- brand_funnel |>
+  mutate(distance = abs(claim_frequency - overall_rate)) |>
+  slice_max(distance, n = 6, with_ties = FALSE)
+
+ggplot() +
+  geom_ribbon(
+    data = funnel_curve,
+    aes(x = exposure, ymin = lower_95, ymax = upper_95),
+    fill = "#D9E8F6",
+    alpha = 0.85
+  ) +
+  geom_line(
+    data = funnel_curve,
+    aes(x = exposure, y = expected),
+    colour = my_blue,
+    linewidth = 1
+  ) +
+  geom_point(
+    data = brand_funnel,
+    aes(x = exposure, y = claim_frequency),
+    colour = my_teal,
+    size = 2.5,
+    alpha = 0.85
+  ) +
+  geom_text(
+    data = flagged_brand,
+    aes(x = exposure, y = claim_frequency, label = vehicle_brand),
+    size = 3,
+    vjust = -0.7,
+    check_overlap = TRUE
+  ) +
+  scale_x_continuous(labels = label_number(scale_cut = cut_short_scale())) +
+  scale_y_continuous(labels = number_format(accuracy = 0.01)) +
+  labs(
+    title = "Funnel plot: claim frequency by vehicle brand",
+    subtitle = "Approximate 95% expected range after accounting for exposure size",
+    x = "Exposure years",
+    y = "Claims per exposure year"
+  )
+```
+
+The funnel plot adds value because it separates a genuinely unusual segment signal from random variation caused by small denominators. This is directly aligned with the assignment requirement to use visual analytics for discovery rather than only descriptive charting.
+
+# Statistical validation {#statistical-validation}
 Visual analytics should lead discovery, but the strongest submission should not rely only on visual judgement. The validation layer is intentionally modest: it does not claim to replace actuarial pricing, but it checks whether the major visual differences remain statistically visible when assessed through standard non-parametric and frequency-model tools. This section uses statistical tests to check whether observed group differences are unlikely to be random noise.
 
-## Non-parametric comparison of policy-level loss ratio
-
+## Non-parametric comparison of policy-level loss ratio {#nonparametric-validation}
 Insurance loss ratio is extremely skewed, so the Kruskal-Wallis test is more appropriate than standard one-way ANOVA for policy-level loss-ratio comparisons.
 
 ```{r}
@@ -925,8 +984,7 @@ kruskal_results |>
 
 A significant result does not prove business causality, but it supports that the visual segment differences are not merely random sampling fluctuation.
 
-## Claim occurrence and categorical association
-
+## Claim occurrence and categorical association {#claim-occurrence-validation}
 ```{r}
 #| label: chi-square-tests
 
@@ -951,8 +1009,7 @@ chi_square_results |>
 
 The chi-square tests focus on claim occurrence, not incurred amount. This separates frequency risk from severity risk.
 
-## Logistic model for claim occurrence
-
+## Logistic model for claim occurrence {#logistic-model}
 ```{r}
 #| label: logistic-model
 
@@ -1014,8 +1071,7 @@ claim_model_tidy |>
   )
 ```
 
-# Synthesis of findings
-
+# Synthesis of findings {#synthesis}
 ```{r}
 #| label: key-findings-objects
 #| include: false
@@ -1048,8 +1104,7 @@ The main findings are:
 4.  **Payment frequency carries risk signal.** `r as.character(worst_payment$payment_frequency)` has the highest loss ratio, while `r as.character(highest_freq_payment$payment_frequency)` has the highest claim frequency. This suggests payment structure may proxy behavioural or retention risk.
 5.  **Volatility is concentrated in the tail.** Policy-level incurred losses and loss ratios are highly skewed; robust visual methods are necessary.
 
-# Recommendations
-
+# Recommendations {#recommendations}
 The analytical recommendations are:
 
 -   **Reprice or review high-loss product segments**, especially policy types whose portfolio loss ratio approaches or exceeds the portfolio average by a large margin.
@@ -1059,8 +1114,7 @@ The analytical recommendations are:
 -   **Retain advanced distribution charts in the executive deck.** Raincloud and ridgeline plots provide higher information density than basic boxplots while remaining interpretable.
 -   **Avoid treating this report as a pricing model.** It is a visual analytics discovery report. Pricing would require actuarial modelling, temporal validation, exposure offsets, expense assumptions, and regulatory review.
 
-# Reproducibility notes
-
+# Reproducibility notes {#reproducibility-notes}
 The report is fully reproducible in RStudio/Quarto if the two data files are placed in the `data/` folder with these exact names:
 
 -   `Dataset of motor insurance portfolio.csv`
@@ -1070,10 +1124,10 @@ The report intentionally keeps the full analytical workflow in executable R code
 
 The Executive Summary is derived from this report. The two deliverables therefore share the same analytical spine: exposure-adjusted profitability, claim frequency, claim severity, loss-ratio volatility, segment comparison, distribution-shape diagnosis, interaction analysis, funnel-plot screening, statistical validation, and management recommendations.
 
-# References
-
+# References {#references}
 -   ISSS608 course assignment page. (2026). *Take-home Exercise 1: Visual Analytics for Data Discovery*. Retrieved from <https://isss608-ay2025-26apr.netlify.app/th_ex/th_ex1>
 -   Kam, T. S. (2023–2026). *R for Visual Analytics*. Retrieved from <https://r4va.netlify.app/>
+-   Kam, T. S. (2023–2026). *Funnel Plots for Fair Comparisons*. In *R for Visual Analytics*. Retrieved from <https://r4va.netlify.app/chap08>
 -   Kam, T. S. (2023–2026). *Chapter 9: Visualising Distribution*. R for Visual Analytics. Retrieved from <https://r4va.netlify.app/chap09>
 -   Quarto. (n.d.). *Revealjs presentations*. Retrieved from <https://quarto.org/docs/presentations/revealjs/>
 -   R Core Team. (n.d.). *R: The R Project for Statistical Computing*. Retrieved from <https://www.r-project.org/>
