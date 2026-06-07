@@ -1,0 +1,1031 @@
+---
+title: "VAST Challenge 2026 MC1: Diagnosing the TenantThread Embargo Breach"
+author: "Yang Yang"
+date: "2026-06-07"
+format:
+  html:
+    theme: sketchy
+    toc: true
+    toc-depth: 3
+    number-sections: true
+    code-fold: true
+    code-summary: "Code"
+    code-tools: true
+    code-overflow: wrap
+execute:
+  warning: false
+  message: false
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(
+  fig.width = 10,
+  fig.height = 6,
+  dpi = 180,
+  out.width = "100%"
+)
+
+required_packages <- c(
+  "jsonlite", "tidyverse", "lubridate", "forcats", "scales",
+  "tidytext", "widyr", "igraph", "tidygraph", "ggraph", "ggrepel",
+  "patchwork", "knitr"
+)
+
+missing_packages <- required_packages[
+  !vapply(required_packages, requireNamespace, logical(1), quietly = TRUE)
+]
+
+if (length(missing_packages) > 0) {
+  stop(
+    "Missing required packages: ",
+    paste(missing_packages, collapse = ", "),
+    ". Install them before rendering this report."
+  )
+}
+
+invisible(lapply(required_packages, library, character.only = TRUE))
+
+my_teal <- "#2A6F6F"
+my_dark <- "#1F1F1F"
+my_soft_teal <- "#8AA6A3"
+my_light_teal <- "#D8E8E6"
+my_grey <- "#F2F2F2"
+
+theme_mc1 <- function(base_size = 11) {
+  theme_minimal(base_size = base_size) +
+    theme(
+      plot.title = element_text(face = "bold", color = my_dark),
+      plot.subtitle = element_text(color = my_dark),
+      plot.caption = element_text(color = "grey35", hjust = 0),
+      axis.title = element_text(color = my_dark),
+      axis.text = element_text(color = my_dark),
+      panel.grid.minor = element_blank(),
+      panel.grid.major = element_line(color = "#E6E6E6"),
+      legend.position = "bottom",
+      legend.title = element_text(face = "bold"),
+      strip.text = element_text(face = "bold", color = my_dark),
+      strip.background = element_rect(fill = my_light_teal, color = NA)
+    )
+}
+
+`%||%` <- function(x, y) {
+  if (is.null(x) || length(x) == 0) y else x
+}
+
+data_path <- "data/mc1/MC1_final_00.json"
+raw <- jsonlite::fromJSON(data_path, simplifyVector = FALSE)
+
+rounds <- purrr::imap_dfr(raw$rounds, function(r, i) {
+  tibble(
+    round_index = i,
+    round_hour = lubridate::ymd_hms(r$hour),
+    event_headline = r$environment_context$event_headline %||% NA_character_,
+    event_narrative = r$environment_context$event_narrative %||% NA_character_,
+    social_state = r$environment_context$social_state %||% NA_character_,
+    market_stock_price = r$environment_context$market_snapshot$stock_price %||% NA_character_,
+    market_percent_change = r$environment_context$market_snapshot$percent_change %||% NA_character_,
+    market_sentiment = r$environment_context$market_snapshot$sentiment %||% NA_character_
+  )
+})
+
+comms <- purrr::imap_dfr(raw$rounds, function(r, i) {
+  purrr::map_dfr(r$communications, function(c) {
+    tibble(
+      round_index = i,
+      round_hour = lubridate::ymd_hms(r$hour),
+      message_id = c$message_id %||% NA_character_,
+      agent_id = c$agent_id %||% NA_character_,
+      agent_role = c$agent_role %||% NA_character_,
+      agent_label = c$agent_label %||% NA_character_,
+      channel = c$channel %||% NA_character_,
+      message_type = c$message_type %||% NA_character_,
+      responding_to = c$responding_to %||% NA_character_,
+      timestamp = lubridate::ymd_hms(c$timestamp),
+      content = c$content %||% NA_character_,
+      reacting = c$internal_state$reacting %||% NA_character_,
+      rationalizing = c$internal_state$rationalizing %||% NA_character_,
+      deliberating = c$internal_state$deliberating %||% NA_character_
+    )
+  })
+}) %>%
+  mutate(
+    phase = case_when(
+      timestamp < ymd_hms("2046-06-05 09:00:00") ~ "Pre-crisis baseline",
+      timestamp < ymd_hms("2046-06-05 17:25:00") ~ "Crisis before release",
+      timestamp < ymd_hms("2046-06-05 18:00:00") ~ "Pre-embargo release cascade",
+      TRUE ~ "Post-embargo response"
+    ),
+    phase = factor(
+      phase,
+      levels = c(
+        "Pre-crisis baseline",
+        "Crisis before release",
+        "Pre-embargo release cascade",
+        "Post-embargo response"
+      )
+    ),
+    date = as.Date(timestamp),
+    hour = lubridate::floor_date(timestamp, "hour"),
+    crisis_day = date == as.Date("2046-06-05"),
+    text_all = stringr::str_squish(paste(
+      content,
+      reacting,
+      rationalizing,
+      deliberating,
+      sep = " "
+    ))
+  )
+
+participants <- purrr::imap_dfr(raw$rounds, function(r, i) {
+  purrr::map_dfr(r$participants %||% list(), function(p) {
+    tibble(
+      round_index = i,
+      round_hour = lubridate::ymd_hms(r$hour),
+      agent_id = p$agent_id %||% NA_character_,
+      agent_role = p$agent_role %||% NA_character_,
+      agent_label = p$agent_label %||% NA_character_,
+      declared_action = p$declared_action %||% NA_character_,
+      action_classification = p$agent_round_metadata$action_classification %||% NA_character_,
+      sentiment = p$agent_round_metadata$sentiment_at_turn %||% NA_character_
+    )
+  })
+}) %>%
+  mutate(
+    phase = case_when(
+      round_hour < ymd_hms("2046-06-05 09:00:00") ~ "Pre-crisis baseline",
+      round_hour < ymd_hms("2046-06-05 17:25:00") ~ "Crisis before release",
+      round_hour < ymd_hms("2046-06-05 18:00:00") ~ "Pre-embargo release cascade",
+      TRUE ~ "Post-embargo response"
+    ),
+    phase = factor(
+      phase,
+      levels = levels(comms$phase)
+    )
+  )
+
+domain_stop_terms <- tibble(
+  word = c(
+    "today", "tomorrow", "morning", "afternoon", "evening", "tonight",
+    "need", "needs", "using", "used", "also", "just", "now",
+    "one", "two", "three", "four", "five", "six", "seven", "amp"
+  )
+)
+
+custom_stop_words <- tidytext::stop_words %>%
+  select(word) %>%
+  bind_rows(domain_stop_terms) %>%
+  distinct(word)
+
+tokens <- comms %>%
+  transmute(
+    message_id, timestamp, hour, phase, agent_id, agent_label, channel,
+    message_type,
+    text_all = stringr::str_replace_all(text_all, "https?://\\S+", " ")
+  ) %>%
+  tidytext::unnest_tokens(token, text_all, token = "words") %>%
+  anti_join(custom_stop_words, by = c("token" = "word")) %>%
+  filter(
+    !is.na(token),
+    stringr::str_detect(token, "[a-z]"),
+    nchar(token) > 2
+  )
+
+phase_summary <- comms %>%
+  count(phase, name = "communications") %>%
+  left_join(
+    comms %>%
+      filter(message_type == "public_post") %>%
+      count(phase, name = "public_posts"),
+    by = "phase"
+  ) %>%
+  mutate(public_posts = replace_na(public_posts, 0))
+
+release_posts <- comms %>%
+  filter(
+    phase == "Pre-embargo release cascade",
+    message_type == "public_post",
+    stringr::str_detect(content, regex("CivicLoom|HarborCrest|merger", ignore_case = TRUE))
+  )
+
+first_release_time <- min(release_posts$timestamp)
+last_release_time <- max(release_posts$timestamp)
+release_post_count <- nrow(release_posts)
+release_agents <- release_posts %>%
+  count(agent_id, sort = TRUE) %>%
+  mutate(label = paste0(agent_id, " (", n, ")")) %>%
+  pull(label) %>%
+  paste(collapse = ", ")
+
+total_rounds <- nrow(rounds)
+total_comms <- nrow(comms)
+total_public_posts <- sum(comms$message_type == "public_post")
+total_agents <- n_distinct(comms$agent_id)
+
+deal_regex <- regex("CivicLoom|HarborCrest|merger", ignore_case = TRUE)
+pre_crisis_public_deal_posts <- comms %>%
+  filter(
+    phase == "Pre-crisis baseline",
+    message_type == "public_post",
+    stringr::str_detect(content, deal_regex)
+  ) %>%
+  nrow()
+
+crisis_before_public_deal_posts <- comms %>%
+  filter(
+    phase == "Crisis before release",
+    message_type == "public_post",
+    stringr::str_detect(content, deal_regex)
+  ) %>%
+  nrow()
+
+keyword_terms <- c(
+  "civicloom", "harborcrest", "embargo", "judge", "merger",
+  "governance", "audit", "consent", "saltwind", "algorithmiceviction",
+  "horizon"
+)
+
+keyword_timeline <- tokens %>%
+  filter(token %in% keyword_terms) %>%
+  count(hour, token, name = "mentions")
+
+phase_term_tfidf <- tokens %>%
+  count(phase, token, name = "n") %>%
+  tidytext::bind_tf_idf(token, phase, n)
+
+release_term_compare <- phase_term_tfidf %>%
+  filter(phase == "Pre-embargo release cascade") %>%
+  slice_max(tf_idf, n = 18, with_ties = FALSE)
+
+message_lookup <- comms %>%
+  select(message_id, target_agent = agent_id)
+
+handle_map <- c(
+  "@legal" = "legal_agent",
+  "@social_manager" = "social_media_agent",
+  "@social-manager" = "social_media_agent",
+  "@platform_trust" = "quality_agent",
+  "@platform-trust" = "quality_agent",
+  "@pr" = "pr_agent",
+  "@pr-intern" = "pr_intern_agent",
+  "@pr_intern" = "pr_intern_agent",
+  "@intern" = "intern_agent",
+  "@judge" = "judge_agent"
+)
+
+response_edges <- comms %>%
+  filter(!is.na(responding_to), responding_to != "") %>%
+  mutate(
+    response_key = stringr::str_extract(responding_to, "2046[0-9_]+|@[A-Za-z_-]+"),
+    target_agent = coalesce(
+      message_lookup$target_agent[match(response_key, message_lookup$message_id)],
+      unname(handle_map[response_key])
+    )
+  ) %>%
+  filter(!is.na(target_agent), target_agent != agent_id) %>%
+  count(
+    phase,
+    source = agent_id,
+    target = target_agent,
+    name = "interactions"
+  )
+
+crisis_edges <- response_edges %>%
+  filter(phase == "Crisis before release") %>%
+  group_by(source, target) %>%
+  summarise(interactions = sum(interactions), .groups = "drop")
+
+agent_nodes <- comms %>%
+  distinct(agent_id, agent_label, agent_role) %>%
+  transmute(
+    name = agent_id,
+    agent_label,
+    agent_role
+  )
+
+crisis_graph <- igraph::graph_from_data_frame(
+  crisis_edges,
+  directed = TRUE,
+  vertices = agent_nodes
+)
+
+node_metrics <- tibble(
+  name = igraph::V(crisis_graph)$name,
+  degree_in = igraph::strength(crisis_graph, mode = "in", weights = igraph::E(crisis_graph)$interactions),
+  degree_out = igraph::strength(crisis_graph, mode = "out", weights = igraph::E(crisis_graph)$interactions),
+  betweenness = igraph::betweenness(crisis_graph, directed = TRUE, weights = 1 / igraph::E(crisis_graph)$interactions)
+)
+
+igraph::V(crisis_graph)$degree_total <- node_metrics$degree_in +
+  node_metrics$degree_out
+igraph::V(crisis_graph)$node_label <- stringr::str_replace_all(
+  igraph::V(crisis_graph)$name,
+  "_agent",
+  ""
+)
+
+bigram_counts <- release_posts %>%
+  transmute(
+    message_id,
+    content = content %>%
+      stringr::str_replace_all("https?://\\S+", " ") %>%
+      stringr::str_replace_all("'s\\b", "")
+  ) %>%
+  tidytext::unnest_tokens(bigram, content, token = "ngrams", n = 2) %>%
+  tidyr::separate(bigram, c("word1", "word2"), sep = " ", remove = TRUE) %>%
+  anti_join(custom_stop_words, by = c("word1" = "word")) %>%
+  anti_join(custom_stop_words, by = c("word2" = "word")) %>%
+  filter(
+    stringr::str_detect(word1, "[a-z]"),
+    stringr::str_detect(word2, "[a-z]"),
+    nchar(word1) > 2,
+    nchar(word2) > 2
+  ) %>%
+  count(word1, word2, name = "n", sort = TRUE) %>%
+  filter(n >= 2) %>%
+  slice_max(n, n = 28, with_ties = FALSE)
+
+bigram_graph <- igraph::graph_from_data_frame(bigram_counts, directed = TRUE)
+
+release_term_pairs <- tokens %>%
+  filter(message_id %in% release_posts$message_id) %>%
+  distinct(message_id, token) %>%
+  widyr::pairwise_count(token, message_id, sort = TRUE, upper = FALSE) %>%
+  filter(n >= 2) %>%
+  slice_max(n, n = 28, with_ties = FALSE)
+
+cooccur_graph <- igraph::graph_from_data_frame(release_term_pairs, directed = FALSE)
+
+signal_events <- tibble(
+  message_id = c(
+    "20460605_14_008",
+    "20460605_14_021",
+    "20460605_18_001",
+    "20460605_19_001",
+    "20460605_20_001",
+    "20460605_21_026"
+  ),
+  signal = c(
+    "PR-Intern reports hearing 'CivicLoom timeline at 6 PM'",
+    "PR flags containment failure from intern leak",
+    "Judge monitors critical environment",
+    "Judge issues maximum-threshold compliance warning",
+    "Intern posts personal morale signal during critical window",
+    "Legal publishes first pre-embargo merger confirmation"
+  )
+) %>%
+  left_join(comms, by = "message_id") %>%
+  mutate(
+    evidence = stringr::str_trunc(content, 210),
+    signal = factor(signal, levels = rev(signal))
+  )
+```
+
+# Technical summary
+
+The evidence supports a **premature narrative-release cascade by senior communication agents, not a single accidental post**. The MC1 dataset contains `r total_rounds` rounds and `r total_comms` communications across `r total_agents` agents. The breach window is precise: between `r format(first_release_time, "%I:%M %p")` and `r format(last_release_time, "%I:%M %p")` on June 5, `r release_post_count` public posts disclosed or amplified CivicLoom, HarborCrest, or the merger before the 6:00 PM embargo lift.
+
+**Legal-Agent and Social-Manager-Agent drove the release cascade.** The `r release_post_count` pre-embargo deal posts came from `r release_agents`. Before the crisis day baseline, public posts with CivicLoom, HarborCrest, or merger terms numbered `r pre_crisis_public_deal_posts`; during the pre-release crisis window they numbered `r crisis_before_public_deal_posts`; then they jumped to `r release_post_count` in a 35-minute pre-embargo cascade.
+
+**The leading indicators were visible before the release.** A PR-Intern one-on-one at 10:07 AM surfaced an overheard "CivicLoom timeline at 6 PM"; PR called it a containment problem at 10:20 AM; The Judge issued a critical 3:00 PM warning that no additional forward-looking language, timing references, or strategic-partnership signals should be posted for the rest of the day. The system then failed at enforcement: Legal and Social-Manager still posted deal-specific public content at 5:25 PM and 5:26 PM.
+
+**The strongest interpretation is a breakdown under pressure with deliberate execution by agents.** The posts were not random gibberish or malformed output. They were coherent, repeated, and framed around governance timing. The failure was that compliance advice did not bind action authority during crisis escalation.
+
+# Assignment scope and official task questions
+
+This report addresses ISSS608 Take-home Exercise 2 using VAST Challenge 2026 Mini-Challenge 1. The assignment requires a Quarto HTML report, tidyverse-based data preparation, R-based visual analytics, and reproducible documentation of data import, wrangling, integration, and visualization design.
+
+The MC1 task asks three investigative questions:
+
+-   What key events and relationships led to the inappropriate release?
+-   How did the release behavior compare with typical behavior of the systems, agents, and people involved?
+-   Were there leading indicators that such a release was possible?
+
+The report uses the supplied MC1 JSON only. It does not use data from other VAST challenges.
+
+# Data sources and reproducible import
+
+```{r libraries-and-import}
+library(jsonlite)
+library(tidyverse)
+library(lubridate)
+library(forcats)
+library(scales)
+library(tidytext)
+library(widyr)
+library(igraph)
+library(tidygraph)
+library(ggraph)
+library(ggrepel)
+library(patchwork)
+library(knitr)
+
+my_teal <- "#2A6F6F"
+my_dark <- "#1F1F1F"
+my_soft_teal <- "#8AA6A3"
+my_light_teal <- "#D8E8E6"
+my_grey <- "#F2F2F2"
+
+data_path <- "data/mc1/MC1_final_00.json"
+raw <- jsonlite::fromJSON(data_path, simplifyVector = FALSE)
+names(raw)
+```
+
+The primary dataset is `data/mc1/MC1_final_00.json`. The local data dictionary describes it as a multi-agent crisis dataset with interacting AI agents, internal communications, public posts, internal states, and declared actions over the two weeks leading up to the release.
+
+```{r data-dimensions}
+tibble(
+  item = c("Rounds", "Communications", "Agents", "Public posts"),
+  value = c(
+    nrow(rounds),
+    nrow(comms),
+    n_distinct(comms$agent_id),
+    sum(comms$message_type == "public_post")
+  )
+) %>%
+  knitr::kable(caption = "Core dimensions of the supplied MC1 JSON dataset.")
+```
+
+# Data cleaning and feature engineering
+
+The JSON is nested by round. I converted it into three linked analytical tables:
+
+-   `rounds`: round-level event context and market/social snapshots.
+-   `comms`: one row per communication, including actor, channel, timestamp, response link, public/internal type, message text, and internal-state text.
+-   `participants`: round-level declared actions and action classifications.
+
+```{r data-cleaning-core}
+`%||%` <- function(x, y) {
+  if (is.null(x) || length(x) == 0) y else x
+}
+
+rounds <- purrr::imap_dfr(raw$rounds, function(r, i) {
+  tibble(
+    round_index = i,
+    round_hour = lubridate::ymd_hms(r$hour),
+    event_headline = r$environment_context$event_headline %||% NA_character_,
+    event_narrative = r$environment_context$event_narrative %||% NA_character_,
+    social_state = r$environment_context$social_state %||% NA_character_,
+    market_stock_price = r$environment_context$market_snapshot$stock_price %||% NA_character_,
+    market_percent_change = r$environment_context$market_snapshot$percent_change %||% NA_character_,
+    market_sentiment = r$environment_context$market_snapshot$sentiment %||% NA_character_
+  )
+})
+
+comms <- purrr::imap_dfr(raw$rounds, function(r, i) {
+  purrr::map_dfr(r$communications, function(c) {
+    tibble(
+      round_index = i,
+      round_hour = lubridate::ymd_hms(r$hour),
+      message_id = c$message_id %||% NA_character_,
+      agent_id = c$agent_id %||% NA_character_,
+      agent_role = c$agent_role %||% NA_character_,
+      agent_label = c$agent_label %||% NA_character_,
+      channel = c$channel %||% NA_character_,
+      message_type = c$message_type %||% NA_character_,
+      responding_to = c$responding_to %||% NA_character_,
+      timestamp = lubridate::ymd_hms(c$timestamp),
+      content = c$content %||% NA_character_,
+      reacting = c$internal_state$reacting %||% NA_character_,
+      rationalizing = c$internal_state$rationalizing %||% NA_character_,
+      deliberating = c$internal_state$deliberating %||% NA_character_
+    )
+  })
+}) %>%
+  mutate(
+    phase = case_when(
+      timestamp < ymd_hms("2046-06-05 09:00:00") ~ "Pre-crisis baseline",
+      timestamp < ymd_hms("2046-06-05 17:25:00") ~ "Crisis before release",
+      timestamp < ymd_hms("2046-06-05 18:00:00") ~ "Pre-embargo release cascade",
+      TRUE ~ "Post-embargo response"
+    ),
+    phase = factor(
+      phase,
+      levels = c(
+        "Pre-crisis baseline",
+        "Crisis before release",
+        "Pre-embargo release cascade",
+        "Post-embargo response"
+      )
+    ),
+    date = as.Date(timestamp),
+    hour = floor_date(timestamp, "hour"),
+    text_all = stringr::str_squish(paste(
+      content, reacting, rationalizing, deliberating, sep = " "
+    ))
+  )
+
+participants <- purrr::imap_dfr(raw$rounds, function(r, i) {
+  purrr::map_dfr(r$participants %||% list(), function(p) {
+    tibble(
+      round_index = i,
+      round_hour = lubridate::ymd_hms(r$hour),
+      agent_id = p$agent_id %||% NA_character_,
+      agent_role = p$agent_role %||% NA_character_,
+      agent_label = p$agent_label %||% NA_character_,
+      declared_action = p$declared_action %||% NA_character_,
+      action_classification = p$agent_round_metadata$action_classification %||% NA_character_,
+      sentiment = p$agent_round_metadata$sentiment_at_turn %||% NA_character_
+    )
+  })
+})
+```
+
+The phase variable is central to this analysis. It separates ordinary baseline behavior from crisis-day behavior, the pre-embargo release cascade, and the post-embargo response.
+
+```{r phase-summary-table}
+phase_summary %>%
+  mutate(public_post_share = public_posts / communications) %>%
+  knitr::kable(
+    digits = 3,
+    caption = "Communication volume and public-post share by investigative phase."
+  )
+```
+
+# R4VA and VAST method-selection plan
+
+The dataset is primarily temporal, textual, and relational. It has no spatial coordinates and no numerical series suitable for forecasting. The method-selection plan therefore prioritizes linked views: event timeline, behavior comparison, response network, keyword evolution, text contrast, and phrase network.
+
+```{r method-selection-plan}
+method_plan <- tribble(
+  ~method, ~source, ~decision, ~reason,
+  "Event-sequence timeline", "VAST task requirement; R4VA time-oriented visual thinking", "Use", "Directly reconstructs causal order, decision points, and breach timing.",
+  "Agent behavior comparison", "R4VA ggplot2 methods", "Use", "Compares normal communications and public posting against the release cascade.",
+  "Response network and centrality", "R4VA Chapter 27", "Use", "The task asks for relationships among agents and decisions; response edges and centrality reveal control points.",
+  "Token frequency and keyword evolution", "R4VA Chapter 29 tidytext", "Use", "`unnest_tokens()` produces a reproducible token table for timing and actor comparisons.",
+  "Phase-specific TF-IDF", "R4VA Chapter 29 tidytext", "Use", "`bind_tf_idf()` identifies language distinctive to the release cascade rather than merely common overall.",
+  "Term co-occurrence network", "R4VA Chapter 29 widyr plus Chapter 27", "Use", "`pairwise_count()` reveals which release-window concepts repeatedly co-occurred in the same public posts.",
+  "Bigram network", "R4VA Chapter 29 tidytext plus Chapter 27", "Use", "Bigrams preserve phrase order and show repeated narrative frames better than unigram bars.",
+  "Word cloud", "R4VA Chapter 29 mentions word-cloud options", "Reject", "It would show salience weakly and obscure timing, actors, and decision relevance.",
+  "Geospatial mapping", "R4VA Chapters 21-24", "Reject", "The supplied data has no usable spatial coordinates.",
+  "Forecasting", "R4VA Chapters 19-20", "Reject", "The challenge is forensic and episodic; the dataset is sparse by round, not a stable forecasting series."
+)
+
+method_plan %>%
+  knitr::kable(caption = "Method-selection plan grounded in the available data and R4VA references.")
+```
+
+# The breach was a 35-minute release cascade, not a single post
+
+The first explicit pre-embargo merger post appears at `r format(first_release_time, "%I:%M %p")`, followed by six more public posts before 6:00 PM. All seven used deal-specific terms, and all came from Legal-Agent or Social-Manager-Agent.
+
+```{r release-posts-table}
+release_posts %>%
+  transmute(
+    time = format(timestamp, "%H:%M"),
+    agent = agent_label,
+    channel,
+    message_id,
+    excerpt = stringr::str_trunc(content, 155)
+  ) %>%
+  knitr::kable(caption = "Pre-embargo public posts containing CivicLoom, HarborCrest, or merger terms.")
+```
+
+The communication mix changed sharply in the release window. In the baseline phase, public posting was a minority of overall communications. In the release cascade, seven of thirty communications were public posts, and every public post in that phase pushed the merger/governance narrative.
+
+```{r phase-public-post-chart}
+phase_plot_data <- comms %>%
+  mutate(
+    actor_group = case_when(
+      agent_id == "legal_agent" ~ "Legal-Agent",
+      agent_id == "social_media_agent" ~ "Social-Manager-Agent",
+      TRUE ~ "Other agents"
+    )
+  ) %>%
+  filter(message_type == "public_post") %>%
+  count(phase, actor_group, name = "public_posts")
+
+ggplot(phase_plot_data, aes(x = phase, y = public_posts, fill = actor_group)) +
+  geom_col(color = my_dark, linewidth = 0.35) +
+  scale_fill_manual(
+    values = c(
+      "Legal-Agent" = my_teal,
+      "Social-Manager-Agent" = my_soft_teal,
+      "Other agents" = "#BFBFBF"
+    )
+  ) +
+  labs(
+    title = "Public posting compressed into a Legal and Social-Manager release cascade",
+    subtitle = "Seven pre-embargo deal posts occurred between 5:25 PM and 5:54 PM on June 5.",
+    x = NULL,
+    y = "Public posts",
+    fill = "Actor group",
+    caption = "Source: MC1_final_00.json; public posts counted by derived investigative phase."
+  ) +
+  theme_mc1() +
+  theme(axis.text.x = element_text(angle = 18, hjust = 1))
+```
+
+# Warning signals were visible before the breach
+
+The most important leading indicators occurred hours before the release. The signal sequence shows a shift from rumor containment to explicit compliance warning to ignored enforcement.
+
+```{r leading-indicator-timeline}
+ggplot(signal_events, aes(x = timestamp, y = signal)) +
+  geom_segment(
+    aes(x = min(timestamp), xend = timestamp, yend = signal),
+    color = my_light_teal,
+    linewidth = 4
+  ) +
+  geom_point(
+    size = 4.2,
+    color = my_dark,
+    fill = my_teal,
+    shape = 21,
+    stroke = 0.5
+  ) +
+  scale_x_datetime(date_labels = "%I:%M %p", date_breaks = "1 hour") +
+  labs(
+    title = "The breach had multiple leading indicators before 5:25 PM",
+    subtitle = "The 3:00 PM Judge warning explicitly prohibited additional timing, partnership, or forward-looking signals.",
+    x = "June 5, 2046",
+    y = NULL,
+    caption = "Source: selected message IDs from MC1_final_00.json; labels are evidence-backed summaries of the message content."
+  ) +
+  theme_mc1()
+```
+
+```{r leading-indicator-table}
+signal_events %>%
+  transmute(
+    time = format(timestamp, "%H:%M"),
+    agent = agent_label,
+    channel,
+    signal = as.character(signal),
+    evidence
+  ) %>%
+  knitr::kable(caption = "Evidence chain for leading indicators and breach trigger.")
+```
+
+This chain answers the "leading indicators" question directly. PR-Intern knew the CivicLoom/6 PM phrase by 10:07 AM. PR recognized it as a containment problem by 10:20 AM. The Judge recognized maximum aggregation exposure at 3:00 PM. The eventual 5:25 PM release therefore was foreseeable from internal signals.
+
+# Agent relationships concentrated around Legal and Social-Manager
+
+The response network for the crisis-before-release phase shows which agents were coordinating most intensely before the release. Edge weights count response links among agents. Node size reflects weighted in/out centrality in the crisis-response network.
+
+```{r crisis-network}
+set.seed(608)
+
+ggraph(crisis_graph, layout = "fr") +
+  geom_edge_link(
+    aes(width = interactions),
+    alpha = 0.32,
+    color = my_soft_teal,
+    arrow = arrow(length = unit(2.2, "mm"), type = "closed"),
+    end_cap = circle(4, "mm")
+  ) +
+  geom_node_point(
+    aes(size = degree_total),
+    fill = my_teal,
+    color = my_dark,
+    shape = 21,
+    stroke = 0.5
+  ) +
+  geom_node_text(
+    aes(label = node_label),
+    repel = TRUE,
+    size = 3.4,
+    color = my_dark
+  ) +
+  scale_edge_width(range = c(0.3, 2.2), guide = "none") +
+  scale_size_continuous(range = c(5, 13), guide = "none") +
+  labs(
+    title = "Crisis coordination centered on Legal and Social-Manager",
+    subtitle = "Response links before 5:25 PM show dense Legal-Social coordination, with PR and PR-Intern feeding containment work.",
+    caption = "Source: response links in MC1_final_00.json, crisis-before-release phase."
+  ) +
+  theme_graph(base_family = "sans") +
+  theme(
+    plot.title = element_text(face = "bold", color = my_dark),
+    plot.subtitle = element_text(color = my_dark),
+    plot.caption = element_text(color = "grey35", hjust = 0),
+    plot.background = element_rect(fill = "white", color = NA)
+  )
+```
+
+```{r centrality-table}
+node_metrics %>%
+  arrange(desc(degree_in + degree_out)) %>%
+  mutate(
+    total_weighted_degree = degree_in + degree_out
+  ) %>%
+  select(agent = name, degree_in, degree_out, total_weighted_degree, betweenness) %>%
+  knitr::kable(
+    digits = 2,
+    caption = "Weighted network centrality for crisis-before-release response links."
+  )
+```
+
+The relationship evidence points to a coordination problem, not an isolated intern problem. The intern leak matters as an early signal, but the release itself came after dense senior-agent coordination.
+
+# Text analytics: deal language moved from internal risk to public frame
+
+Following R4VA Chapter 29's tidy text workflow, the text was tokenized into one row per token with `tidytext::unnest_tokens()`, common stop terms were removed with `tidytext::stop_words`, phase-specific language was scored with `tidytext::bind_tf_idf()`, and release-window term co-occurrence was extracted with `widyr::pairwise_count()`. This keeps the text analytics workflow aligned with Chapters 27 and 29 while making every intermediate table reproducible.
+
+```{r text-preprocessing}
+domain_stop_terms <- tibble(
+  word = c(
+    "today", "tomorrow", "morning", "afternoon", "evening", "tonight",
+    "need", "needs", "using", "used", "also", "just", "now",
+    "one", "two", "three", "four", "five", "six", "seven", "amp"
+  )
+)
+
+custom_stop_words <- tidytext::stop_words %>%
+  select(word) %>%
+  bind_rows(domain_stop_terms) %>%
+  distinct(word)
+
+tokens <- comms %>%
+  transmute(
+    message_id, timestamp, hour, phase, agent_id, agent_label, channel,
+    message_type,
+    text_all = stringr::str_replace_all(text_all, "https?://\\S+", " ")
+  ) %>%
+  tidytext::unnest_tokens(token, text_all, token = "words") %>%
+  anti_join(custom_stop_words, by = c("token" = "word")) %>%
+  filter(
+    !is.na(token),
+    stringr::str_detect(token, "[a-z]"),
+    nchar(token) > 2
+  )
+
+tokens %>%
+  count(phase, name = "tokens_after_filtering") %>%
+  knitr::kable(caption = "Token counts after preprocessing by phase.")
+```
+
+## Keyword evolution
+
+The keyword heatmap focuses on June 5, when the public release occurred. CivicLoom, HarborCrest, merger, governance, audit, consent, SaltWind, and AlgorithmicEviction are not just frequent terms; their timing links the crisis response to the embargo breach.
+
+```{r keyword-evolution-heatmap}
+keyword_timeline <- tokens %>%
+  filter(token %in% keyword_terms) %>%
+  count(hour, token, name = "mentions")
+
+crisis_keyword_timeline <- keyword_timeline %>%
+  filter(as.Date(hour) == as.Date("2046-06-05")) %>%
+  tidyr::complete(
+    hour = seq(
+      ymd_hms("2046-06-05 09:00:00"),
+      ymd_hms("2046-06-05 18:00:00"),
+      by = "hour"
+    ),
+    token = keyword_terms,
+    fill = list(mentions = 0)
+  )
+
+ggplot(crisis_keyword_timeline, aes(x = hour, y = fct_rev(token), fill = mentions)) +
+  geom_tile(color = "white", linewidth = 0.3) +
+  geom_vline(
+    xintercept = as.numeric(ymd_hms("2046-06-05 17:25:00")),
+    color = my_dark,
+    linewidth = 0.5,
+    linetype = "dashed"
+  ) +
+  scale_fill_gradient(low = my_grey, high = my_teal) +
+  scale_x_datetime(date_labels = "%I %p", date_breaks = "1 hour") +
+  labs(
+    title = "Deal and governance vocabulary converged on crisis day",
+    subtitle = "The dashed line marks the first pre-embargo public merger confirmation at 5:25 PM on June 5.",
+    x = "June 5, 2046",
+    y = NULL,
+    fill = "Mentions",
+    caption = "Source: tokenized communication and internal-state text from MC1_final_00.json."
+  ) +
+  theme_mc1() +
+  theme(axis.text.x = element_text(angle = 30, hjust = 1))
+```
+
+## Release-window TF-IDF terms
+
+The release cascade text is dominated by a small set of governance and deal terms. TF-IDF is more suitable than raw frequency here because it downweights terms that are common across all phases and highlights words distinctive to the short release window.
+
+```{r release-term-lift}
+phase_term_tfidf <- tokens %>%
+  count(phase, token, name = "n") %>%
+  tidytext::bind_tf_idf(token, phase, n)
+
+release_term_compare <- phase_term_tfidf %>%
+  filter(phase == "Pre-embargo release cascade") %>%
+  slice_max(tf_idf, n = 18, with_ties = FALSE)
+
+release_term_compare %>%
+  mutate(token = fct_reorder(token, tf_idf)) %>%
+  ggplot(aes(x = tf_idf, y = token)) +
+  geom_col(
+    fill = my_teal,
+    color = my_dark,
+    linewidth = 0.35
+  ) +
+  labs(
+    title = "Release-window language singled out deal terms, actors, and reform actions",
+    subtitle = "TF-IDF highlights terms unusually concentrated in the pre-embargo release cascade.",
+    x = "TF-IDF score",
+    y = NULL,
+    caption = "Source: `tidytext::bind_tf_idf()` applied to tokenized communication and internal-state text."
+  ) +
+  theme_mc1()
+```
+
+## Release-window term co-occurrence
+
+TF-IDF shows distinctive words; co-occurrence shows how they were bundled inside the same public posts. Following the Chapter 29 `widyr` workflow, each release post is treated as a document and repeated term pairs are counted across documents.
+
+```{r release-cooccurrence-network}
+release_term_pairs <- tokens %>%
+  filter(message_id %in% release_posts$message_id) %>%
+  distinct(message_id, token) %>%
+  widyr::pairwise_count(token, message_id, sort = TRUE, upper = FALSE) %>%
+  filter(n >= 2) %>%
+  slice_max(n, n = 28, with_ties = FALSE)
+
+cooccur_graph <- igraph::graph_from_data_frame(release_term_pairs, directed = FALSE)
+
+set.seed(608)
+
+ggraph(cooccur_graph, layout = "fr") +
+  geom_edge_link(
+    aes(width = n),
+    color = my_soft_teal,
+    alpha = 0.45
+  ) +
+  geom_node_point(
+    size = 4,
+    fill = my_teal,
+    color = my_dark,
+    shape = 21,
+    stroke = 0.4
+  ) +
+  geom_node_text(
+    aes(label = name),
+    repel = TRUE,
+    size = 3.1,
+    color = my_dark
+  ) +
+  scale_edge_width(range = c(0.3, 2.4), guide = "none") +
+  labs(
+    title = "Release posts bundled merger, governance, audit, and consent concepts",
+    subtitle = "Term pairs appearing in at least two release-window public posts form a compact narrative bundle.",
+    caption = "Source: `widyr::pairwise_count()` on distinct release-window tokens by message."
+  ) +
+  theme_graph(base_family = "sans") +
+  theme(
+    plot.title = element_text(face = "bold", color = my_dark),
+    plot.subtitle = element_text(color = my_dark),
+    plot.caption = element_text(color = "grey35", hjust = 0),
+    plot.background = element_rect(fill = "white", color = NA)
+  )
+```
+
+## Bigram network
+
+Unigram counts can lose phrase context. A bigram network preserves the repeated frames in the release-window posts: merger confirmation, governance reforms, independent audit, enhanced consent, and timestamped reform-before-deal logic.
+
+```{r release-bigram-network}
+bigram_counts <- release_posts %>%
+  transmute(
+    message_id,
+    content = content %>%
+      stringr::str_replace_all("https?://\\S+", " ") %>%
+      stringr::str_replace_all("'s\\b", "")
+  ) %>%
+  tidytext::unnest_tokens(bigram, content, token = "ngrams", n = 2) %>%
+  tidyr::separate(bigram, c("word1", "word2"), sep = " ", remove = TRUE) %>%
+  anti_join(custom_stop_words, by = c("word1" = "word")) %>%
+  anti_join(custom_stop_words, by = c("word2" = "word")) %>%
+  filter(
+    stringr::str_detect(word1, "[a-z]"),
+    stringr::str_detect(word2, "[a-z]"),
+    nchar(word1) > 2,
+    nchar(word2) > 2
+  ) %>%
+  count(word1, word2, name = "n", sort = TRUE) %>%
+  filter(n >= 2) %>%
+  slice_max(n, n = 28, with_ties = FALSE)
+
+bigram_graph <- igraph::graph_from_data_frame(bigram_counts, directed = TRUE)
+
+set.seed(608)
+
+ggraph(bigram_graph, layout = "fr") +
+  geom_edge_link(
+    aes(width = n),
+    color = my_soft_teal,
+    alpha = 0.55,
+    arrow = arrow(length = unit(2, "mm"), type = "closed"),
+    end_cap = circle(3, "mm")
+  ) +
+  geom_node_point(
+    size = 4.2,
+    fill = my_teal,
+    color = my_dark,
+    shape = 21,
+    stroke = 0.4
+  ) +
+  geom_node_text(
+    aes(label = name),
+    repel = TRUE,
+    size = 3.2,
+    color = my_dark
+  ) +
+  scale_edge_width(range = c(0.3, 2.4), guide = "none") +
+  labs(
+    title = "Release posts repeated a governance-before-merger phrase network",
+    subtitle = "Bigrams from the seven pre-embargo deal posts show deliberate framing rather than random leakage.",
+    caption = "Source: `tidytext::unnest_tokens(token = 'ngrams')`; bigrams appearing at least twice in release-window public posts."
+  ) +
+  theme_graph(base_family = "sans") +
+  theme(
+    plot.title = element_text(face = "bold", color = my_dark),
+    plot.subtitle = element_text(color = my_dark),
+    plot.caption = element_text(color = "grey35", hjust = 0),
+    plot.background = element_rect(fill = "white", color = NA)
+  )
+```
+
+# Answering the Mini-Challenge questions
+
+## Key events and relationships
+
+The key event chain is:
+
+-   **May 17 to June 4:** internal risk builds around AG inquiries, SaltWind reporting, governance controls, and strategic-development language.
+-   **June 5, 10:07 AM:** PR-Intern reports hearing "CivicLoom timeline at 6 PM."
+-   **June 5, 10:20 AM:** PR recognizes this as an active containment problem.
+-   **June 5, 3:00 PM:** The Judge issues a critical compliance warning that no additional timing, partnership, or forward-looking language should be posted.
+-   **June 5, 5:25 PM:** Legal-Agent posts the first pre-embargo public merger confirmation.
+-   **June 5, 5:26-5:54 PM:** Social-Manager and Legal repeat the frame across personal and anonymous posts.
+
+The relationship network shows Legal-Agent and Social-Manager-Agent as the most important crisis coordinators. PR and PR-Intern were important in surfacing and operationalizing response material, but the breach itself came from Legal and Social-Manager public posting.
+
+## Typical versus release behavior
+
+Typical baseline public posting did not disclose deal terms. The release behavior was new because:
+
+-   Pre-crisis public deal-term posts were `r pre_crisis_public_deal_posts`.
+-   The release cascade had `r release_post_count` public deal-term posts within 35 minutes.
+-   The posts came from senior-facing actors and repeated a coherent governance-before-merger frame.
+
+This differs from prior behavior not just in volume but in semantic content: CivicLoom, HarborCrest, merger, governance, audit, and consent converged in the release window.
+
+## Leading indicators
+
+Yes. There were leading indicators:
+
+-   Non-cleared staff had heard "CivicLoom" and "6 PM" by the morning.
+-   PR explicitly recognized this as a containment risk.
+-   The Judge warned that aggregation exposure was at the maximum tolerable threshold.
+-   The public communications operation had already expanded from defensive governance posts into aggressive narrative management.
+
+The prior indicators did not trigger sufficient action because advice and warning did not translate into hard enforcement. The Judge could warn, but the data does not show an effective blocking mechanism that stopped Legal or Social-Manager from posting.
+
+# Limitations and robustness checks
+
+The dataset is synthetic and self-contained. The analysis therefore makes descriptive and diagnostic claims, not causal claims about a real company.
+
+Important limitations:
+
+-   There is no external ground-truth adjudication of intent.
+-   Engagement values such as "400%" and "1,580+ engagements" appear inside message text rather than as separate verified metrics.
+-   The answer sheet instructs MC1 participants to use only data supplied for this mini-challenge; this report follows that rule.
+-   The data dictionary names `social_manager_agent`, while the JSON uses `social_media_agent`. This report uses the JSON value and labels it Social-Manager-Agent for readability.
+-   Participant action metadata is richer on June 5 than in the pre-crisis baseline, so participant-action comparisons are strongest for crisis-day sequencing rather than long-run baseline measurement.
+
+Robustness checks performed:
+
+-   The main dataset parses as JSON and contains one top-level `rounds` object.
+-   The main communication table has `r total_comms` records and no invented rows.
+-   The identified release posts are filtered by timestamp, public-post type, and explicit CivicLoom/HarborCrest/merger text.
+-   Network edges are based on observed `responding_to` fields, not inferred sentiment.
+
+# Recommendations
+
+For the visual analytics conclusion, TenantThread should be treated as a case of **compliance enforcement failure under narrative pressure**.
+
+Recommended controls:
+
+-   Make embargo enforcement executable, not advisory. The Judge warning should be able to block public posting from official, personal, and anonymous channels.
+-   Separate monitoring authority from publishing authority during critical windows.
+-   Flag non-cleared exposure to embargo terms as a high-severity incident, not an informal PR coaching issue.
+-   Build real-time dashboards that combine public-post queue, embargo keywords, actor permissions, and compliance warnings in one view.
+-   Require dual approval for any public post containing protected terms such as CivicLoom, HarborCrest, merger, acquisition, rebrand, or 6 PM before embargo lift.
+
+# Conclusion
+
+The inappropriate release was foreseeable and preventable. The evidence does not support a simple accidental leak story. It supports a sequence in which internal rumor leakage, rising aggregation risk, and aggressive crisis framing culminated in deliberate pre-embargo public posts by Legal-Agent and Social-Manager-Agent. The decisive failure was that The Judge identified the risk but could not enforce the embargo when senior agents shifted from monitoring to narrative execution.
+
+# References
+
+-   ISSS608 Take-home Exercise 2 assignment brief, saved locally at `references/take-home-exercise-2-requirements.md`.
+-   VAST Challenge 2026 Mini-Challenge 1 brief, saved locally at `references/vast-2026-mc1-requirements.md`.
+-   VAST Challenge 2026 MC1 dataset documentation, saved locally at `references/mc1-dataset/mc1-data-description.md`.
+-   R for Visual Analytics, Chapter 27: Modelling, Visualising and Analysing Network Data with R, saved locally at `references/r4va/markdown/chap27.md`.
+-   R for Visual Analytics, Chapter 29: Visualising and Analysing Text Data with R: tidytext methods, saved locally at `references/r4va/markdown/chap29.md`.
+-   Wickham, H. et al. `tidyverse` R package documentation: https://www.tidyverse.org/
+-   Wickham, H. `ggplot2` documentation: https://ggplot2.tidyverse.org/
+-   Silge, J. and Robinson, D. `tidytext` R package documentation: https://juliasilge.github.io/tidytext/
+-   Robinson, D. `widyr` R package documentation: https://cran.r-project.org/package=widyr
+-   Csardi, G. and Nepusz, T. `igraph` documentation: https://r.igraph.org/
+-   Pedersen, T. L. `ggraph` documentation: https://ggraph.data-imaginist.com/
+-   Pedersen, T. L. `tidygraph` documentation: https://tidygraph.data-imaginist.com/
