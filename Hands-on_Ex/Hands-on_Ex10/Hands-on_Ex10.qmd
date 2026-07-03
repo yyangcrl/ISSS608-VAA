@@ -1,0 +1,759 @@
+---
+title: "Hands-on Exercise 10 - Information Dashboard Design: R methods"
+author: "Yang Yang"
+format:
+  html:
+    theme: sketchy
+    toc: true
+    toc-depth: 3
+    number-sections: false
+    code-copy: true
+    code-overflow: wrap
+editor: visual
+execute:
+  warning: false
+  message: false
+---
+
+```{r}
+#| label: setup
+#| include: false
+
+user_lib <- Sys.getenv("R_LIBS_USER")
+if (nzchar(user_lib)) {
+  dir.create(user_lib, recursive = TRUE, showWarnings = FALSE)
+  .libPaths(c(user_lib, .libPaths()))
+}
+
+if (!requireNamespace("pacman", quietly = TRUE)) {
+  install.packages("pacman", repos = "https://cloud.r-project.org")
+}
+
+pacman::p_load(
+  lubridate,
+  ggthemes,
+  reactable,
+  reactablefmtr,
+  gt,
+  gtExtras,
+  tidyverse,
+  RODBC,
+  dataui,
+  DT,
+  knitr,
+  scales
+)
+
+my_teal <- "#2A6F6F"
+my_soft_teal <- "#8AA6A3"
+my_dark <- "#1F1F1F"
+my_light_teal <- "#D8E8E6"
+my_grey <- "#F3F4F4"
+my_warning <- "#B07C3E"
+my_red <- "#9A4B4B"
+my_blue <- "#4C78A8"
+
+find_data_file <- function(file_name, subfolder = NULL) {
+  candidates <- if (is.null(subfolder)) {
+    c(
+      file.path("data", file_name),
+      file.path("Hands-on_Ex", "Hands-on_Ex10", "data", file_name)
+    )
+  } else {
+    c(
+      file.path("data", subfolder, file_name),
+      file.path("Hands-on_Ex", "Hands-on_Ex10", "data", subfolder, file_name)
+    )
+  }
+
+  found <- candidates[file.exists(candidates)]
+
+  if (length(found) == 0) {
+    stop(
+      "Missing required data file: ", file_name,
+      ". Put it inside Hands-on_Ex/Hands-on_Ex10/data/ before rendering."
+    )
+  }
+
+  found[1]
+}
+
+theme_yy <- theme_minimal(base_size = 13) +
+  theme(
+    plot.title = element_text(face = "bold", colour = my_dark),
+    plot.subtitle = element_text(colour = my_teal),
+    axis.title = element_text(colour = my_dark),
+    axis.text = element_text(colour = my_dark),
+    panel.grid.minor = element_blank(),
+    legend.position = "bottom"
+  )
+```
+
+## 31.1 Overview
+
+This hands-on exercise follows [Chapter 31 of R4VA](https://r4va.netlify.app/chap31), *Information Dashboard Design: R methods*. The exercise uses the Coffee Chain Microsoft Access database to build compact dashboard components.
+
+By the end of the exercise, the following tasks are practised:
+
+- importing data from a Microsoft Access database;
+- creating bullet charts with `ggplot2`;
+- creating sparklines with `ggplot2`;
+- building static dashboard tables with `gt` and `gtExtras`; and
+- building interactive dashboard tables with `reactable`, `reactablefmtr`, and `dataui`.
+
+## 31.2 Getting Started
+
+The packages used in this exercise are loaded in the setup chunk.
+
+```{r}
+#| label: package-code
+#| eval: false
+
+if (!requireNamespace("pacman", quietly = TRUE)) {
+  install.packages("pacman", repos = "https://cloud.r-project.org")
+}
+
+pacman::p_load(
+  lubridate,
+  ggthemes,
+  reactable,
+  reactablefmtr,
+  gt,
+  gtExtras,
+  tidyverse,
+  RODBC,
+  dataui,
+  DT,
+  knitr,
+  scales
+)
+```
+
+```{r}
+#| label: package-table
+
+tribble(
+  ~Package, ~Purpose,
+  "tidyverse", "Data import, wrangling, summarising, and ggplot2 graphics.",
+  "lubridate", "Extracting date parts such as month and year.",
+  "ggthemes", "Using theme_tufte() for compact sparkline plots.",
+  "gt", "Creating static dashboard tables.",
+  "gtExtras", "Adding bullet charts and sparklines to gt tables.",
+  "reactable", "Creating interactive HTML tables.",
+  "reactablefmtr", "Adding formatted sparklines and bars to reactable tables.",
+  "dataui", "Underlying sparkline widgets used by reactablefmtr examples.",
+  "RODBC", "Original Chapter 31 Access database connection method.",
+  "DT", "Interactive preview tables."
+) |>
+  datatable(
+    rownames = FALSE,
+    options = list(pageLength = 10, dom = "tip")
+  )
+```
+
+## 31.3 Importing Microsoft Access Database
+
+### 31.3.1 The Data Set
+
+The data source is a Microsoft Access database named `Coffee Chain.mdb`. The saved query referenced in the chapter is `CoffeeChain Query`. On macOS, the 32-bit Windows `RODBC::odbcConnectAccess2007()` workflow is not available, so this exercise uses `mdbtools` to read the Access tables and reconstruct the saved query using its selected fields and join keys.
+
+### 31.3.2 Importing Database into R
+
+The original Chapter 31 code is shown below for reference.
+
+```{r}
+#| label: access-import-windows-code
+#| eval: false
+
+library(RODBC)
+con <- odbcConnectAccess2007("data/Coffee Chain.mdb")
+coffeechain <- sqlFetch(con, "CoffeeChain Query")
+write_rds(coffeechain, "data/rds/CoffeeChain.rds")
+odbcClose(con)
+```
+
+The evaluated code below is the macOS-compatible import used in this document. It reads the three base tables from the MDB, joins them by `Area Code` and `ProductId`, then saves the result as `data/rds/CoffeeChain.rds`.
+
+```{r}
+#| label: access-import-macos
+
+mdb_file <- find_data_file("Coffee Chain.mdb")
+rds_file <- file.path("data", "rds", "CoffeeChain.rds")
+dir.create(dirname(rds_file), recursive = TRUE, showWarnings = FALSE)
+
+read_mdb_table <- function(table_name) {
+  if (Sys.which("mdb-export") == "") {
+    stop(
+      "mdb-export was not found. Install mdbtools before rebuilding CoffeeChain.rds."
+    )
+  }
+
+  exported <- system2(
+    "mdb-export",
+    c(shQuote(mdb_file), shQuote(table_name)),
+    stdout = TRUE
+  )
+
+  read_csv(I(paste(exported, collapse = "\n")), show_col_types = FALSE)
+}
+
+fact_table <- read_mdb_table("factTable")
+location_table <- read_mdb_table("Location")
+product_table <- read_mdb_table("Product")
+
+coffeechain <- fact_table |>
+  left_join(location_table, by = "Area Code") |>
+  left_join(product_table, by = "ProductId") |>
+  transmute(
+    Profit,
+    Margin,
+    Sales,
+    COGS,
+    `Total Expenses`,
+    Marketing,
+    Inventory,
+    `Budget Profit`,
+    `Budget Margin`,
+    `Budget Sales`,
+    `Budget COGS`,
+    Date = mdy_hms(Date),
+    Market,
+    State,
+    `Area Code`,
+    `Market Size`,
+    `Product Type`,
+    Product,
+    Type
+  )
+
+write_rds(coffeechain, rds_file)
+```
+
+### 31.3.3 Data Preparation
+
+The generated RDS file is imported for the dashboard work.
+
+```{r}
+#| label: read-coffeechain-rds
+
+coffeechain <- read_rds(find_data_file("CoffeeChain.rds", "rds"))
+
+coffeechain |>
+  slice_head(n = 10) |>
+  datatable(
+    rownames = FALSE,
+    options = list(pageLength = 10, scrollX = TRUE, dom = "tip")
+  )
+```
+
+```{r}
+#| label: coffeechain-summary
+
+tibble(
+  measure = c(
+    "Rows",
+    "Columns",
+    "Products",
+    "Markets",
+    "Date range"
+  ),
+  value = c(
+    nrow(coffeechain),
+    ncol(coffeechain),
+    n_distinct(coffeechain$Product),
+    n_distinct(coffeechain$Market),
+    paste(min(coffeechain$Date), "to", max(coffeechain$Date))
+  )
+) |>
+  kable()
+```
+
+The code below aggregates actual and budgeted sales at product level.
+
+```{r}
+#| label: product-summary
+
+product <- coffeechain |>
+  group_by(Product) |>
+  summarise(
+    target = sum(`Budget Sales`),
+    current = sum(Sales),
+    .groups = "drop"
+  )
+
+product |>
+  datatable(
+    rownames = FALSE,
+    options = list(pageLength = 13, dom = "tip")
+  ) |>
+  formatCurrency(columns = c("target", "current"), currency = "$", digits = 0)
+```
+
+### 31.3.4 Bullet Chart in ggplot2
+
+::: panel-tabset
+
+## View
+
+```{r}
+#| label: ggplot-bullet-view
+#| echo: false
+#| fig-width: 9
+#| fig-height: 6
+
+ggplot(product, aes(Product, current)) +
+  geom_col(
+    aes(y = max(target) * 1.01),
+    fill = "grey85",
+    width = 0.85
+  ) +
+  geom_col(
+    aes(y = target * 0.75),
+    fill = "grey60",
+    width = 0.85
+  ) +
+  geom_col(
+    aes(y = target * 0.50),
+    fill = "grey50",
+    width = 0.85
+  ) +
+  geom_col(
+    aes(y = current),
+    width = 0.35,
+    fill = "black"
+  ) +
+  geom_errorbar(
+    aes(y = target, ymin = target, ymax = target),
+    width = 0.4,
+    colour = my_red,
+    linewidth = 1
+  ) +
+  coord_flip() +
+  scale_y_continuous(labels = dollar) +
+  labs(
+    title = "Product Sales Against Budget Sales",
+    x = NULL,
+    y = "Sales"
+  ) +
+  theme_yy
+```
+
+## Code
+
+```{r}
+#| label: ggplot-bullet-code
+#| eval: false
+
+ggplot(product, aes(Product, current)) +
+  geom_col(aes(y = max(target) * 1.01), fill = "grey85", width = 0.85) +
+  geom_col(aes(y = target * 0.75), fill = "grey60", width = 0.85) +
+  geom_col(aes(y = target * 0.50), fill = "grey50", width = 0.85) +
+  geom_col(aes(y = current), width = 0.35, fill = "black") +
+  geom_errorbar(
+    aes(y = target, ymin = target, ymax = target),
+    width = 0.4,
+    colour = "red",
+    linewidth = 1
+  ) +
+  coord_flip()
+```
+
+:::
+
+## 31.4 Plotting Sparklines Using ggplot2
+
+### 31.4.1 Preparing the Data
+
+```{r}
+#| label: prepare-sparkline-data
+
+sales_report <- coffeechain |>
+  filter(Date >= as.Date("2013-01-01")) |>
+  mutate(Month = month(Date)) |>
+  group_by(Month, Product) |>
+  summarise(Sales = sum(Sales), .groups = "drop") |>
+  select(Month, Product, Sales)
+
+mins <- sales_report |>
+  group_by(Product) |>
+  slice_min(Sales, n = 1, with_ties = FALSE) |>
+  ungroup()
+
+maxs <- sales_report |>
+  group_by(Product) |>
+  slice_max(Sales, n = 1, with_ties = FALSE) |>
+  ungroup()
+
+ends <- sales_report |>
+  group_by(Product) |>
+  filter(Month == max(Month)) |>
+  ungroup()
+
+quarts <- sales_report |>
+  group_by(Product) |>
+  summarise(
+    quart1 = quantile(Sales, 0.25),
+    quart2 = quantile(Sales, 0.75),
+    .groups = "drop"
+  ) |>
+  right_join(sales_report, by = "Product")
+```
+
+### 31.4.2 Sparklines in ggplot2
+
+::: panel-tabset
+
+## View
+
+```{r}
+#| label: ggplot-sparklines-view
+#| echo: false
+#| fig-width: 9
+#| fig-height: 7
+
+ggplot(sales_report, aes(x = Month, y = Sales)) +
+  facet_grid(Product ~ ., scales = "free_y") +
+  geom_ribbon(
+    data = quarts,
+    aes(ymin = quart1, ymax = quart2),
+    fill = "grey90"
+  ) +
+  geom_line(linewidth = 0.3) +
+  geom_point(data = mins, colour = my_red, size = 0.9) +
+  geom_point(data = maxs, colour = my_blue, size = 0.9) +
+  geom_text(data = mins, aes(label = Sales), vjust = -1, size = 2) +
+  geom_text(data = maxs, aes(label = Sales), vjust = 2.5, size = 2) +
+  geom_text(data = ends, aes(label = Sales), hjust = 0, nudge_x = 0.5, size = 2) +
+  geom_text(data = ends, aes(label = Product), hjust = 0, nudge_x = 1.0, size = 2) +
+  expand_limits(
+    x = max(sales_report$Month) +
+      (0.25 * (max(sales_report$Month) - min(sales_report$Month)))
+  ) +
+  scale_x_continuous(breaks = seq(1, 12, 1)) +
+  scale_y_continuous(expand = c(0.1, 0)) +
+  theme_tufte(base_size = 8, base_family = "Helvetica") +
+  theme(
+    axis.title = element_blank(),
+    axis.text.y = element_blank(),
+    axis.ticks = element_blank(),
+    strip.text = element_blank()
+  )
+```
+
+## Code
+
+```{r}
+#| label: ggplot-sparklines-code
+#| eval: false
+
+ggplot(sales_report, aes(x = Month, y = Sales)) +
+  facet_grid(Product ~ ., scales = "free_y") +
+  geom_ribbon(
+    data = quarts,
+    aes(ymin = quart1, ymax = quart2),
+    fill = "grey90"
+  ) +
+  geom_line(linewidth = 0.3) +
+  geom_point(data = mins, colour = "red") +
+  geom_point(data = maxs, colour = "blue") +
+  scale_x_continuous(breaks = seq(1, 12, 1)) +
+  theme_tufte(base_size = 8, base_family = "Helvetica")
+```
+
+:::
+
+## 31.5 Static Information Dashboard Design: gt and gtExtras Methods
+
+### 31.5.1 Plotting a Simple Bullet Chart
+
+```{r}
+#| label: gt-bullet
+
+product |>
+  gt(id = "product_bullet") |>
+  gt_plt_bullet(
+    column = current,
+    target = target,
+    width = 60,
+    palette = c("lightblue", "black")
+  ) |>
+  gt_theme_538(quiet = TRUE)
+```
+
+## 31.6 Sparklines: gtExtras Method
+
+### 31.6.1 Preparing the CoffeeChain Sales Report
+
+```{r}
+#| label: prepare-gt-report
+
+report <- coffeechain |>
+  mutate(Year = year(Date)) |>
+  filter(Year == 2013) |>
+  mutate(
+    Month = month(Date, label = TRUE, abbr = TRUE)
+  ) |>
+  group_by(Product, Month) |>
+  summarise(Sales = sum(Sales), .groups = "drop") |>
+  arrange(Product, Month)
+
+spark <- report |>
+  group_by(Product) |>
+  summarise(
+    `Monthly Sales` = list(Sales),
+    .groups = "drop"
+  )
+
+spark |>
+  datatable(
+    rownames = FALSE,
+    options = list(pageLength = 13, dom = "tip")
+  )
+```
+
+### 31.6.2 Plotting CoffeeChain Sales Report
+
+```{r}
+#| label: gt-sparkline-simple
+
+spark |>
+  gt(id = "sparkline_simple") |>
+  gt_plt_sparkline(
+    `Monthly Sales`,
+    same_limit = FALSE
+  )
+```
+
+### 31.6.3 Adding Statistics
+
+```{r}
+#| label: sales-stats
+
+sales <- report |>
+  group_by(Product) |>
+  summarise(
+    Min = min(Sales, na.rm = TRUE),
+    Max = max(Sales, na.rm = TRUE),
+    Average = mean(Sales, na.rm = TRUE),
+    .groups = "drop"
+  )
+
+sales |>
+  gt(id = "sales_stats") |>
+  fmt_number(columns = Average, decimals = 2)
+```
+
+### 31.6.4 Combining the Data Frame
+
+```{r}
+#| label: combine-sales-spark
+
+sales_data <- sales |>
+  left_join(spark, by = "Product")
+
+sales_data |>
+  gt(id = "sales_data") |>
+  gt_plt_sparkline(
+    `Monthly Sales`,
+    same_limit = FALSE
+  ) |>
+  fmt_number(columns = c(Min, Max, Average), decimals = 2)
+```
+
+### 31.6.5 Combining Bullet Chart and Sparklines
+
+```{r}
+#| label: combine-bullet-spark
+
+bullet <- coffeechain |>
+  filter(Date >= as.Date("2013-01-01")) |>
+  group_by(Product) |>
+  summarise(
+    Target = sum(`Budget Sales`),
+    Actual = sum(Sales),
+    .groups = "drop"
+  )
+
+sales_dashboard <- sales_data |>
+  left_join(bullet, by = "Product")
+
+sales_dashboard |>
+  gt(id = "sales_dashboard") |>
+  gt_plt_sparkline(`Monthly Sales`) |>
+  gt_plt_bullet(
+    column = Actual,
+    target = Target,
+    width = 28,
+    palette = c("lightblue", "black")
+  ) |>
+  fmt_number(columns = c(Min, Max, Average, Actual, Target), decimals = 2) |>
+  gt_theme_538(quiet = TRUE)
+```
+
+## 31.7 Interactive Information Dashboard Design: reactable and reactablefmtr Methods
+
+The interactive dashboard examples use a list-column version of the monthly sales report.
+
+```{r}
+#| label: prepare-interactive-report
+
+interactive_report <- report |>
+  group_by(Product) |>
+  summarise(
+    `Monthly Sales` = list(Sales),
+    .groups = "drop"
+  )
+```
+
+### 31.7.1 Plotting Interactive Sparklines
+
+```{r}
+#| label: reactable-sparkline
+
+reactable(
+  interactive_report,
+  columns = list(
+    Product = colDef(maxWidth = 200),
+    `Monthly Sales` = colDef(
+      cell = react_sparkline(interactive_report)
+    )
+  )
+)
+```
+
+### 31.7.2 Changing the Page Size
+
+```{r}
+#| label: reactable-pagesize
+
+reactable(
+  interactive_report,
+  defaultPageSize = 13,
+  columns = list(
+    Product = colDef(maxWidth = 200),
+    `Monthly Sales` = colDef(
+      cell = react_sparkline(interactive_report)
+    )
+  )
+)
+```
+
+### 31.7.3 Adding Points and Labels
+
+```{r}
+#| label: reactable-points-labels
+
+reactable(
+  interactive_report,
+  defaultPageSize = 13,
+  columns = list(
+    Product = colDef(maxWidth = 200),
+    `Monthly Sales` = colDef(
+      cell = react_sparkline(
+        interactive_report,
+        highlight_points = highlight_points(
+          min = "red",
+          max = "blue"
+        ),
+        labels = c("first", "last")
+      )
+    )
+  )
+)
+```
+
+### 31.7.4 Adding Reference Line
+
+```{r}
+#| label: reactable-reference-line
+
+reactable(
+  interactive_report,
+  defaultPageSize = 13,
+  columns = list(
+    Product = colDef(maxWidth = 200),
+    `Monthly Sales` = colDef(
+      cell = react_sparkline(
+        interactive_report,
+        highlight_points = highlight_points(
+          min = "red",
+          max = "blue"
+        ),
+        statline = "mean"
+      )
+    )
+  )
+)
+```
+
+### 31.7.5 Adding Bandline
+
+```{r}
+#| label: reactable-bandline
+
+reactable(
+  interactive_report,
+  defaultPageSize = 13,
+  columns = list(
+    Product = colDef(maxWidth = 200),
+    `Monthly Sales` = colDef(
+      cell = react_sparkline(
+        interactive_report,
+        highlight_points = highlight_points(
+          min = "red",
+          max = "blue"
+        ),
+        line_width = 1,
+        bandline = "innerquartiles",
+        bandline_color = "green"
+      )
+    )
+  )
+)
+```
+
+### 31.7.6 Changing from Sparkline to Sparkbar
+
+```{r}
+#| label: reactable-sparkbar
+
+reactable(
+  interactive_report,
+  defaultPageSize = 13,
+  columns = list(
+    Product = colDef(maxWidth = 200),
+    `Monthly Sales` = colDef(
+      cell = react_sparkbar(
+        interactive_report,
+        highlight_bars = highlight_bars(
+          min = "red",
+          max = "blue"
+        ),
+        bandline = "innerquartiles",
+        statline = "mean"
+      )
+    )
+  )
+)
+```
+
+## Key Takeaways
+
+::: {.callout-tip}
+Dashboard design works best when each compact display has a clear role: bullet charts compare actual against target, sparklines show trend shape, and interactive tables let readers inspect the detail without leaving the dashboard.
+:::
+
+In this exercise:
+
+- `mdbtools` is used to import the Access database reliably on macOS;
+- `ggplot2` builds bullet charts and sparklines from prepared summaries;
+- `gtExtras` embeds bullet charts and sparklines in static `gt` tables; and
+- `reactablefmtr` embeds interactive sparklines and sparkbars in `reactable` tables.
+
+## References
+
+- [R4VA Chapter 31: Information Dashboard Design: R methods](https://r4va.netlify.app/chap31)
+- [gt](https://gt.rstudio.com/)
+- [gtExtras](https://jthomasmock.github.io/gtExtras/)
+- [reactable](https://glin.github.io/reactable/)
+- [reactablefmtr](https://kcuilla.github.io/reactablefmtr/)

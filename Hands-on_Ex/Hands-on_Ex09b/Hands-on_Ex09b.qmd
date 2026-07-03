@@ -1,0 +1,503 @@
+---
+title: "Hands-on Exercise 9b - Visualising Geospatial Point Data"
+author: "Yang Yang"
+format:
+  html:
+    theme: sketchy
+    toc: true
+    toc-depth: 3
+    number-sections: false
+    code-copy: true
+    code-overflow: wrap
+editor: visual
+execute:
+  warning: false
+  message: false
+---
+
+```{r}
+#| label: setup
+#| include: false
+
+user_lib <- Sys.getenv("R_LIBS_USER")
+if (nzchar(user_lib)) {
+  dir.create(user_lib, recursive = TRUE, showWarnings = FALSE)
+  .libPaths(c(user_lib, .libPaths()))
+}
+
+if (!requireNamespace("pacman", quietly = TRUE)) {
+  install.packages("pacman", repos = "https://cloud.r-project.org")
+}
+
+pacman::p_load(
+  sf,
+  tmap,
+  tidyverse,
+  DT,
+  knitr,
+  scales
+)
+
+my_teal <- "#2A6F6F"
+my_soft_teal <- "#8AA6A3"
+my_dark <- "#1F1F1F"
+my_light_teal <- "#D8E8E6"
+my_grey <- "#F3F4F4"
+my_warning <- "#B07C3E"
+my_red <- "#9A4B4B"
+my_blue <- "#4C78A8"
+
+find_data_file <- function(file_name) {
+  candidates <- c(
+    file.path("data", "aspatial", file_name),
+    file.path("Hands-on_Ex", "Hands-on_Ex09b", "data", "aspatial", file_name)
+  )
+  found <- candidates[file.exists(candidates)]
+
+  if (length(found) == 0) {
+    stop(
+      "Missing required data file: ", file_name,
+      ". Put it inside Hands-on_Ex/Hands-on_Ex09b/data/aspatial/ before rendering."
+    )
+  }
+
+  found[1]
+}
+
+theme_yy <- theme_minimal(base_size = 13) +
+  theme(
+    plot.title = element_text(face = "bold", colour = my_dark),
+    plot.subtitle = element_text(colour = my_teal),
+    axis.title = element_text(colour = my_dark),
+    axis.text = element_text(colour = my_dark),
+    panel.grid.minor = element_blank(),
+    legend.position = "bottom"
+  )
+```
+
+## 23 Overview
+
+This hands-on exercise follows [Chapter 22 of R4VA](https://r4va.netlify.app/chap22), *Visualising Geospatial Point Data*. The focus is on proportional symbol mapping, where point size represents a numerical value.
+
+The example uses Singapore Pools outlet data. Each outlet has projected SVY21 coordinates and a count of Group 1 and Group 2 winnings.
+
+### 23.1 Learning Outcome
+
+By the end of this exercise, the following skills are practised:
+
+- importing an aspatial CSV file into R;
+- converting an aspatial data frame into a simple feature point data frame;
+- assigning the correct coordinate reference system, EPSG:3414;
+- drawing interactive point symbol maps with `tmap`;
+- mapping point size by a numeric variable; and
+- mapping point colour by a categorical variable.
+
+## 24 Getting Started
+
+Before starting, the required packages must be installed and loaded. The setup chunk above runs the executable package code below.
+
+```{r}
+#| label: package-code
+#| eval: false
+
+if (!requireNamespace("pacman", quietly = TRUE)) {
+  install.packages("pacman", repos = "https://cloud.r-project.org")
+}
+
+pacman::p_load(sf, tmap, tidyverse, DT, knitr, scales)
+```
+
+```{r}
+#| label: package-table
+
+tribble(
+  ~Package, ~Purpose,
+  "sf", "Convert Singapore Pools outlet records into simple feature point data.",
+  "tmap", "Create interactive point symbol and proportional symbol maps.",
+  "tidyverse", "Import, wrangle, and summarise the data.",
+  "DT", "Display interactive data tables.",
+  "knitr", "Create compact summary tables.",
+  "scales", "Format numeric labels."
+) |>
+  datatable(
+    rownames = FALSE,
+    options = list(pageLength = 10, dom = "tip")
+  )
+```
+
+## 25 Geospatial Data Wrangling
+
+### 25.1 The Data
+
+The dataset used in this exercise is `SGPools_svy21.csv`. It contains 306 Singapore Pools outlets and branches.
+
+The key fields are:
+
+- `XCOORD` and `YCOORD`: projected SVY21 coordinates;
+- `OUTLET TYPE`: whether the record is a branch or outlet; and
+- `Gp1Gp2 Winnings`: number of Group 1 and Group 2 winnings.
+
+### 25.2 Data Import and Preparation
+
+The CSV file is imported as a tibble with `read_csv()`.
+
+```{r}
+#| label: import-sgpools
+
+sgpools <- read_csv(
+  find_data_file("SGPools_svy21.csv"),
+  show_col_types = FALSE
+)
+
+sgpools |>
+  slice_head(n = 15) |>
+  datatable(
+    rownames = FALSE,
+    options = list(pageLength = 10, scrollX = TRUE, dom = "tip")
+  )
+```
+
+The next checks confirm the imported structure and the main mapping variables.
+
+```{r}
+#| label: sgpools-summary
+
+summary_table <- tibble(
+  measure = c(
+    "Number of records",
+    "Number of columns",
+    "Minimum winnings",
+    "Median winnings",
+    "Maximum winnings",
+    "Outlet types"
+  ),
+  value = c(
+    nrow(sgpools),
+    ncol(sgpools),
+    min(sgpools$`Gp1Gp2 Winnings`, na.rm = TRUE),
+    median(sgpools$`Gp1Gp2 Winnings`, na.rm = TRUE),
+    max(sgpools$`Gp1Gp2 Winnings`, na.rm = TRUE),
+    paste(names(table(sgpools$`OUTLET TYPE`)), collapse = ", ")
+  )
+)
+
+kable(summary_table)
+```
+
+```{r}
+#| label: outlet-type-counts
+
+sgpools |>
+  count(`OUTLET TYPE`, name = "outlets") |>
+  mutate(share = percent(outlets / sum(outlets))) |>
+  datatable(
+    rownames = FALSE,
+    options = list(pageLength = 5, dom = "tip")
+  )
+```
+
+### 25.3 Creating an sf Data Frame from an Aspatial Data Frame
+
+The code below converts the tibble into a simple feature point data frame. The `coords` argument uses the `XCOORD` and `YCOORD` fields. The coordinate reference system is EPSG:3414, Singapore SVY21 / Singapore TM.
+
+```{r}
+#| label: create-sf
+
+sgpools_sf <- st_as_sf(
+  sgpools,
+  coords = c("XCOORD", "YCOORD"),
+  crs = 3414
+)
+
+sgpools_sf
+```
+
+```{r}
+#| label: sf-metadata
+
+tibble(
+  measure = c(
+    "Geometry type",
+    "Coordinate reference system",
+    "Bounding box xmin",
+    "Bounding box ymin",
+    "Bounding box xmax",
+    "Bounding box ymax"
+  ),
+  value = c(
+    paste(unique(st_geometry_type(sgpools_sf)), collapse = ", "),
+    st_crs(sgpools_sf)$input,
+    round(st_bbox(sgpools_sf)[["xmin"]], 3),
+    round(st_bbox(sgpools_sf)[["ymin"]], 3),
+    round(st_bbox(sgpools_sf)[["xmax"]], 3),
+    round(st_bbox(sgpools_sf)[["ymax"]], 3)
+  )
+) |>
+  kable()
+```
+
+## 26 Drawing Proportional Symbol Map
+
+Interactive maps are drawn by switching `tmap` into view mode.
+
+```{r}
+#| label: tmap-view-mode
+
+tmap_mode("view")
+```
+
+### 26.1 It All Started with an Interactive Point Symbol Map
+
+The first map displays every Singapore Pools outlet as a fixed-size red point.
+
+::: panel-tabset
+
+## View
+
+```{r}
+#| label: fixed-symbol-view
+#| echo: false
+
+tm_shape(sgpools_sf) +
+  tm_bubbles(
+    fill = "red",
+    size = 1,
+    col = "black",
+    lwd = 1,
+    popup.vars = c(
+      "Name" = "NAME",
+      "Address" = "ADDRESS",
+      "Outlet type" = "OUTLET TYPE",
+      "Winnings" = "Gp1Gp2 Winnings"
+    )
+  )
+```
+
+## Code
+
+```{r}
+#| label: fixed-symbol-code
+#| eval: false
+
+tm_shape(sgpools_sf) +
+  tm_bubbles(
+    fill = "red",
+    size = 1,
+    col = "black",
+    lwd = 1
+  )
+```
+
+:::
+
+### 26.2 Let's Make It Proportional
+
+To draw a proportional symbol map, `Gp1Gp2 Winnings` is assigned to the size visual attribute.
+
+::: panel-tabset
+
+## View
+
+```{r}
+#| label: proportional-symbol-view
+#| echo: false
+
+tm_shape(sgpools_sf) +
+  tm_bubbles(
+    fill = my_red,
+    size = "Gp1Gp2 Winnings",
+    col = "black",
+    lwd = 1,
+    popup.vars = c(
+      "Name" = "NAME",
+      "Address" = "ADDRESS",
+      "Outlet type" = "OUTLET TYPE",
+      "Winnings" = "Gp1Gp2 Winnings"
+    )
+  )
+```
+
+## Code
+
+```{r}
+#| label: proportional-symbol-code
+#| eval: false
+
+tm_shape(sgpools_sf) +
+  tm_bubbles(
+    fill = "red",
+    size = "Gp1Gp2 Winnings",
+    col = "black",
+    lwd = 1
+  )
+```
+
+:::
+
+### 26.3 Let's Give It a Different Colour
+
+The map below uses point size for winnings and point colour for outlet type.
+
+::: panel-tabset
+
+## View
+
+```{r}
+#| label: colour-symbol-view
+#| echo: false
+
+tm_shape(sgpools_sf) +
+  tm_bubbles(
+    fill = "OUTLET TYPE",
+    size = "Gp1Gp2 Winnings",
+    col = "black",
+    lwd = 1,
+    popup.vars = c(
+      "Name" = "NAME",
+      "Address" = "ADDRESS",
+      "Outlet type" = "OUTLET TYPE",
+      "Winnings" = "Gp1Gp2 Winnings"
+    )
+  )
+```
+
+## Code
+
+```{r}
+#| label: colour-symbol-code
+#| eval: false
+
+tm_shape(sgpools_sf) +
+  tm_bubbles(
+    fill = "OUTLET TYPE",
+    size = "Gp1Gp2 Winnings",
+    col = "black",
+    lwd = 1
+  )
+```
+
+:::
+
+### 26.4 Faceted Interactive Maps
+
+In view mode, `tm_facets()` can create synchronized maps. The `sync = TRUE` argument keeps zoom and pan settings linked across facets.
+
+::: panel-tabset
+
+## View
+
+```{r}
+#| label: faceted-symbol-view
+#| echo: false
+
+tm_shape(sgpools_sf) +
+  tm_bubbles(
+    fill = "OUTLET TYPE",
+    size = "Gp1Gp2 Winnings",
+    col = "black",
+    lwd = 1,
+    popup.vars = c(
+      "Name" = "NAME",
+      "Address" = "ADDRESS",
+      "Outlet type" = "OUTLET TYPE",
+      "Winnings" = "Gp1Gp2 Winnings"
+    )
+  ) +
+  tm_facets(
+    by = "OUTLET TYPE",
+    nrow = 1,
+    sync = TRUE
+  )
+```
+
+## Code
+
+```{r}
+#| label: faceted-symbol-code
+#| eval: false
+
+tm_shape(sgpools_sf) +
+  tm_bubbles(
+    fill = "OUTLET TYPE",
+    size = "Gp1Gp2 Winnings",
+    col = "black",
+    lwd = 1
+  ) +
+  tm_facets(
+    by = "OUTLET TYPE",
+    nrow = 1,
+    sync = TRUE
+  )
+```
+
+:::
+
+Before ending the session, switch `tmap` back to plot mode.
+
+```{r}
+#| label: tmap-plot-mode
+
+tmap_mode("plot")
+```
+
+## Additional Exploration
+
+The bar chart below gives a non-map view of the same key variable. It shows that outlets generally have more records than branches, while both outlet types include some high-winning locations.
+
+::: panel-tabset
+
+## View
+
+```{r}
+#| label: winnings-by-type-view
+#| echo: false
+
+ggplot(sgpools, aes(`OUTLET TYPE`, `Gp1Gp2 Winnings`, fill = `OUTLET TYPE`)) +
+  geom_boxplot(alpha = 0.75, width = 0.55, outlier.shape = 21) +
+  scale_fill_manual(values = c("Branch" = my_teal, "Outlet" = my_warning)) +
+  labs(
+    title = "Group 1 and Group 2 Winnings by Outlet Type",
+    x = NULL,
+    y = "Gp1Gp2 Winnings"
+  ) +
+  theme_yy +
+  theme(legend.position = "none")
+```
+
+## Code
+
+```{r}
+#| label: winnings-by-type-code
+#| eval: false
+
+ggplot(sgpools, aes(`OUTLET TYPE`, `Gp1Gp2 Winnings`, fill = `OUTLET TYPE`)) +
+  geom_boxplot(alpha = 0.75, width = 0.55, outlier.shape = 21) +
+  labs(
+    title = "Group 1 and Group 2 Winnings by Outlet Type",
+    x = NULL,
+    y = "Gp1Gp2 Winnings"
+  ) +
+  theme_minimal()
+```
+
+:::
+
+## Key Takeaways
+
+::: {.callout-tip}
+Point data becomes mappable when the coordinate columns are converted into geometry and assigned the correct CRS. In this exercise, the SVY21 coordinates are converted into an `sf` point layer with EPSG:3414 before being mapped with `tmap`.
+:::
+
+In this exercise:
+
+- `read_csv()` imports the Singapore Pools outlet records;
+- `st_as_sf()` converts the table into point features;
+- `tmap_mode("view")` enables interactive maps;
+- `tm_bubbles()` creates fixed-size and proportional point symbols; and
+- `tm_facets(sync = TRUE)` creates synchronized interactive maps by outlet type.
+
+## References
+
+- [R4VA Chapter 22: Visualising Geospatial Point Data](https://r4va.netlify.app/chap22)
+- [sf: Simple Features for R](https://cran.r-project.org/package=sf)
+- [tmap: Thematic Maps in R](https://cran.r-project.org/package=tmap)

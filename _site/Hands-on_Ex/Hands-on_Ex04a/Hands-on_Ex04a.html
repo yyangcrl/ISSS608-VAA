@@ -182,8 +182,36 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
  <span class="dropdown-text">Hands-on Exercise 5d</span></a>
   </li>  
         <li>
-    <a class="dropdown-item" href="../../Hands-on_Ex/Hands-on_Ex05e/Hands-on_Ex05e.html”">
+    <a class="dropdown-item" href="../../Hands-on_Ex/Hands-on_Ex05e/Hands-on_Ex05e.html">
  <span class="dropdown-text">Hands-on Exercise 5e</span></a>
+  </li>  
+        <li>
+    <a class="dropdown-item" href="../../Hands-on_Ex/Hands-on_Ex07a/Hands-on_Ex07a.html">
+ <span class="dropdown-text">Hands-on Exercise 7a</span></a>
+  </li>  
+        <li>
+    <a class="dropdown-item" href="../../Hands-on_Ex/Hands-on_Ex07b/Hands-on_Ex07b.html">
+ <span class="dropdown-text">Hands-on Exercise 7b</span></a>
+  </li>  
+        <li>
+    <a class="dropdown-item" href="../../Hands-on_Ex/Hands-on_Ex08/Hands-on_Ex08.html">
+ <span class="dropdown-text">Hands-on Exercise 8</span></a>
+  </li>  
+        <li>
+    <a class="dropdown-item" href="../../Hands-on_Ex/Hands-on_Ex09a/Hands-on_Ex09a.html">
+ <span class="dropdown-text">Hands-on Exercise 9a</span></a>
+  </li>  
+        <li>
+    <a class="dropdown-item" href="../../Hands-on_Ex/Hands-on_Ex09b/Hands-on_Ex09b.html">
+ <span class="dropdown-text">Hands-on Exercise 9b</span></a>
+  </li>  
+        <li>
+    <a class="dropdown-item" href="../../Hands-on_Ex/Hands-on_Ex09c/Hands-on_Ex09c.html">
+ <span class="dropdown-text">Hands-on Exercise 9c</span></a>
+  </li>  
+        <li>
+    <a class="dropdown-item" href="../../Hands-on_Ex/Hands-on_Ex10/Hands-on_Ex10.html">
+ <span class="dropdown-text">Hands-on Exercise 10</span></a>
   </li>  
     </ul>
   </li>
@@ -947,20 +975,21 @@ $ SCIENCE &lt;dbl&gt; 15, 16, 16, 31, 25, 16, 25, 27, 15, 37, 42, 22, 32, 36, 35
 <span id="cb11-26"><a href="#cb11-26" aria-hidden="true" tabindex="-1"></a>    <span class="at">justification =</span> <span class="fl">1.15</span>,</span>
 <span id="cb11-27"><a href="#cb11-27" aria-hidden="true" tabindex="-1"></a>    <span class="at">binwidth =</span> <span class="fl">0.5</span>,</span>
 <span id="cb11-28"><a href="#cb11-28" aria-hidden="true" tabindex="-1"></a>    <span class="at">dotsize =</span> <span class="fl">1.6</span>,</span>
-<span id="cb11-29"><a href="#cb11-29" aria-hidden="true" tabindex="-1"></a>    <span class="at">colour =</span> my_dark,</span>
-<span id="cb11-30"><a href="#cb11-30" aria-hidden="true" tabindex="-1"></a>    <span class="at">fill =</span> my_teal</span>
-<span id="cb11-31"><a href="#cb11-31" aria-hidden="true" tabindex="-1"></a>  ) <span class="sc">+</span></span>
-<span id="cb11-32"><a href="#cb11-32" aria-hidden="true" tabindex="-1"></a>  <span class="fu">scale_fill_manual</span>(</span>
-<span id="cb11-33"><a href="#cb11-33" aria-hidden="true" tabindex="-1"></a>    <span class="at">values =</span> <span class="fu">rep</span>(my_light_teal, <span class="fu">length</span>(<span class="fu">unique</span>(exam<span class="sc">$</span>RACE)))</span>
-<span id="cb11-34"><a href="#cb11-34" aria-hidden="true" tabindex="-1"></a>  ) <span class="sc">+</span></span>
-<span id="cb11-35"><a href="#cb11-35" aria-hidden="true" tabindex="-1"></a>  <span class="fu">labs</span>(</span>
-<span id="cb11-36"><a href="#cb11-36" aria-hidden="true" tabindex="-1"></a>    <span class="at">title =</span> <span class="st">"Raincloud Plot Before Final Layout Adjustment"</span>,</span>
-<span id="cb11-37"><a href="#cb11-37" aria-hidden="true" tabindex="-1"></a>    <span class="at">subtitle =</span> <span class="st">"Density, boxplot and dots are now combined"</span>,</span>
-<span id="cb11-38"><a href="#cb11-38" aria-hidden="true" tabindex="-1"></a>    <span class="at">x =</span> <span class="st">"Race"</span>,</span>
-<span id="cb11-39"><a href="#cb11-39" aria-hidden="true" tabindex="-1"></a>    <span class="at">y =</span> <span class="st">"English score"</span></span>
-<span id="cb11-40"><a href="#cb11-40" aria-hidden="true" tabindex="-1"></a>  ) <span class="sc">+</span></span>
-<span id="cb11-41"><a href="#cb11-41" aria-hidden="true" tabindex="-1"></a>  <span class="fu">theme_teal_clean</span>() <span class="sc">+</span></span>
-<span id="cb11-42"><a href="#cb11-42" aria-hidden="true" tabindex="-1"></a>  <span class="fu">theme</span>(<span class="at">legend.position =</span> <span class="st">"none"</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<span id="cb11-29"><a href="#cb11-29" aria-hidden="true" tabindex="-1"></a>    <span class="at">overflow =</span> <span class="st">"compress"</span>,</span>
+<span id="cb11-30"><a href="#cb11-30" aria-hidden="true" tabindex="-1"></a>    <span class="at">colour =</span> my_dark,</span>
+<span id="cb11-31"><a href="#cb11-31" aria-hidden="true" tabindex="-1"></a>    <span class="at">fill =</span> my_teal</span>
+<span id="cb11-32"><a href="#cb11-32" aria-hidden="true" tabindex="-1"></a>  ) <span class="sc">+</span></span>
+<span id="cb11-33"><a href="#cb11-33" aria-hidden="true" tabindex="-1"></a>  <span class="fu">scale_fill_manual</span>(</span>
+<span id="cb11-34"><a href="#cb11-34" aria-hidden="true" tabindex="-1"></a>    <span class="at">values =</span> <span class="fu">rep</span>(my_light_teal, <span class="fu">length</span>(<span class="fu">unique</span>(exam<span class="sc">$</span>RACE)))</span>
+<span id="cb11-35"><a href="#cb11-35" aria-hidden="true" tabindex="-1"></a>  ) <span class="sc">+</span></span>
+<span id="cb11-36"><a href="#cb11-36" aria-hidden="true" tabindex="-1"></a>  <span class="fu">labs</span>(</span>
+<span id="cb11-37"><a href="#cb11-37" aria-hidden="true" tabindex="-1"></a>    <span class="at">title =</span> <span class="st">"Raincloud Plot Before Final Layout Adjustment"</span>,</span>
+<span id="cb11-38"><a href="#cb11-38" aria-hidden="true" tabindex="-1"></a>    <span class="at">subtitle =</span> <span class="st">"Density, boxplot and dots are now combined"</span>,</span>
+<span id="cb11-39"><a href="#cb11-39" aria-hidden="true" tabindex="-1"></a>    <span class="at">x =</span> <span class="st">"Race"</span>,</span>
+<span id="cb11-40"><a href="#cb11-40" aria-hidden="true" tabindex="-1"></a>    <span class="at">y =</span> <span class="st">"English score"</span></span>
+<span id="cb11-41"><a href="#cb11-41" aria-hidden="true" tabindex="-1"></a>  ) <span class="sc">+</span></span>
+<span id="cb11-42"><a href="#cb11-42" aria-hidden="true" tabindex="-1"></a>  <span class="fu">theme_teal_clean</span>() <span class="sc">+</span></span>
+<span id="cb11-43"><a href="#cb11-43" aria-hidden="true" tabindex="-1"></a>  <span class="fu">theme</span>(<span class="at">legend.position =</span> <span class="st">"none"</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </div>
 </div>
 </div>
@@ -1019,25 +1048,26 @@ $ SCIENCE &lt;dbl&gt; 15, 16, 16, 31, 25, 16, 25, 27, 15, 37, 42, 22, 32, 36, 35
 <span id="cb12-26"><a href="#cb12-26" aria-hidden="true" tabindex="-1"></a>    <span class="at">justification =</span> <span class="fl">1.15</span>,</span>
 <span id="cb12-27"><a href="#cb12-27" aria-hidden="true" tabindex="-1"></a>    <span class="at">binwidth =</span> <span class="fl">0.5</span>,</span>
 <span id="cb12-28"><a href="#cb12-28" aria-hidden="true" tabindex="-1"></a>    <span class="at">dotsize =</span> <span class="fl">1.45</span>,</span>
-<span id="cb12-29"><a href="#cb12-29" aria-hidden="true" tabindex="-1"></a>    <span class="at">colour =</span> my_dark,</span>
-<span id="cb12-30"><a href="#cb12-30" aria-hidden="true" tabindex="-1"></a>    <span class="at">fill =</span> my_teal</span>
-<span id="cb12-31"><a href="#cb12-31" aria-hidden="true" tabindex="-1"></a>  ) <span class="sc">+</span></span>
-<span id="cb12-32"><a href="#cb12-32" aria-hidden="true" tabindex="-1"></a>  <span class="fu">scale_fill_manual</span>(</span>
-<span id="cb12-33"><a href="#cb12-33" aria-hidden="true" tabindex="-1"></a>    <span class="at">values =</span> <span class="fu">rep</span>(my_light_teal, <span class="fu">length</span>(<span class="fu">unique</span>(exam<span class="sc">$</span>RACE)))</span>
-<span id="cb12-34"><a href="#cb12-34" aria-hidden="true" tabindex="-1"></a>  ) <span class="sc">+</span></span>
-<span id="cb12-35"><a href="#cb12-35" aria-hidden="true" tabindex="-1"></a>  <span class="fu">coord_flip</span>() <span class="sc">+</span></span>
-<span id="cb12-36"><a href="#cb12-36" aria-hidden="true" tabindex="-1"></a>  <span class="fu">labs</span>(</span>
-<span id="cb12-37"><a href="#cb12-37" aria-hidden="true" tabindex="-1"></a>    <span class="at">title =</span> <span class="st">"Raincloud Plot of English Scores by Race"</span>,</span>
-<span id="cb12-38"><a href="#cb12-38" aria-hidden="true" tabindex="-1"></a>    <span class="at">subtitle =</span> <span class="st">"The chart combines distribution shape, summary statistics and observations"</span>,</span>
-<span id="cb12-39"><a href="#cb12-39" aria-hidden="true" tabindex="-1"></a>    <span class="at">x =</span> <span class="cn">NULL</span>,</span>
-<span id="cb12-40"><a href="#cb12-40" aria-hidden="true" tabindex="-1"></a>    <span class="at">y =</span> <span class="st">"English score"</span></span>
-<span id="cb12-41"><a href="#cb12-41" aria-hidden="true" tabindex="-1"></a>  ) <span class="sc">+</span></span>
-<span id="cb12-42"><a href="#cb12-42" aria-hidden="true" tabindex="-1"></a>  <span class="fu">theme_teal_clean</span>() <span class="sc">+</span></span>
-<span id="cb12-43"><a href="#cb12-43" aria-hidden="true" tabindex="-1"></a>  <span class="fu">theme</span>(</span>
-<span id="cb12-44"><a href="#cb12-44" aria-hidden="true" tabindex="-1"></a>    <span class="at">legend.position =</span> <span class="st">"none"</span>,</span>
-<span id="cb12-45"><a href="#cb12-45" aria-hidden="true" tabindex="-1"></a>    <span class="at">panel.grid.major.y =</span> <span class="fu">element_blank</span>(),</span>
-<span id="cb12-46"><a href="#cb12-46" aria-hidden="true" tabindex="-1"></a>    <span class="at">panel.grid.major.x =</span> <span class="fu">element_line</span>(<span class="at">colour =</span> my_grey)</span>
-<span id="cb12-47"><a href="#cb12-47" aria-hidden="true" tabindex="-1"></a>  )</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<span id="cb12-29"><a href="#cb12-29" aria-hidden="true" tabindex="-1"></a>    <span class="at">overflow =</span> <span class="st">"compress"</span>,</span>
+<span id="cb12-30"><a href="#cb12-30" aria-hidden="true" tabindex="-1"></a>    <span class="at">colour =</span> my_dark,</span>
+<span id="cb12-31"><a href="#cb12-31" aria-hidden="true" tabindex="-1"></a>    <span class="at">fill =</span> my_teal</span>
+<span id="cb12-32"><a href="#cb12-32" aria-hidden="true" tabindex="-1"></a>  ) <span class="sc">+</span></span>
+<span id="cb12-33"><a href="#cb12-33" aria-hidden="true" tabindex="-1"></a>  <span class="fu">scale_fill_manual</span>(</span>
+<span id="cb12-34"><a href="#cb12-34" aria-hidden="true" tabindex="-1"></a>    <span class="at">values =</span> <span class="fu">rep</span>(my_light_teal, <span class="fu">length</span>(<span class="fu">unique</span>(exam<span class="sc">$</span>RACE)))</span>
+<span id="cb12-35"><a href="#cb12-35" aria-hidden="true" tabindex="-1"></a>  ) <span class="sc">+</span></span>
+<span id="cb12-36"><a href="#cb12-36" aria-hidden="true" tabindex="-1"></a>  <span class="fu">coord_flip</span>() <span class="sc">+</span></span>
+<span id="cb12-37"><a href="#cb12-37" aria-hidden="true" tabindex="-1"></a>  <span class="fu">labs</span>(</span>
+<span id="cb12-38"><a href="#cb12-38" aria-hidden="true" tabindex="-1"></a>    <span class="at">title =</span> <span class="st">"Raincloud Plot of English Scores by Race"</span>,</span>
+<span id="cb12-39"><a href="#cb12-39" aria-hidden="true" tabindex="-1"></a>    <span class="at">subtitle =</span> <span class="st">"The chart combines distribution shape, summary statistics and observations"</span>,</span>
+<span id="cb12-40"><a href="#cb12-40" aria-hidden="true" tabindex="-1"></a>    <span class="at">x =</span> <span class="cn">NULL</span>,</span>
+<span id="cb12-41"><a href="#cb12-41" aria-hidden="true" tabindex="-1"></a>    <span class="at">y =</span> <span class="st">"English score"</span></span>
+<span id="cb12-42"><a href="#cb12-42" aria-hidden="true" tabindex="-1"></a>  ) <span class="sc">+</span></span>
+<span id="cb12-43"><a href="#cb12-43" aria-hidden="true" tabindex="-1"></a>  <span class="fu">theme_teal_clean</span>() <span class="sc">+</span></span>
+<span id="cb12-44"><a href="#cb12-44" aria-hidden="true" tabindex="-1"></a>  <span class="fu">theme</span>(</span>
+<span id="cb12-45"><a href="#cb12-45" aria-hidden="true" tabindex="-1"></a>    <span class="at">legend.position =</span> <span class="st">"none"</span>,</span>
+<span id="cb12-46"><a href="#cb12-46" aria-hidden="true" tabindex="-1"></a>    <span class="at">panel.grid.major.y =</span> <span class="fu">element_blank</span>(),</span>
+<span id="cb12-47"><a href="#cb12-47" aria-hidden="true" tabindex="-1"></a>    <span class="at">panel.grid.major.x =</span> <span class="fu">element_line</span>(<span class="at">colour =</span> my_grey)</span>
+<span id="cb12-48"><a href="#cb12-48" aria-hidden="true" tabindex="-1"></a>  )</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </div>
 </div>
 </div>
@@ -2496,289 +2526,293 @@ $ SCIENCE &lt;dbl&gt; 15, 16, 16, 31, 25, 16, 25, 27, 15, 37, 42, 22, 32, 36, 35
 <span id="cb14-952"><a href="#cb14-952" aria-hidden="true" tabindex="-1"></a>    <span class="at">justification =</span> <span class="fl">1.15</span>,</span>
 <span id="cb14-953"><a href="#cb14-953" aria-hidden="true" tabindex="-1"></a>    <span class="at">binwidth =</span> <span class="fl">0.5</span>,</span>
 <span id="cb14-954"><a href="#cb14-954" aria-hidden="true" tabindex="-1"></a>    <span class="at">dotsize =</span> <span class="fl">1.6</span>,</span>
-<span id="cb14-955"><a href="#cb14-955" aria-hidden="true" tabindex="-1"></a>    <span class="at">colour =</span> my_dark,</span>
-<span id="cb14-956"><a href="#cb14-956" aria-hidden="true" tabindex="-1"></a>    <span class="at">fill =</span> my_teal</span>
-<span id="cb14-957"><a href="#cb14-957" aria-hidden="true" tabindex="-1"></a>  ) <span class="sc">+</span></span>
-<span id="cb14-958"><a href="#cb14-958" aria-hidden="true" tabindex="-1"></a>  <span class="fu">scale_fill_manual</span>(</span>
-<span id="cb14-959"><a href="#cb14-959" aria-hidden="true" tabindex="-1"></a>    <span class="at">values =</span> <span class="fu">rep</span>(my_light_teal, <span class="fu">length</span>(<span class="fu">unique</span>(exam<span class="sc">$</span>RACE)))</span>
-<span id="cb14-960"><a href="#cb14-960" aria-hidden="true" tabindex="-1"></a>  ) <span class="sc">+</span></span>
-<span id="cb14-961"><a href="#cb14-961" aria-hidden="true" tabindex="-1"></a>  <span class="fu">labs</span>(</span>
-<span id="cb14-962"><a href="#cb14-962" aria-hidden="true" tabindex="-1"></a>    <span class="at">title =</span> <span class="st">"Raincloud Plot Before Final Layout Adjustment"</span>,</span>
-<span id="cb14-963"><a href="#cb14-963" aria-hidden="true" tabindex="-1"></a>    <span class="at">subtitle =</span> <span class="st">"Density, boxplot and dots are now combined"</span>,</span>
-<span id="cb14-964"><a href="#cb14-964" aria-hidden="true" tabindex="-1"></a>    <span class="at">x =</span> <span class="st">"Race"</span>,</span>
-<span id="cb14-965"><a href="#cb14-965" aria-hidden="true" tabindex="-1"></a>    <span class="at">y =</span> <span class="st">"English score"</span></span>
-<span id="cb14-966"><a href="#cb14-966" aria-hidden="true" tabindex="-1"></a>  ) <span class="sc">+</span></span>
-<span id="cb14-967"><a href="#cb14-967" aria-hidden="true" tabindex="-1"></a>  <span class="fu">theme_teal_clean</span>() <span class="sc">+</span></span>
-<span id="cb14-968"><a href="#cb14-968" aria-hidden="true" tabindex="-1"></a>  <span class="fu">theme</span>(<span class="at">legend.position =</span> <span class="st">"none"</span>)</span>
-<span id="cb14-969"><a href="#cb14-969" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
-<span id="cb14-970"><a href="#cb14-970" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb14-971"><a href="#cb14-971" aria-hidden="true" tabindex="-1"></a><span class="fu">## The code chunk</span></span>
-<span id="cb14-972"><a href="#cb14-972" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb14-975"><a href="#cb14-975" aria-hidden="true" tabindex="-1"></a><span class="in">```{r}</span></span>
-<span id="cb14-976"><a href="#cb14-976" aria-hidden="true" tabindex="-1"></a><span class="co">#| label: raincloud-dots-code</span></span>
-<span id="cb14-977"><a href="#cb14-977" aria-hidden="true" tabindex="-1"></a><span class="co">#| eval: false</span></span>
-<span id="cb14-978"><a href="#cb14-978" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb14-979"><a href="#cb14-979" aria-hidden="true" tabindex="-1"></a><span class="fu">ggplot</span>(</span>
-<span id="cb14-980"><a href="#cb14-980" aria-hidden="true" tabindex="-1"></a>  exam,</span>
-<span id="cb14-981"><a href="#cb14-981" aria-hidden="true" tabindex="-1"></a>  <span class="fu">aes</span>(</span>
-<span id="cb14-982"><a href="#cb14-982" aria-hidden="true" tabindex="-1"></a>    <span class="at">x =</span> RACE,</span>
-<span id="cb14-983"><a href="#cb14-983" aria-hidden="true" tabindex="-1"></a>    <span class="at">y =</span> ENGLISH,</span>
-<span id="cb14-984"><a href="#cb14-984" aria-hidden="true" tabindex="-1"></a>    <span class="at">fill =</span> RACE</span>
-<span id="cb14-985"><a href="#cb14-985" aria-hidden="true" tabindex="-1"></a>  )</span>
-<span id="cb14-986"><a href="#cb14-986" aria-hidden="true" tabindex="-1"></a>) <span class="sc">+</span></span>
-<span id="cb14-987"><a href="#cb14-987" aria-hidden="true" tabindex="-1"></a>  <span class="fu">stat_halfeye</span>(</span>
-<span id="cb14-988"><a href="#cb14-988" aria-hidden="true" tabindex="-1"></a>    <span class="at">adjust =</span> <span class="fl">0.55</span>,</span>
-<span id="cb14-989"><a href="#cb14-989" aria-hidden="true" tabindex="-1"></a>    <span class="at">justification =</span> <span class="sc">-</span><span class="fl">0.25</span>,</span>
-<span id="cb14-990"><a href="#cb14-990" aria-hidden="true" tabindex="-1"></a>    <span class="at">.width =</span> <span class="dv">0</span>,</span>
-<span id="cb14-991"><a href="#cb14-991" aria-hidden="true" tabindex="-1"></a>    <span class="at">point_colour =</span> <span class="cn">NA</span>,</span>
-<span id="cb14-992"><a href="#cb14-992" aria-hidden="true" tabindex="-1"></a>    <span class="at">alpha =</span> <span class="fl">0.85</span>,</span>
-<span id="cb14-993"><a href="#cb14-993" aria-hidden="true" tabindex="-1"></a>    <span class="at">colour =</span> my_dark</span>
-<span id="cb14-994"><a href="#cb14-994" aria-hidden="true" tabindex="-1"></a>  ) <span class="sc">+</span></span>
-<span id="cb14-995"><a href="#cb14-995" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_boxplot</span>(</span>
-<span id="cb14-996"><a href="#cb14-996" aria-hidden="true" tabindex="-1"></a>    <span class="at">width =</span> <span class="fl">0.18</span>,</span>
-<span id="cb14-997"><a href="#cb14-997" aria-hidden="true" tabindex="-1"></a>    <span class="at">outlier.shape =</span> <span class="cn">NA</span>,</span>
-<span id="cb14-998"><a href="#cb14-998" aria-hidden="true" tabindex="-1"></a>    <span class="at">alpha =</span> <span class="fl">0.75</span>,</span>
-<span id="cb14-999"><a href="#cb14-999" aria-hidden="true" tabindex="-1"></a>    <span class="at">colour =</span> my_dark,</span>
-<span id="cb14-1000"><a href="#cb14-1000" aria-hidden="true" tabindex="-1"></a>    <span class="at">fill =</span> <span class="st">"white"</span></span>
-<span id="cb14-1001"><a href="#cb14-1001" aria-hidden="true" tabindex="-1"></a>  ) <span class="sc">+</span></span>
-<span id="cb14-1002"><a href="#cb14-1002" aria-hidden="true" tabindex="-1"></a>  <span class="fu">stat_dots</span>(</span>
-<span id="cb14-1003"><a href="#cb14-1003" aria-hidden="true" tabindex="-1"></a>    <span class="at">side =</span> <span class="st">"left"</span>,</span>
-<span id="cb14-1004"><a href="#cb14-1004" aria-hidden="true" tabindex="-1"></a>    <span class="at">justification =</span> <span class="fl">1.15</span>,</span>
-<span id="cb14-1005"><a href="#cb14-1005" aria-hidden="true" tabindex="-1"></a>    <span class="at">binwidth =</span> <span class="fl">0.5</span>,</span>
-<span id="cb14-1006"><a href="#cb14-1006" aria-hidden="true" tabindex="-1"></a>    <span class="at">dotsize =</span> <span class="fl">1.6</span>,</span>
-<span id="cb14-1007"><a href="#cb14-1007" aria-hidden="true" tabindex="-1"></a>    <span class="at">colour =</span> my_dark,</span>
-<span id="cb14-1008"><a href="#cb14-1008" aria-hidden="true" tabindex="-1"></a>    <span class="at">fill =</span> my_teal</span>
-<span id="cb14-1009"><a href="#cb14-1009" aria-hidden="true" tabindex="-1"></a>  ) <span class="sc">+</span></span>
-<span id="cb14-1010"><a href="#cb14-1010" aria-hidden="true" tabindex="-1"></a>  <span class="fu">scale_fill_manual</span>(</span>
-<span id="cb14-1011"><a href="#cb14-1011" aria-hidden="true" tabindex="-1"></a>    <span class="at">values =</span> <span class="fu">rep</span>(my_light_teal, <span class="fu">length</span>(<span class="fu">unique</span>(exam<span class="sc">$</span>RACE)))</span>
-<span id="cb14-1012"><a href="#cb14-1012" aria-hidden="true" tabindex="-1"></a>  ) <span class="sc">+</span></span>
-<span id="cb14-1013"><a href="#cb14-1013" aria-hidden="true" tabindex="-1"></a>  <span class="fu">labs</span>(</span>
-<span id="cb14-1014"><a href="#cb14-1014" aria-hidden="true" tabindex="-1"></a>    <span class="at">title =</span> <span class="st">"Raincloud Plot Before Final Layout Adjustment"</span>,</span>
-<span id="cb14-1015"><a href="#cb14-1015" aria-hidden="true" tabindex="-1"></a>    <span class="at">subtitle =</span> <span class="st">"Density, boxplot and dots are now combined"</span>,</span>
-<span id="cb14-1016"><a href="#cb14-1016" aria-hidden="true" tabindex="-1"></a>    <span class="at">x =</span> <span class="st">"Race"</span>,</span>
-<span id="cb14-1017"><a href="#cb14-1017" aria-hidden="true" tabindex="-1"></a>    <span class="at">y =</span> <span class="st">"English score"</span></span>
-<span id="cb14-1018"><a href="#cb14-1018" aria-hidden="true" tabindex="-1"></a>  ) <span class="sc">+</span></span>
-<span id="cb14-1019"><a href="#cb14-1019" aria-hidden="true" tabindex="-1"></a>  <span class="fu">theme_teal_clean</span>() <span class="sc">+</span></span>
-<span id="cb14-1020"><a href="#cb14-1020" aria-hidden="true" tabindex="-1"></a>  <span class="fu">theme</span>(<span class="at">legend.position =</span> <span class="st">"none"</span>)</span>
-<span id="cb14-1021"><a href="#cb14-1021" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
-<span id="cb14-1022"><a href="#cb14-1022" aria-hidden="true" tabindex="-1"></a>:::</span>
-<span id="cb14-1023"><a href="#cb14-1023" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb14-1024"><a href="#cb14-1024" aria-hidden="true" tabindex="-1"></a><span class="fu">### 4.4.4 Finishing touch</span></span>
+<span id="cb14-955"><a href="#cb14-955" aria-hidden="true" tabindex="-1"></a>    <span class="at">overflow =</span> <span class="st">"compress"</span>,</span>
+<span id="cb14-956"><a href="#cb14-956" aria-hidden="true" tabindex="-1"></a>    <span class="at">colour =</span> my_dark,</span>
+<span id="cb14-957"><a href="#cb14-957" aria-hidden="true" tabindex="-1"></a>    <span class="at">fill =</span> my_teal</span>
+<span id="cb14-958"><a href="#cb14-958" aria-hidden="true" tabindex="-1"></a>  ) <span class="sc">+</span></span>
+<span id="cb14-959"><a href="#cb14-959" aria-hidden="true" tabindex="-1"></a>  <span class="fu">scale_fill_manual</span>(</span>
+<span id="cb14-960"><a href="#cb14-960" aria-hidden="true" tabindex="-1"></a>    <span class="at">values =</span> <span class="fu">rep</span>(my_light_teal, <span class="fu">length</span>(<span class="fu">unique</span>(exam<span class="sc">$</span>RACE)))</span>
+<span id="cb14-961"><a href="#cb14-961" aria-hidden="true" tabindex="-1"></a>  ) <span class="sc">+</span></span>
+<span id="cb14-962"><a href="#cb14-962" aria-hidden="true" tabindex="-1"></a>  <span class="fu">labs</span>(</span>
+<span id="cb14-963"><a href="#cb14-963" aria-hidden="true" tabindex="-1"></a>    <span class="at">title =</span> <span class="st">"Raincloud Plot Before Final Layout Adjustment"</span>,</span>
+<span id="cb14-964"><a href="#cb14-964" aria-hidden="true" tabindex="-1"></a>    <span class="at">subtitle =</span> <span class="st">"Density, boxplot and dots are now combined"</span>,</span>
+<span id="cb14-965"><a href="#cb14-965" aria-hidden="true" tabindex="-1"></a>    <span class="at">x =</span> <span class="st">"Race"</span>,</span>
+<span id="cb14-966"><a href="#cb14-966" aria-hidden="true" tabindex="-1"></a>    <span class="at">y =</span> <span class="st">"English score"</span></span>
+<span id="cb14-967"><a href="#cb14-967" aria-hidden="true" tabindex="-1"></a>  ) <span class="sc">+</span></span>
+<span id="cb14-968"><a href="#cb14-968" aria-hidden="true" tabindex="-1"></a>  <span class="fu">theme_teal_clean</span>() <span class="sc">+</span></span>
+<span id="cb14-969"><a href="#cb14-969" aria-hidden="true" tabindex="-1"></a>  <span class="fu">theme</span>(<span class="at">legend.position =</span> <span class="st">"none"</span>)</span>
+<span id="cb14-970"><a href="#cb14-970" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
+<span id="cb14-971"><a href="#cb14-971" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb14-972"><a href="#cb14-972" aria-hidden="true" tabindex="-1"></a><span class="fu">## The code chunk</span></span>
+<span id="cb14-973"><a href="#cb14-973" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb14-976"><a href="#cb14-976" aria-hidden="true" tabindex="-1"></a><span class="in">```{r}</span></span>
+<span id="cb14-977"><a href="#cb14-977" aria-hidden="true" tabindex="-1"></a><span class="co">#| label: raincloud-dots-code</span></span>
+<span id="cb14-978"><a href="#cb14-978" aria-hidden="true" tabindex="-1"></a><span class="co">#| eval: false</span></span>
+<span id="cb14-979"><a href="#cb14-979" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb14-980"><a href="#cb14-980" aria-hidden="true" tabindex="-1"></a><span class="fu">ggplot</span>(</span>
+<span id="cb14-981"><a href="#cb14-981" aria-hidden="true" tabindex="-1"></a>  exam,</span>
+<span id="cb14-982"><a href="#cb14-982" aria-hidden="true" tabindex="-1"></a>  <span class="fu">aes</span>(</span>
+<span id="cb14-983"><a href="#cb14-983" aria-hidden="true" tabindex="-1"></a>    <span class="at">x =</span> RACE,</span>
+<span id="cb14-984"><a href="#cb14-984" aria-hidden="true" tabindex="-1"></a>    <span class="at">y =</span> ENGLISH,</span>
+<span id="cb14-985"><a href="#cb14-985" aria-hidden="true" tabindex="-1"></a>    <span class="at">fill =</span> RACE</span>
+<span id="cb14-986"><a href="#cb14-986" aria-hidden="true" tabindex="-1"></a>  )</span>
+<span id="cb14-987"><a href="#cb14-987" aria-hidden="true" tabindex="-1"></a>) <span class="sc">+</span></span>
+<span id="cb14-988"><a href="#cb14-988" aria-hidden="true" tabindex="-1"></a>  <span class="fu">stat_halfeye</span>(</span>
+<span id="cb14-989"><a href="#cb14-989" aria-hidden="true" tabindex="-1"></a>    <span class="at">adjust =</span> <span class="fl">0.55</span>,</span>
+<span id="cb14-990"><a href="#cb14-990" aria-hidden="true" tabindex="-1"></a>    <span class="at">justification =</span> <span class="sc">-</span><span class="fl">0.25</span>,</span>
+<span id="cb14-991"><a href="#cb14-991" aria-hidden="true" tabindex="-1"></a>    <span class="at">.width =</span> <span class="dv">0</span>,</span>
+<span id="cb14-992"><a href="#cb14-992" aria-hidden="true" tabindex="-1"></a>    <span class="at">point_colour =</span> <span class="cn">NA</span>,</span>
+<span id="cb14-993"><a href="#cb14-993" aria-hidden="true" tabindex="-1"></a>    <span class="at">alpha =</span> <span class="fl">0.85</span>,</span>
+<span id="cb14-994"><a href="#cb14-994" aria-hidden="true" tabindex="-1"></a>    <span class="at">colour =</span> my_dark</span>
+<span id="cb14-995"><a href="#cb14-995" aria-hidden="true" tabindex="-1"></a>  ) <span class="sc">+</span></span>
+<span id="cb14-996"><a href="#cb14-996" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_boxplot</span>(</span>
+<span id="cb14-997"><a href="#cb14-997" aria-hidden="true" tabindex="-1"></a>    <span class="at">width =</span> <span class="fl">0.18</span>,</span>
+<span id="cb14-998"><a href="#cb14-998" aria-hidden="true" tabindex="-1"></a>    <span class="at">outlier.shape =</span> <span class="cn">NA</span>,</span>
+<span id="cb14-999"><a href="#cb14-999" aria-hidden="true" tabindex="-1"></a>    <span class="at">alpha =</span> <span class="fl">0.75</span>,</span>
+<span id="cb14-1000"><a href="#cb14-1000" aria-hidden="true" tabindex="-1"></a>    <span class="at">colour =</span> my_dark,</span>
+<span id="cb14-1001"><a href="#cb14-1001" aria-hidden="true" tabindex="-1"></a>    <span class="at">fill =</span> <span class="st">"white"</span></span>
+<span id="cb14-1002"><a href="#cb14-1002" aria-hidden="true" tabindex="-1"></a>  ) <span class="sc">+</span></span>
+<span id="cb14-1003"><a href="#cb14-1003" aria-hidden="true" tabindex="-1"></a>  <span class="fu">stat_dots</span>(</span>
+<span id="cb14-1004"><a href="#cb14-1004" aria-hidden="true" tabindex="-1"></a>    <span class="at">side =</span> <span class="st">"left"</span>,</span>
+<span id="cb14-1005"><a href="#cb14-1005" aria-hidden="true" tabindex="-1"></a>    <span class="at">justification =</span> <span class="fl">1.15</span>,</span>
+<span id="cb14-1006"><a href="#cb14-1006" aria-hidden="true" tabindex="-1"></a>    <span class="at">binwidth =</span> <span class="fl">0.5</span>,</span>
+<span id="cb14-1007"><a href="#cb14-1007" aria-hidden="true" tabindex="-1"></a>    <span class="at">dotsize =</span> <span class="fl">1.6</span>,</span>
+<span id="cb14-1008"><a href="#cb14-1008" aria-hidden="true" tabindex="-1"></a>    <span class="at">overflow =</span> <span class="st">"compress"</span>,</span>
+<span id="cb14-1009"><a href="#cb14-1009" aria-hidden="true" tabindex="-1"></a>    <span class="at">colour =</span> my_dark,</span>
+<span id="cb14-1010"><a href="#cb14-1010" aria-hidden="true" tabindex="-1"></a>    <span class="at">fill =</span> my_teal</span>
+<span id="cb14-1011"><a href="#cb14-1011" aria-hidden="true" tabindex="-1"></a>  ) <span class="sc">+</span></span>
+<span id="cb14-1012"><a href="#cb14-1012" aria-hidden="true" tabindex="-1"></a>  <span class="fu">scale_fill_manual</span>(</span>
+<span id="cb14-1013"><a href="#cb14-1013" aria-hidden="true" tabindex="-1"></a>    <span class="at">values =</span> <span class="fu">rep</span>(my_light_teal, <span class="fu">length</span>(<span class="fu">unique</span>(exam<span class="sc">$</span>RACE)))</span>
+<span id="cb14-1014"><a href="#cb14-1014" aria-hidden="true" tabindex="-1"></a>  ) <span class="sc">+</span></span>
+<span id="cb14-1015"><a href="#cb14-1015" aria-hidden="true" tabindex="-1"></a>  <span class="fu">labs</span>(</span>
+<span id="cb14-1016"><a href="#cb14-1016" aria-hidden="true" tabindex="-1"></a>    <span class="at">title =</span> <span class="st">"Raincloud Plot Before Final Layout Adjustment"</span>,</span>
+<span id="cb14-1017"><a href="#cb14-1017" aria-hidden="true" tabindex="-1"></a>    <span class="at">subtitle =</span> <span class="st">"Density, boxplot and dots are now combined"</span>,</span>
+<span id="cb14-1018"><a href="#cb14-1018" aria-hidden="true" tabindex="-1"></a>    <span class="at">x =</span> <span class="st">"Race"</span>,</span>
+<span id="cb14-1019"><a href="#cb14-1019" aria-hidden="true" tabindex="-1"></a>    <span class="at">y =</span> <span class="st">"English score"</span></span>
+<span id="cb14-1020"><a href="#cb14-1020" aria-hidden="true" tabindex="-1"></a>  ) <span class="sc">+</span></span>
+<span id="cb14-1021"><a href="#cb14-1021" aria-hidden="true" tabindex="-1"></a>  <span class="fu">theme_teal_clean</span>() <span class="sc">+</span></span>
+<span id="cb14-1022"><a href="#cb14-1022" aria-hidden="true" tabindex="-1"></a>  <span class="fu">theme</span>(<span class="at">legend.position =</span> <span class="st">"none"</span>)</span>
+<span id="cb14-1023"><a href="#cb14-1023" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
+<span id="cb14-1024"><a href="#cb14-1024" aria-hidden="true" tabindex="-1"></a>:::</span>
 <span id="cb14-1025"><a href="#cb14-1025" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb14-1026"><a href="#cb14-1026" aria-hidden="true" tabindex="-1"></a>Finally, we use <span class="in">`coord_flip()`</span> to turn the chart horizontally. This makes the raincloud shape easier to read and gives more space for the score scale.</span>
+<span id="cb14-1026"><a href="#cb14-1026" aria-hidden="true" tabindex="-1"></a><span class="fu">### 4.4.4 Finishing touch</span></span>
 <span id="cb14-1027"><a href="#cb14-1027" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb14-1028"><a href="#cb14-1028" aria-hidden="true" tabindex="-1"></a>The final chart combines three layers:</span>
+<span id="cb14-1028"><a href="#cb14-1028" aria-hidden="true" tabindex="-1"></a>Finally, we use <span class="in">`coord_flip()`</span> to turn the chart horizontally. This makes the raincloud shape easier to read and gives more space for the score scale.</span>
 <span id="cb14-1029"><a href="#cb14-1029" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb14-1030"><a href="#cb14-1030" aria-hidden="true" tabindex="-1"></a><span class="ss">-   </span>the half-eye layer shows the distribution shape;</span>
-<span id="cb14-1031"><a href="#cb14-1031" aria-hidden="true" tabindex="-1"></a><span class="ss">-   </span>the boxplot shows the summary statistics;</span>
-<span id="cb14-1032"><a href="#cb14-1032" aria-hidden="true" tabindex="-1"></a><span class="ss">-   </span>the dots show the observations.</span>
-<span id="cb14-1033"><a href="#cb14-1033" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb14-1034"><a href="#cb14-1034" aria-hidden="true" tabindex="-1"></a>::: panel-tabset</span>
-<span id="cb14-1035"><a href="#cb14-1035" aria-hidden="true" tabindex="-1"></a><span class="fu">## The plot</span></span>
-<span id="cb14-1036"><a href="#cb14-1036" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb14-1039"><a href="#cb14-1039" aria-hidden="true" tabindex="-1"></a><span class="in">```{r}</span></span>
-<span id="cb14-1040"><a href="#cb14-1040" aria-hidden="true" tabindex="-1"></a><span class="co">#| label: raincloud-final-plot</span></span>
-<span id="cb14-1041"><a href="#cb14-1041" aria-hidden="true" tabindex="-1"></a><span class="co">#| echo: false</span></span>
-<span id="cb14-1042"><a href="#cb14-1042" aria-hidden="true" tabindex="-1"></a><span class="co">#| fig-width: 8</span></span>
-<span id="cb14-1043"><a href="#cb14-1043" aria-hidden="true" tabindex="-1"></a><span class="co">#| fig-height: 5</span></span>
-<span id="cb14-1044"><a href="#cb14-1044" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb14-1045"><a href="#cb14-1045" aria-hidden="true" tabindex="-1"></a><span class="fu">ggplot</span>(</span>
-<span id="cb14-1046"><a href="#cb14-1046" aria-hidden="true" tabindex="-1"></a>  exam,</span>
-<span id="cb14-1047"><a href="#cb14-1047" aria-hidden="true" tabindex="-1"></a>  <span class="fu">aes</span>(</span>
-<span id="cb14-1048"><a href="#cb14-1048" aria-hidden="true" tabindex="-1"></a>    <span class="at">x =</span> RACE,</span>
-<span id="cb14-1049"><a href="#cb14-1049" aria-hidden="true" tabindex="-1"></a>    <span class="at">y =</span> ENGLISH,</span>
-<span id="cb14-1050"><a href="#cb14-1050" aria-hidden="true" tabindex="-1"></a>    <span class="at">fill =</span> RACE</span>
-<span id="cb14-1051"><a href="#cb14-1051" aria-hidden="true" tabindex="-1"></a>  )</span>
-<span id="cb14-1052"><a href="#cb14-1052" aria-hidden="true" tabindex="-1"></a>) <span class="sc">+</span></span>
-<span id="cb14-1053"><a href="#cb14-1053" aria-hidden="true" tabindex="-1"></a>  <span class="fu">stat_halfeye</span>(</span>
-<span id="cb14-1054"><a href="#cb14-1054" aria-hidden="true" tabindex="-1"></a>    <span class="at">adjust =</span> <span class="fl">0.55</span>,</span>
-<span id="cb14-1055"><a href="#cb14-1055" aria-hidden="true" tabindex="-1"></a>    <span class="at">justification =</span> <span class="sc">-</span><span class="fl">0.25</span>,</span>
-<span id="cb14-1056"><a href="#cb14-1056" aria-hidden="true" tabindex="-1"></a>    <span class="at">.width =</span> <span class="dv">0</span>,</span>
-<span id="cb14-1057"><a href="#cb14-1057" aria-hidden="true" tabindex="-1"></a>    <span class="at">point_colour =</span> <span class="cn">NA</span>,</span>
-<span id="cb14-1058"><a href="#cb14-1058" aria-hidden="true" tabindex="-1"></a>    <span class="at">alpha =</span> <span class="fl">0.85</span>,</span>
-<span id="cb14-1059"><a href="#cb14-1059" aria-hidden="true" tabindex="-1"></a>    <span class="at">colour =</span> my_dark</span>
-<span id="cb14-1060"><a href="#cb14-1060" aria-hidden="true" tabindex="-1"></a>  ) <span class="sc">+</span></span>
-<span id="cb14-1061"><a href="#cb14-1061" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_boxplot</span>(</span>
-<span id="cb14-1062"><a href="#cb14-1062" aria-hidden="true" tabindex="-1"></a>    <span class="at">width =</span> <span class="fl">0.18</span>,</span>
-<span id="cb14-1063"><a href="#cb14-1063" aria-hidden="true" tabindex="-1"></a>    <span class="at">outlier.shape =</span> <span class="cn">NA</span>,</span>
-<span id="cb14-1064"><a href="#cb14-1064" aria-hidden="true" tabindex="-1"></a>    <span class="at">alpha =</span> <span class="fl">0.75</span>,</span>
-<span id="cb14-1065"><a href="#cb14-1065" aria-hidden="true" tabindex="-1"></a>    <span class="at">colour =</span> my_dark,</span>
-<span id="cb14-1066"><a href="#cb14-1066" aria-hidden="true" tabindex="-1"></a>    <span class="at">fill =</span> <span class="st">"white"</span></span>
-<span id="cb14-1067"><a href="#cb14-1067" aria-hidden="true" tabindex="-1"></a>  ) <span class="sc">+</span></span>
-<span id="cb14-1068"><a href="#cb14-1068" aria-hidden="true" tabindex="-1"></a>  <span class="fu">stat_dots</span>(</span>
-<span id="cb14-1069"><a href="#cb14-1069" aria-hidden="true" tabindex="-1"></a>    <span class="at">side =</span> <span class="st">"left"</span>,</span>
-<span id="cb14-1070"><a href="#cb14-1070" aria-hidden="true" tabindex="-1"></a>    <span class="at">justification =</span> <span class="fl">1.15</span>,</span>
-<span id="cb14-1071"><a href="#cb14-1071" aria-hidden="true" tabindex="-1"></a>    <span class="at">binwidth =</span> <span class="fl">0.5</span>,</span>
-<span id="cb14-1072"><a href="#cb14-1072" aria-hidden="true" tabindex="-1"></a>    <span class="at">dotsize =</span> <span class="fl">1.45</span>,</span>
-<span id="cb14-1073"><a href="#cb14-1073" aria-hidden="true" tabindex="-1"></a>    <span class="at">colour =</span> my_dark,</span>
-<span id="cb14-1074"><a href="#cb14-1074" aria-hidden="true" tabindex="-1"></a>    <span class="at">fill =</span> my_teal</span>
-<span id="cb14-1075"><a href="#cb14-1075" aria-hidden="true" tabindex="-1"></a>  ) <span class="sc">+</span></span>
-<span id="cb14-1076"><a href="#cb14-1076" aria-hidden="true" tabindex="-1"></a>  <span class="fu">scale_fill_manual</span>(</span>
-<span id="cb14-1077"><a href="#cb14-1077" aria-hidden="true" tabindex="-1"></a>    <span class="at">values =</span> <span class="fu">rep</span>(my_light_teal, <span class="fu">length</span>(<span class="fu">unique</span>(exam<span class="sc">$</span>RACE)))</span>
+<span id="cb14-1030"><a href="#cb14-1030" aria-hidden="true" tabindex="-1"></a>The final chart combines three layers:</span>
+<span id="cb14-1031"><a href="#cb14-1031" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb14-1032"><a href="#cb14-1032" aria-hidden="true" tabindex="-1"></a><span class="ss">-   </span>the half-eye layer shows the distribution shape;</span>
+<span id="cb14-1033"><a href="#cb14-1033" aria-hidden="true" tabindex="-1"></a><span class="ss">-   </span>the boxplot shows the summary statistics;</span>
+<span id="cb14-1034"><a href="#cb14-1034" aria-hidden="true" tabindex="-1"></a><span class="ss">-   </span>the dots show the observations.</span>
+<span id="cb14-1035"><a href="#cb14-1035" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb14-1036"><a href="#cb14-1036" aria-hidden="true" tabindex="-1"></a>::: panel-tabset</span>
+<span id="cb14-1037"><a href="#cb14-1037" aria-hidden="true" tabindex="-1"></a><span class="fu">## The plot</span></span>
+<span id="cb14-1038"><a href="#cb14-1038" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb14-1041"><a href="#cb14-1041" aria-hidden="true" tabindex="-1"></a><span class="in">```{r}</span></span>
+<span id="cb14-1042"><a href="#cb14-1042" aria-hidden="true" tabindex="-1"></a><span class="co">#| label: raincloud-final-plot</span></span>
+<span id="cb14-1043"><a href="#cb14-1043" aria-hidden="true" tabindex="-1"></a><span class="co">#| echo: false</span></span>
+<span id="cb14-1044"><a href="#cb14-1044" aria-hidden="true" tabindex="-1"></a><span class="co">#| fig-width: 8</span></span>
+<span id="cb14-1045"><a href="#cb14-1045" aria-hidden="true" tabindex="-1"></a><span class="co">#| fig-height: 5</span></span>
+<span id="cb14-1046"><a href="#cb14-1046" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb14-1047"><a href="#cb14-1047" aria-hidden="true" tabindex="-1"></a><span class="fu">ggplot</span>(</span>
+<span id="cb14-1048"><a href="#cb14-1048" aria-hidden="true" tabindex="-1"></a>  exam,</span>
+<span id="cb14-1049"><a href="#cb14-1049" aria-hidden="true" tabindex="-1"></a>  <span class="fu">aes</span>(</span>
+<span id="cb14-1050"><a href="#cb14-1050" aria-hidden="true" tabindex="-1"></a>    <span class="at">x =</span> RACE,</span>
+<span id="cb14-1051"><a href="#cb14-1051" aria-hidden="true" tabindex="-1"></a>    <span class="at">y =</span> ENGLISH,</span>
+<span id="cb14-1052"><a href="#cb14-1052" aria-hidden="true" tabindex="-1"></a>    <span class="at">fill =</span> RACE</span>
+<span id="cb14-1053"><a href="#cb14-1053" aria-hidden="true" tabindex="-1"></a>  )</span>
+<span id="cb14-1054"><a href="#cb14-1054" aria-hidden="true" tabindex="-1"></a>) <span class="sc">+</span></span>
+<span id="cb14-1055"><a href="#cb14-1055" aria-hidden="true" tabindex="-1"></a>  <span class="fu">stat_halfeye</span>(</span>
+<span id="cb14-1056"><a href="#cb14-1056" aria-hidden="true" tabindex="-1"></a>    <span class="at">adjust =</span> <span class="fl">0.55</span>,</span>
+<span id="cb14-1057"><a href="#cb14-1057" aria-hidden="true" tabindex="-1"></a>    <span class="at">justification =</span> <span class="sc">-</span><span class="fl">0.25</span>,</span>
+<span id="cb14-1058"><a href="#cb14-1058" aria-hidden="true" tabindex="-1"></a>    <span class="at">.width =</span> <span class="dv">0</span>,</span>
+<span id="cb14-1059"><a href="#cb14-1059" aria-hidden="true" tabindex="-1"></a>    <span class="at">point_colour =</span> <span class="cn">NA</span>,</span>
+<span id="cb14-1060"><a href="#cb14-1060" aria-hidden="true" tabindex="-1"></a>    <span class="at">alpha =</span> <span class="fl">0.85</span>,</span>
+<span id="cb14-1061"><a href="#cb14-1061" aria-hidden="true" tabindex="-1"></a>    <span class="at">colour =</span> my_dark</span>
+<span id="cb14-1062"><a href="#cb14-1062" aria-hidden="true" tabindex="-1"></a>  ) <span class="sc">+</span></span>
+<span id="cb14-1063"><a href="#cb14-1063" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_boxplot</span>(</span>
+<span id="cb14-1064"><a href="#cb14-1064" aria-hidden="true" tabindex="-1"></a>    <span class="at">width =</span> <span class="fl">0.18</span>,</span>
+<span id="cb14-1065"><a href="#cb14-1065" aria-hidden="true" tabindex="-1"></a>    <span class="at">outlier.shape =</span> <span class="cn">NA</span>,</span>
+<span id="cb14-1066"><a href="#cb14-1066" aria-hidden="true" tabindex="-1"></a>    <span class="at">alpha =</span> <span class="fl">0.75</span>,</span>
+<span id="cb14-1067"><a href="#cb14-1067" aria-hidden="true" tabindex="-1"></a>    <span class="at">colour =</span> my_dark,</span>
+<span id="cb14-1068"><a href="#cb14-1068" aria-hidden="true" tabindex="-1"></a>    <span class="at">fill =</span> <span class="st">"white"</span></span>
+<span id="cb14-1069"><a href="#cb14-1069" aria-hidden="true" tabindex="-1"></a>  ) <span class="sc">+</span></span>
+<span id="cb14-1070"><a href="#cb14-1070" aria-hidden="true" tabindex="-1"></a>  <span class="fu">stat_dots</span>(</span>
+<span id="cb14-1071"><a href="#cb14-1071" aria-hidden="true" tabindex="-1"></a>    <span class="at">side =</span> <span class="st">"left"</span>,</span>
+<span id="cb14-1072"><a href="#cb14-1072" aria-hidden="true" tabindex="-1"></a>    <span class="at">justification =</span> <span class="fl">1.15</span>,</span>
+<span id="cb14-1073"><a href="#cb14-1073" aria-hidden="true" tabindex="-1"></a>    <span class="at">binwidth =</span> <span class="fl">0.5</span>,</span>
+<span id="cb14-1074"><a href="#cb14-1074" aria-hidden="true" tabindex="-1"></a>    <span class="at">dotsize =</span> <span class="fl">1.45</span>,</span>
+<span id="cb14-1075"><a href="#cb14-1075" aria-hidden="true" tabindex="-1"></a>    <span class="at">overflow =</span> <span class="st">"compress"</span>,</span>
+<span id="cb14-1076"><a href="#cb14-1076" aria-hidden="true" tabindex="-1"></a>    <span class="at">colour =</span> my_dark,</span>
+<span id="cb14-1077"><a href="#cb14-1077" aria-hidden="true" tabindex="-1"></a>    <span class="at">fill =</span> my_teal</span>
 <span id="cb14-1078"><a href="#cb14-1078" aria-hidden="true" tabindex="-1"></a>  ) <span class="sc">+</span></span>
-<span id="cb14-1079"><a href="#cb14-1079" aria-hidden="true" tabindex="-1"></a>  <span class="fu">coord_flip</span>() <span class="sc">+</span></span>
-<span id="cb14-1080"><a href="#cb14-1080" aria-hidden="true" tabindex="-1"></a>  <span class="fu">labs</span>(</span>
-<span id="cb14-1081"><a href="#cb14-1081" aria-hidden="true" tabindex="-1"></a>    <span class="at">title =</span> <span class="st">"Raincloud Plot of English Scores by Race"</span>,</span>
-<span id="cb14-1082"><a href="#cb14-1082" aria-hidden="true" tabindex="-1"></a>    <span class="at">subtitle =</span> <span class="st">"The chart combines distribution shape, summary statistics and observations"</span>,</span>
-<span id="cb14-1083"><a href="#cb14-1083" aria-hidden="true" tabindex="-1"></a>    <span class="at">x =</span> <span class="cn">NULL</span>,</span>
-<span id="cb14-1084"><a href="#cb14-1084" aria-hidden="true" tabindex="-1"></a>    <span class="at">y =</span> <span class="st">"English score"</span></span>
-<span id="cb14-1085"><a href="#cb14-1085" aria-hidden="true" tabindex="-1"></a>  ) <span class="sc">+</span></span>
-<span id="cb14-1086"><a href="#cb14-1086" aria-hidden="true" tabindex="-1"></a>  <span class="fu">theme_teal_clean</span>() <span class="sc">+</span></span>
-<span id="cb14-1087"><a href="#cb14-1087" aria-hidden="true" tabindex="-1"></a>  <span class="fu">theme</span>(</span>
-<span id="cb14-1088"><a href="#cb14-1088" aria-hidden="true" tabindex="-1"></a>    <span class="at">legend.position =</span> <span class="st">"none"</span>,</span>
-<span id="cb14-1089"><a href="#cb14-1089" aria-hidden="true" tabindex="-1"></a>    <span class="at">panel.grid.major.y =</span> <span class="fu">element_blank</span>(),</span>
-<span id="cb14-1090"><a href="#cb14-1090" aria-hidden="true" tabindex="-1"></a>    <span class="at">panel.grid.major.x =</span> <span class="fu">element_line</span>(<span class="at">colour =</span> my_grey)</span>
-<span id="cb14-1091"><a href="#cb14-1091" aria-hidden="true" tabindex="-1"></a>  )</span>
-<span id="cb14-1092"><a href="#cb14-1092" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
-<span id="cb14-1093"><a href="#cb14-1093" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb14-1094"><a href="#cb14-1094" aria-hidden="true" tabindex="-1"></a><span class="fu">## The code chunk</span></span>
-<span id="cb14-1095"><a href="#cb14-1095" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb14-1098"><a href="#cb14-1098" aria-hidden="true" tabindex="-1"></a><span class="in">```{r}</span></span>
-<span id="cb14-1099"><a href="#cb14-1099" aria-hidden="true" tabindex="-1"></a><span class="co">#| label: raincloud-final-code</span></span>
-<span id="cb14-1100"><a href="#cb14-1100" aria-hidden="true" tabindex="-1"></a><span class="co">#| eval: false</span></span>
-<span id="cb14-1101"><a href="#cb14-1101" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb14-1102"><a href="#cb14-1102" aria-hidden="true" tabindex="-1"></a><span class="fu">ggplot</span>(</span>
-<span id="cb14-1103"><a href="#cb14-1103" aria-hidden="true" tabindex="-1"></a>  exam,</span>
-<span id="cb14-1104"><a href="#cb14-1104" aria-hidden="true" tabindex="-1"></a>  <span class="fu">aes</span>(</span>
-<span id="cb14-1105"><a href="#cb14-1105" aria-hidden="true" tabindex="-1"></a>    <span class="at">x =</span> RACE,</span>
-<span id="cb14-1106"><a href="#cb14-1106" aria-hidden="true" tabindex="-1"></a>    <span class="at">y =</span> ENGLISH,</span>
-<span id="cb14-1107"><a href="#cb14-1107" aria-hidden="true" tabindex="-1"></a>    <span class="at">fill =</span> RACE</span>
-<span id="cb14-1108"><a href="#cb14-1108" aria-hidden="true" tabindex="-1"></a>  )</span>
-<span id="cb14-1109"><a href="#cb14-1109" aria-hidden="true" tabindex="-1"></a>) <span class="sc">+</span></span>
-<span id="cb14-1110"><a href="#cb14-1110" aria-hidden="true" tabindex="-1"></a>  <span class="fu">stat_halfeye</span>(</span>
-<span id="cb14-1111"><a href="#cb14-1111" aria-hidden="true" tabindex="-1"></a>    <span class="at">adjust =</span> <span class="fl">0.55</span>,</span>
-<span id="cb14-1112"><a href="#cb14-1112" aria-hidden="true" tabindex="-1"></a>    <span class="at">justification =</span> <span class="sc">-</span><span class="fl">0.25</span>,</span>
-<span id="cb14-1113"><a href="#cb14-1113" aria-hidden="true" tabindex="-1"></a>    <span class="at">.width =</span> <span class="dv">0</span>,</span>
-<span id="cb14-1114"><a href="#cb14-1114" aria-hidden="true" tabindex="-1"></a>    <span class="at">point_colour =</span> <span class="cn">NA</span>,</span>
-<span id="cb14-1115"><a href="#cb14-1115" aria-hidden="true" tabindex="-1"></a>    <span class="at">alpha =</span> <span class="fl">0.85</span>,</span>
-<span id="cb14-1116"><a href="#cb14-1116" aria-hidden="true" tabindex="-1"></a>    <span class="at">colour =</span> my_dark</span>
-<span id="cb14-1117"><a href="#cb14-1117" aria-hidden="true" tabindex="-1"></a>  ) <span class="sc">+</span></span>
-<span id="cb14-1118"><a href="#cb14-1118" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_boxplot</span>(</span>
-<span id="cb14-1119"><a href="#cb14-1119" aria-hidden="true" tabindex="-1"></a>    <span class="at">width =</span> <span class="fl">0.18</span>,</span>
-<span id="cb14-1120"><a href="#cb14-1120" aria-hidden="true" tabindex="-1"></a>    <span class="at">outlier.shape =</span> <span class="cn">NA</span>,</span>
-<span id="cb14-1121"><a href="#cb14-1121" aria-hidden="true" tabindex="-1"></a>    <span class="at">alpha =</span> <span class="fl">0.75</span>,</span>
-<span id="cb14-1122"><a href="#cb14-1122" aria-hidden="true" tabindex="-1"></a>    <span class="at">colour =</span> my_dark,</span>
-<span id="cb14-1123"><a href="#cb14-1123" aria-hidden="true" tabindex="-1"></a>    <span class="at">fill =</span> <span class="st">"white"</span></span>
-<span id="cb14-1124"><a href="#cb14-1124" aria-hidden="true" tabindex="-1"></a>  ) <span class="sc">+</span></span>
-<span id="cb14-1125"><a href="#cb14-1125" aria-hidden="true" tabindex="-1"></a>  <span class="fu">stat_dots</span>(</span>
-<span id="cb14-1126"><a href="#cb14-1126" aria-hidden="true" tabindex="-1"></a>    <span class="at">side =</span> <span class="st">"left"</span>,</span>
-<span id="cb14-1127"><a href="#cb14-1127" aria-hidden="true" tabindex="-1"></a>    <span class="at">justification =</span> <span class="fl">1.15</span>,</span>
-<span id="cb14-1128"><a href="#cb14-1128" aria-hidden="true" tabindex="-1"></a>    <span class="at">binwidth =</span> <span class="fl">0.5</span>,</span>
-<span id="cb14-1129"><a href="#cb14-1129" aria-hidden="true" tabindex="-1"></a>    <span class="at">dotsize =</span> <span class="fl">1.45</span>,</span>
-<span id="cb14-1130"><a href="#cb14-1130" aria-hidden="true" tabindex="-1"></a>    <span class="at">colour =</span> my_dark,</span>
-<span id="cb14-1131"><a href="#cb14-1131" aria-hidden="true" tabindex="-1"></a>    <span class="at">fill =</span> my_teal</span>
-<span id="cb14-1132"><a href="#cb14-1132" aria-hidden="true" tabindex="-1"></a>  ) <span class="sc">+</span></span>
-<span id="cb14-1133"><a href="#cb14-1133" aria-hidden="true" tabindex="-1"></a>  <span class="fu">scale_fill_manual</span>(</span>
-<span id="cb14-1134"><a href="#cb14-1134" aria-hidden="true" tabindex="-1"></a>    <span class="at">values =</span> <span class="fu">rep</span>(my_light_teal, <span class="fu">length</span>(<span class="fu">unique</span>(exam<span class="sc">$</span>RACE)))</span>
-<span id="cb14-1135"><a href="#cb14-1135" aria-hidden="true" tabindex="-1"></a>  ) <span class="sc">+</span></span>
-<span id="cb14-1136"><a href="#cb14-1136" aria-hidden="true" tabindex="-1"></a>  <span class="fu">coord_flip</span>() <span class="sc">+</span></span>
-<span id="cb14-1137"><a href="#cb14-1137" aria-hidden="true" tabindex="-1"></a>  <span class="fu">labs</span>(</span>
-<span id="cb14-1138"><a href="#cb14-1138" aria-hidden="true" tabindex="-1"></a>    <span class="at">title =</span> <span class="st">"Raincloud Plot of English Scores by Race"</span>,</span>
-<span id="cb14-1139"><a href="#cb14-1139" aria-hidden="true" tabindex="-1"></a>    <span class="at">subtitle =</span> <span class="st">"The chart combines distribution shape, summary statistics and observations"</span>,</span>
-<span id="cb14-1140"><a href="#cb14-1140" aria-hidden="true" tabindex="-1"></a>    <span class="at">x =</span> <span class="cn">NULL</span>,</span>
-<span id="cb14-1141"><a href="#cb14-1141" aria-hidden="true" tabindex="-1"></a>    <span class="at">y =</span> <span class="st">"English score"</span></span>
-<span id="cb14-1142"><a href="#cb14-1142" aria-hidden="true" tabindex="-1"></a>  ) <span class="sc">+</span></span>
-<span id="cb14-1143"><a href="#cb14-1143" aria-hidden="true" tabindex="-1"></a>  <span class="fu">theme_teal_clean</span>() <span class="sc">+</span></span>
-<span id="cb14-1144"><a href="#cb14-1144" aria-hidden="true" tabindex="-1"></a>  <span class="fu">theme</span>(</span>
-<span id="cb14-1145"><a href="#cb14-1145" aria-hidden="true" tabindex="-1"></a>    <span class="at">legend.position =</span> <span class="st">"none"</span>,</span>
-<span id="cb14-1146"><a href="#cb14-1146" aria-hidden="true" tabindex="-1"></a>    <span class="at">panel.grid.major.y =</span> <span class="fu">element_blank</span>(),</span>
-<span id="cb14-1147"><a href="#cb14-1147" aria-hidden="true" tabindex="-1"></a>    <span class="at">panel.grid.major.x =</span> <span class="fu">element_line</span>(<span class="at">colour =</span> my_grey)</span>
-<span id="cb14-1148"><a href="#cb14-1148" aria-hidden="true" tabindex="-1"></a>  )</span>
-<span id="cb14-1149"><a href="#cb14-1149" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
-<span id="cb14-1150"><a href="#cb14-1150" aria-hidden="true" tabindex="-1"></a>:::</span>
-<span id="cb14-1151"><a href="#cb14-1151" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb14-1152"><a href="#cb14-1152" aria-hidden="true" tabindex="-1"></a>::: callout-note</span>
-<span id="cb14-1153"><a href="#cb14-1153" aria-hidden="true" tabindex="-1"></a><span class="fu">## Practical Design Note</span></span>
-<span id="cb14-1154"><a href="#cb14-1154" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb14-1155"><a href="#cb14-1155" aria-hidden="true" tabindex="-1"></a>A raincloud plot works well when the sample size is not too large. If the dataset becomes very large, the dot layer may become crowded. In that case, reducing <span class="in">`dotsize`</span>, increasing <span class="in">`binwidth`</span>, or adding transparency can make the chart easier to read.</span>
-<span id="cb14-1156"><a href="#cb14-1156" aria-hidden="true" tabindex="-1"></a>:::</span>
-<span id="cb14-1157"><a href="#cb14-1157" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb14-1158"><a href="#cb14-1158" aria-hidden="true" tabindex="-1"></a><span class="fu">### 4.4.5 Extension: A simpler comparison with violin plot</span></span>
-<span id="cb14-1159"><a href="#cb14-1159" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb14-1160"><a href="#cb14-1160" aria-hidden="true" tabindex="-1"></a>A raincloud plot is powerful, but sometimes a simpler chart is enough. A violin plot can be used as a lighter alternative when the goal is mainly to compare distribution shapes.</span>
+<span id="cb14-1079"><a href="#cb14-1079" aria-hidden="true" tabindex="-1"></a>  <span class="fu">scale_fill_manual</span>(</span>
+<span id="cb14-1080"><a href="#cb14-1080" aria-hidden="true" tabindex="-1"></a>    <span class="at">values =</span> <span class="fu">rep</span>(my_light_teal, <span class="fu">length</span>(<span class="fu">unique</span>(exam<span class="sc">$</span>RACE)))</span>
+<span id="cb14-1081"><a href="#cb14-1081" aria-hidden="true" tabindex="-1"></a>  ) <span class="sc">+</span></span>
+<span id="cb14-1082"><a href="#cb14-1082" aria-hidden="true" tabindex="-1"></a>  <span class="fu">coord_flip</span>() <span class="sc">+</span></span>
+<span id="cb14-1083"><a href="#cb14-1083" aria-hidden="true" tabindex="-1"></a>  <span class="fu">labs</span>(</span>
+<span id="cb14-1084"><a href="#cb14-1084" aria-hidden="true" tabindex="-1"></a>    <span class="at">title =</span> <span class="st">"Raincloud Plot of English Scores by Race"</span>,</span>
+<span id="cb14-1085"><a href="#cb14-1085" aria-hidden="true" tabindex="-1"></a>    <span class="at">subtitle =</span> <span class="st">"The chart combines distribution shape, summary statistics and observations"</span>,</span>
+<span id="cb14-1086"><a href="#cb14-1086" aria-hidden="true" tabindex="-1"></a>    <span class="at">x =</span> <span class="cn">NULL</span>,</span>
+<span id="cb14-1087"><a href="#cb14-1087" aria-hidden="true" tabindex="-1"></a>    <span class="at">y =</span> <span class="st">"English score"</span></span>
+<span id="cb14-1088"><a href="#cb14-1088" aria-hidden="true" tabindex="-1"></a>  ) <span class="sc">+</span></span>
+<span id="cb14-1089"><a href="#cb14-1089" aria-hidden="true" tabindex="-1"></a>  <span class="fu">theme_teal_clean</span>() <span class="sc">+</span></span>
+<span id="cb14-1090"><a href="#cb14-1090" aria-hidden="true" tabindex="-1"></a>  <span class="fu">theme</span>(</span>
+<span id="cb14-1091"><a href="#cb14-1091" aria-hidden="true" tabindex="-1"></a>    <span class="at">legend.position =</span> <span class="st">"none"</span>,</span>
+<span id="cb14-1092"><a href="#cb14-1092" aria-hidden="true" tabindex="-1"></a>    <span class="at">panel.grid.major.y =</span> <span class="fu">element_blank</span>(),</span>
+<span id="cb14-1093"><a href="#cb14-1093" aria-hidden="true" tabindex="-1"></a>    <span class="at">panel.grid.major.x =</span> <span class="fu">element_line</span>(<span class="at">colour =</span> my_grey)</span>
+<span id="cb14-1094"><a href="#cb14-1094" aria-hidden="true" tabindex="-1"></a>  )</span>
+<span id="cb14-1095"><a href="#cb14-1095" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
+<span id="cb14-1096"><a href="#cb14-1096" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb14-1097"><a href="#cb14-1097" aria-hidden="true" tabindex="-1"></a><span class="fu">## The code chunk</span></span>
+<span id="cb14-1098"><a href="#cb14-1098" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb14-1101"><a href="#cb14-1101" aria-hidden="true" tabindex="-1"></a><span class="in">```{r}</span></span>
+<span id="cb14-1102"><a href="#cb14-1102" aria-hidden="true" tabindex="-1"></a><span class="co">#| label: raincloud-final-code</span></span>
+<span id="cb14-1103"><a href="#cb14-1103" aria-hidden="true" tabindex="-1"></a><span class="co">#| eval: false</span></span>
+<span id="cb14-1104"><a href="#cb14-1104" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb14-1105"><a href="#cb14-1105" aria-hidden="true" tabindex="-1"></a><span class="fu">ggplot</span>(</span>
+<span id="cb14-1106"><a href="#cb14-1106" aria-hidden="true" tabindex="-1"></a>  exam,</span>
+<span id="cb14-1107"><a href="#cb14-1107" aria-hidden="true" tabindex="-1"></a>  <span class="fu">aes</span>(</span>
+<span id="cb14-1108"><a href="#cb14-1108" aria-hidden="true" tabindex="-1"></a>    <span class="at">x =</span> RACE,</span>
+<span id="cb14-1109"><a href="#cb14-1109" aria-hidden="true" tabindex="-1"></a>    <span class="at">y =</span> ENGLISH,</span>
+<span id="cb14-1110"><a href="#cb14-1110" aria-hidden="true" tabindex="-1"></a>    <span class="at">fill =</span> RACE</span>
+<span id="cb14-1111"><a href="#cb14-1111" aria-hidden="true" tabindex="-1"></a>  )</span>
+<span id="cb14-1112"><a href="#cb14-1112" aria-hidden="true" tabindex="-1"></a>) <span class="sc">+</span></span>
+<span id="cb14-1113"><a href="#cb14-1113" aria-hidden="true" tabindex="-1"></a>  <span class="fu">stat_halfeye</span>(</span>
+<span id="cb14-1114"><a href="#cb14-1114" aria-hidden="true" tabindex="-1"></a>    <span class="at">adjust =</span> <span class="fl">0.55</span>,</span>
+<span id="cb14-1115"><a href="#cb14-1115" aria-hidden="true" tabindex="-1"></a>    <span class="at">justification =</span> <span class="sc">-</span><span class="fl">0.25</span>,</span>
+<span id="cb14-1116"><a href="#cb14-1116" aria-hidden="true" tabindex="-1"></a>    <span class="at">.width =</span> <span class="dv">0</span>,</span>
+<span id="cb14-1117"><a href="#cb14-1117" aria-hidden="true" tabindex="-1"></a>    <span class="at">point_colour =</span> <span class="cn">NA</span>,</span>
+<span id="cb14-1118"><a href="#cb14-1118" aria-hidden="true" tabindex="-1"></a>    <span class="at">alpha =</span> <span class="fl">0.85</span>,</span>
+<span id="cb14-1119"><a href="#cb14-1119" aria-hidden="true" tabindex="-1"></a>    <span class="at">colour =</span> my_dark</span>
+<span id="cb14-1120"><a href="#cb14-1120" aria-hidden="true" tabindex="-1"></a>  ) <span class="sc">+</span></span>
+<span id="cb14-1121"><a href="#cb14-1121" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_boxplot</span>(</span>
+<span id="cb14-1122"><a href="#cb14-1122" aria-hidden="true" tabindex="-1"></a>    <span class="at">width =</span> <span class="fl">0.18</span>,</span>
+<span id="cb14-1123"><a href="#cb14-1123" aria-hidden="true" tabindex="-1"></a>    <span class="at">outlier.shape =</span> <span class="cn">NA</span>,</span>
+<span id="cb14-1124"><a href="#cb14-1124" aria-hidden="true" tabindex="-1"></a>    <span class="at">alpha =</span> <span class="fl">0.75</span>,</span>
+<span id="cb14-1125"><a href="#cb14-1125" aria-hidden="true" tabindex="-1"></a>    <span class="at">colour =</span> my_dark,</span>
+<span id="cb14-1126"><a href="#cb14-1126" aria-hidden="true" tabindex="-1"></a>    <span class="at">fill =</span> <span class="st">"white"</span></span>
+<span id="cb14-1127"><a href="#cb14-1127" aria-hidden="true" tabindex="-1"></a>  ) <span class="sc">+</span></span>
+<span id="cb14-1128"><a href="#cb14-1128" aria-hidden="true" tabindex="-1"></a>  <span class="fu">stat_dots</span>(</span>
+<span id="cb14-1129"><a href="#cb14-1129" aria-hidden="true" tabindex="-1"></a>    <span class="at">side =</span> <span class="st">"left"</span>,</span>
+<span id="cb14-1130"><a href="#cb14-1130" aria-hidden="true" tabindex="-1"></a>    <span class="at">justification =</span> <span class="fl">1.15</span>,</span>
+<span id="cb14-1131"><a href="#cb14-1131" aria-hidden="true" tabindex="-1"></a>    <span class="at">binwidth =</span> <span class="fl">0.5</span>,</span>
+<span id="cb14-1132"><a href="#cb14-1132" aria-hidden="true" tabindex="-1"></a>    <span class="at">dotsize =</span> <span class="fl">1.45</span>,</span>
+<span id="cb14-1133"><a href="#cb14-1133" aria-hidden="true" tabindex="-1"></a>    <span class="at">overflow =</span> <span class="st">"compress"</span>,</span>
+<span id="cb14-1134"><a href="#cb14-1134" aria-hidden="true" tabindex="-1"></a>    <span class="at">colour =</span> my_dark,</span>
+<span id="cb14-1135"><a href="#cb14-1135" aria-hidden="true" tabindex="-1"></a>    <span class="at">fill =</span> my_teal</span>
+<span id="cb14-1136"><a href="#cb14-1136" aria-hidden="true" tabindex="-1"></a>  ) <span class="sc">+</span></span>
+<span id="cb14-1137"><a href="#cb14-1137" aria-hidden="true" tabindex="-1"></a>  <span class="fu">scale_fill_manual</span>(</span>
+<span id="cb14-1138"><a href="#cb14-1138" aria-hidden="true" tabindex="-1"></a>    <span class="at">values =</span> <span class="fu">rep</span>(my_light_teal, <span class="fu">length</span>(<span class="fu">unique</span>(exam<span class="sc">$</span>RACE)))</span>
+<span id="cb14-1139"><a href="#cb14-1139" aria-hidden="true" tabindex="-1"></a>  ) <span class="sc">+</span></span>
+<span id="cb14-1140"><a href="#cb14-1140" aria-hidden="true" tabindex="-1"></a>  <span class="fu">coord_flip</span>() <span class="sc">+</span></span>
+<span id="cb14-1141"><a href="#cb14-1141" aria-hidden="true" tabindex="-1"></a>  <span class="fu">labs</span>(</span>
+<span id="cb14-1142"><a href="#cb14-1142" aria-hidden="true" tabindex="-1"></a>    <span class="at">title =</span> <span class="st">"Raincloud Plot of English Scores by Race"</span>,</span>
+<span id="cb14-1143"><a href="#cb14-1143" aria-hidden="true" tabindex="-1"></a>    <span class="at">subtitle =</span> <span class="st">"The chart combines distribution shape, summary statistics and observations"</span>,</span>
+<span id="cb14-1144"><a href="#cb14-1144" aria-hidden="true" tabindex="-1"></a>    <span class="at">x =</span> <span class="cn">NULL</span>,</span>
+<span id="cb14-1145"><a href="#cb14-1145" aria-hidden="true" tabindex="-1"></a>    <span class="at">y =</span> <span class="st">"English score"</span></span>
+<span id="cb14-1146"><a href="#cb14-1146" aria-hidden="true" tabindex="-1"></a>  ) <span class="sc">+</span></span>
+<span id="cb14-1147"><a href="#cb14-1147" aria-hidden="true" tabindex="-1"></a>  <span class="fu">theme_teal_clean</span>() <span class="sc">+</span></span>
+<span id="cb14-1148"><a href="#cb14-1148" aria-hidden="true" tabindex="-1"></a>  <span class="fu">theme</span>(</span>
+<span id="cb14-1149"><a href="#cb14-1149" aria-hidden="true" tabindex="-1"></a>    <span class="at">legend.position =</span> <span class="st">"none"</span>,</span>
+<span id="cb14-1150"><a href="#cb14-1150" aria-hidden="true" tabindex="-1"></a>    <span class="at">panel.grid.major.y =</span> <span class="fu">element_blank</span>(),</span>
+<span id="cb14-1151"><a href="#cb14-1151" aria-hidden="true" tabindex="-1"></a>    <span class="at">panel.grid.major.x =</span> <span class="fu">element_line</span>(<span class="at">colour =</span> my_grey)</span>
+<span id="cb14-1152"><a href="#cb14-1152" aria-hidden="true" tabindex="-1"></a>  )</span>
+<span id="cb14-1153"><a href="#cb14-1153" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
+<span id="cb14-1154"><a href="#cb14-1154" aria-hidden="true" tabindex="-1"></a>:::</span>
+<span id="cb14-1155"><a href="#cb14-1155" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb14-1156"><a href="#cb14-1156" aria-hidden="true" tabindex="-1"></a>::: callout-note</span>
+<span id="cb14-1157"><a href="#cb14-1157" aria-hidden="true" tabindex="-1"></a><span class="fu">## Practical Design Note</span></span>
+<span id="cb14-1158"><a href="#cb14-1158" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb14-1159"><a href="#cb14-1159" aria-hidden="true" tabindex="-1"></a>A raincloud plot works well when the sample size is not too large. If the dataset becomes very large, the dot layer may become crowded. In that case, reducing <span class="in">`dotsize`</span>, increasing <span class="in">`binwidth`</span>, or adding transparency can make the chart easier to read.</span>
+<span id="cb14-1160"><a href="#cb14-1160" aria-hidden="true" tabindex="-1"></a>:::</span>
 <span id="cb14-1161"><a href="#cb14-1161" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb14-1162"><a href="#cb14-1162" aria-hidden="true" tabindex="-1"></a>This is not a replacement for the raincloud plot. It is just a simpler option when the chart needs to be cleaner or easier for a general audience.</span>
+<span id="cb14-1162"><a href="#cb14-1162" aria-hidden="true" tabindex="-1"></a><span class="fu">### 4.4.5 Extension: A simpler comparison with violin plot</span></span>
 <span id="cb14-1163"><a href="#cb14-1163" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb14-1164"><a href="#cb14-1164" aria-hidden="true" tabindex="-1"></a>::: panel-tabset</span>
-<span id="cb14-1165"><a href="#cb14-1165" aria-hidden="true" tabindex="-1"></a><span class="fu">## The plot</span></span>
-<span id="cb14-1166"><a href="#cb14-1166" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb14-1169"><a href="#cb14-1169" aria-hidden="true" tabindex="-1"></a><span class="in">```{r}</span></span>
-<span id="cb14-1170"><a href="#cb14-1170" aria-hidden="true" tabindex="-1"></a><span class="co">#| label: violin-extension-plot</span></span>
-<span id="cb14-1171"><a href="#cb14-1171" aria-hidden="true" tabindex="-1"></a><span class="co">#| echo: false</span></span>
-<span id="cb14-1172"><a href="#cb14-1172" aria-hidden="true" tabindex="-1"></a><span class="co">#| fig-width: 8</span></span>
-<span id="cb14-1173"><a href="#cb14-1173" aria-hidden="true" tabindex="-1"></a><span class="co">#| fig-height: 5</span></span>
-<span id="cb14-1174"><a href="#cb14-1174" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb14-1175"><a href="#cb14-1175" aria-hidden="true" tabindex="-1"></a><span class="fu">ggplot</span>(</span>
-<span id="cb14-1176"><a href="#cb14-1176" aria-hidden="true" tabindex="-1"></a>  exam,</span>
-<span id="cb14-1177"><a href="#cb14-1177" aria-hidden="true" tabindex="-1"></a>  <span class="fu">aes</span>(</span>
-<span id="cb14-1178"><a href="#cb14-1178" aria-hidden="true" tabindex="-1"></a>    <span class="at">x =</span> RACE,</span>
-<span id="cb14-1179"><a href="#cb14-1179" aria-hidden="true" tabindex="-1"></a>    <span class="at">y =</span> ENGLISH</span>
-<span id="cb14-1180"><a href="#cb14-1180" aria-hidden="true" tabindex="-1"></a>  )</span>
-<span id="cb14-1181"><a href="#cb14-1181" aria-hidden="true" tabindex="-1"></a>) <span class="sc">+</span></span>
-<span id="cb14-1182"><a href="#cb14-1182" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_violin</span>(</span>
-<span id="cb14-1183"><a href="#cb14-1183" aria-hidden="true" tabindex="-1"></a>    <span class="at">fill =</span> my_light_teal,</span>
-<span id="cb14-1184"><a href="#cb14-1184" aria-hidden="true" tabindex="-1"></a>    <span class="at">colour =</span> my_dark,</span>
-<span id="cb14-1185"><a href="#cb14-1185" aria-hidden="true" tabindex="-1"></a>    <span class="at">linewidth =</span> <span class="fl">0.35</span>,</span>
-<span id="cb14-1186"><a href="#cb14-1186" aria-hidden="true" tabindex="-1"></a>    <span class="at">alpha =</span> <span class="fl">0.9</span>,</span>
-<span id="cb14-1187"><a href="#cb14-1187" aria-hidden="true" tabindex="-1"></a>    <span class="at">trim =</span> <span class="cn">FALSE</span></span>
-<span id="cb14-1188"><a href="#cb14-1188" aria-hidden="true" tabindex="-1"></a>  ) <span class="sc">+</span></span>
-<span id="cb14-1189"><a href="#cb14-1189" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_boxplot</span>(</span>
-<span id="cb14-1190"><a href="#cb14-1190" aria-hidden="true" tabindex="-1"></a>    <span class="at">width =</span> <span class="fl">0.15</span>,</span>
-<span id="cb14-1191"><a href="#cb14-1191" aria-hidden="true" tabindex="-1"></a>    <span class="at">fill =</span> <span class="st">"white"</span>,</span>
-<span id="cb14-1192"><a href="#cb14-1192" aria-hidden="true" tabindex="-1"></a>    <span class="at">colour =</span> my_dark,</span>
-<span id="cb14-1193"><a href="#cb14-1193" aria-hidden="true" tabindex="-1"></a>    <span class="at">outlier.shape =</span> <span class="cn">NA</span></span>
-<span id="cb14-1194"><a href="#cb14-1194" aria-hidden="true" tabindex="-1"></a>  ) <span class="sc">+</span></span>
-<span id="cb14-1195"><a href="#cb14-1195" aria-hidden="true" tabindex="-1"></a>  <span class="fu">labs</span>(</span>
-<span id="cb14-1196"><a href="#cb14-1196" aria-hidden="true" tabindex="-1"></a>    <span class="at">title =</span> <span class="st">"Extension: Violin Plot as a Simpler Alternative"</span>,</span>
-<span id="cb14-1197"><a href="#cb14-1197" aria-hidden="true" tabindex="-1"></a>    <span class="at">subtitle =</span> <span class="st">"A violin plot shows distribution shape with less visual complexity"</span>,</span>
-<span id="cb14-1198"><a href="#cb14-1198" aria-hidden="true" tabindex="-1"></a>    <span class="at">x =</span> <span class="st">"Race"</span>,</span>
-<span id="cb14-1199"><a href="#cb14-1199" aria-hidden="true" tabindex="-1"></a>    <span class="at">y =</span> <span class="st">"English score"</span></span>
-<span id="cb14-1200"><a href="#cb14-1200" aria-hidden="true" tabindex="-1"></a>  ) <span class="sc">+</span></span>
-<span id="cb14-1201"><a href="#cb14-1201" aria-hidden="true" tabindex="-1"></a>  <span class="fu">theme_teal_clean</span>()</span>
-<span id="cb14-1202"><a href="#cb14-1202" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
-<span id="cb14-1203"><a href="#cb14-1203" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb14-1204"><a href="#cb14-1204" aria-hidden="true" tabindex="-1"></a><span class="fu">## The code chunk</span></span>
-<span id="cb14-1205"><a href="#cb14-1205" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb14-1208"><a href="#cb14-1208" aria-hidden="true" tabindex="-1"></a><span class="in">```{r}</span></span>
-<span id="cb14-1209"><a href="#cb14-1209" aria-hidden="true" tabindex="-1"></a><span class="co">#| label: violin-extension-code</span></span>
-<span id="cb14-1210"><a href="#cb14-1210" aria-hidden="true" tabindex="-1"></a><span class="co">#| eval: false</span></span>
-<span id="cb14-1211"><a href="#cb14-1211" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb14-1212"><a href="#cb14-1212" aria-hidden="true" tabindex="-1"></a><span class="fu">ggplot</span>(</span>
-<span id="cb14-1213"><a href="#cb14-1213" aria-hidden="true" tabindex="-1"></a>  exam,</span>
-<span id="cb14-1214"><a href="#cb14-1214" aria-hidden="true" tabindex="-1"></a>  <span class="fu">aes</span>(</span>
-<span id="cb14-1215"><a href="#cb14-1215" aria-hidden="true" tabindex="-1"></a>    <span class="at">x =</span> RACE,</span>
-<span id="cb14-1216"><a href="#cb14-1216" aria-hidden="true" tabindex="-1"></a>    <span class="at">y =</span> ENGLISH</span>
-<span id="cb14-1217"><a href="#cb14-1217" aria-hidden="true" tabindex="-1"></a>  )</span>
-<span id="cb14-1218"><a href="#cb14-1218" aria-hidden="true" tabindex="-1"></a>) <span class="sc">+</span></span>
-<span id="cb14-1219"><a href="#cb14-1219" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_violin</span>(</span>
-<span id="cb14-1220"><a href="#cb14-1220" aria-hidden="true" tabindex="-1"></a>    <span class="at">fill =</span> my_light_teal,</span>
-<span id="cb14-1221"><a href="#cb14-1221" aria-hidden="true" tabindex="-1"></a>    <span class="at">colour =</span> my_dark,</span>
-<span id="cb14-1222"><a href="#cb14-1222" aria-hidden="true" tabindex="-1"></a>    <span class="at">linewidth =</span> <span class="fl">0.35</span>,</span>
-<span id="cb14-1223"><a href="#cb14-1223" aria-hidden="true" tabindex="-1"></a>    <span class="at">alpha =</span> <span class="fl">0.9</span>,</span>
-<span id="cb14-1224"><a href="#cb14-1224" aria-hidden="true" tabindex="-1"></a>    <span class="at">trim =</span> <span class="cn">FALSE</span></span>
-<span id="cb14-1225"><a href="#cb14-1225" aria-hidden="true" tabindex="-1"></a>  ) <span class="sc">+</span></span>
-<span id="cb14-1226"><a href="#cb14-1226" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_boxplot</span>(</span>
-<span id="cb14-1227"><a href="#cb14-1227" aria-hidden="true" tabindex="-1"></a>    <span class="at">width =</span> <span class="fl">0.15</span>,</span>
-<span id="cb14-1228"><a href="#cb14-1228" aria-hidden="true" tabindex="-1"></a>    <span class="at">fill =</span> <span class="st">"white"</span>,</span>
-<span id="cb14-1229"><a href="#cb14-1229" aria-hidden="true" tabindex="-1"></a>    <span class="at">colour =</span> my_dark,</span>
-<span id="cb14-1230"><a href="#cb14-1230" aria-hidden="true" tabindex="-1"></a>    <span class="at">outlier.shape =</span> <span class="cn">NA</span></span>
-<span id="cb14-1231"><a href="#cb14-1231" aria-hidden="true" tabindex="-1"></a>  ) <span class="sc">+</span></span>
-<span id="cb14-1232"><a href="#cb14-1232" aria-hidden="true" tabindex="-1"></a>  <span class="fu">labs</span>(</span>
-<span id="cb14-1233"><a href="#cb14-1233" aria-hidden="true" tabindex="-1"></a>    <span class="at">title =</span> <span class="st">"Extension: Violin Plot as a Simpler Alternative"</span>,</span>
-<span id="cb14-1234"><a href="#cb14-1234" aria-hidden="true" tabindex="-1"></a>    <span class="at">subtitle =</span> <span class="st">"A violin plot shows distribution shape with less visual complexity"</span>,</span>
-<span id="cb14-1235"><a href="#cb14-1235" aria-hidden="true" tabindex="-1"></a>    <span class="at">x =</span> <span class="st">"Race"</span>,</span>
-<span id="cb14-1236"><a href="#cb14-1236" aria-hidden="true" tabindex="-1"></a>    <span class="at">y =</span> <span class="st">"English score"</span></span>
-<span id="cb14-1237"><a href="#cb14-1237" aria-hidden="true" tabindex="-1"></a>  ) <span class="sc">+</span></span>
-<span id="cb14-1238"><a href="#cb14-1238" aria-hidden="true" tabindex="-1"></a>  <span class="fu">theme_teal_clean</span>()</span>
-<span id="cb14-1239"><a href="#cb14-1239" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
-<span id="cb14-1240"><a href="#cb14-1240" aria-hidden="true" tabindex="-1"></a>:::</span>
-<span id="cb14-1241"><a href="#cb14-1241" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb14-1242"><a href="#cb14-1242" aria-hidden="true" tabindex="-1"></a><span class="fu">## 4.5 Reference</span></span>
-<span id="cb14-1243"><a href="#cb14-1243" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb14-1244"><a href="#cb14-1244" aria-hidden="true" tabindex="-1"></a><span class="ss">-   </span>Ridgeline plots are useful for comparing distributions across multiple groups.</span>
-<span id="cb14-1245"><a href="#cb14-1245" aria-hidden="true" tabindex="-1"></a><span class="ss">-   </span>Raincloud plots combine density, summary statistics and raw observations in one chart.</span>
-<span id="cb14-1246"><a href="#cb14-1246" aria-hidden="true" tabindex="-1"></a><span class="ss">-   </span><span class="in">`ggridges`</span> is used for ridgeline plots.</span>
-<span id="cb14-1247"><a href="#cb14-1247" aria-hidden="true" tabindex="-1"></a><span class="ss">-   </span><span class="in">`ggdist`</span> is used for half-eye and dot-based distribution visualisations.</span>
+<span id="cb14-1164"><a href="#cb14-1164" aria-hidden="true" tabindex="-1"></a>A raincloud plot is powerful, but sometimes a simpler chart is enough. A violin plot can be used as a lighter alternative when the goal is mainly to compare distribution shapes.</span>
+<span id="cb14-1165"><a href="#cb14-1165" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb14-1166"><a href="#cb14-1166" aria-hidden="true" tabindex="-1"></a>This is not a replacement for the raincloud plot. It is just a simpler option when the chart needs to be cleaner or easier for a general audience.</span>
+<span id="cb14-1167"><a href="#cb14-1167" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb14-1168"><a href="#cb14-1168" aria-hidden="true" tabindex="-1"></a>::: panel-tabset</span>
+<span id="cb14-1169"><a href="#cb14-1169" aria-hidden="true" tabindex="-1"></a><span class="fu">## The plot</span></span>
+<span id="cb14-1170"><a href="#cb14-1170" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb14-1173"><a href="#cb14-1173" aria-hidden="true" tabindex="-1"></a><span class="in">```{r}</span></span>
+<span id="cb14-1174"><a href="#cb14-1174" aria-hidden="true" tabindex="-1"></a><span class="co">#| label: violin-extension-plot</span></span>
+<span id="cb14-1175"><a href="#cb14-1175" aria-hidden="true" tabindex="-1"></a><span class="co">#| echo: false</span></span>
+<span id="cb14-1176"><a href="#cb14-1176" aria-hidden="true" tabindex="-1"></a><span class="co">#| fig-width: 8</span></span>
+<span id="cb14-1177"><a href="#cb14-1177" aria-hidden="true" tabindex="-1"></a><span class="co">#| fig-height: 5</span></span>
+<span id="cb14-1178"><a href="#cb14-1178" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb14-1179"><a href="#cb14-1179" aria-hidden="true" tabindex="-1"></a><span class="fu">ggplot</span>(</span>
+<span id="cb14-1180"><a href="#cb14-1180" aria-hidden="true" tabindex="-1"></a>  exam,</span>
+<span id="cb14-1181"><a href="#cb14-1181" aria-hidden="true" tabindex="-1"></a>  <span class="fu">aes</span>(</span>
+<span id="cb14-1182"><a href="#cb14-1182" aria-hidden="true" tabindex="-1"></a>    <span class="at">x =</span> RACE,</span>
+<span id="cb14-1183"><a href="#cb14-1183" aria-hidden="true" tabindex="-1"></a>    <span class="at">y =</span> ENGLISH</span>
+<span id="cb14-1184"><a href="#cb14-1184" aria-hidden="true" tabindex="-1"></a>  )</span>
+<span id="cb14-1185"><a href="#cb14-1185" aria-hidden="true" tabindex="-1"></a>) <span class="sc">+</span></span>
+<span id="cb14-1186"><a href="#cb14-1186" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_violin</span>(</span>
+<span id="cb14-1187"><a href="#cb14-1187" aria-hidden="true" tabindex="-1"></a>    <span class="at">fill =</span> my_light_teal,</span>
+<span id="cb14-1188"><a href="#cb14-1188" aria-hidden="true" tabindex="-1"></a>    <span class="at">colour =</span> my_dark,</span>
+<span id="cb14-1189"><a href="#cb14-1189" aria-hidden="true" tabindex="-1"></a>    <span class="at">linewidth =</span> <span class="fl">0.35</span>,</span>
+<span id="cb14-1190"><a href="#cb14-1190" aria-hidden="true" tabindex="-1"></a>    <span class="at">alpha =</span> <span class="fl">0.9</span>,</span>
+<span id="cb14-1191"><a href="#cb14-1191" aria-hidden="true" tabindex="-1"></a>    <span class="at">trim =</span> <span class="cn">FALSE</span></span>
+<span id="cb14-1192"><a href="#cb14-1192" aria-hidden="true" tabindex="-1"></a>  ) <span class="sc">+</span></span>
+<span id="cb14-1193"><a href="#cb14-1193" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_boxplot</span>(</span>
+<span id="cb14-1194"><a href="#cb14-1194" aria-hidden="true" tabindex="-1"></a>    <span class="at">width =</span> <span class="fl">0.15</span>,</span>
+<span id="cb14-1195"><a href="#cb14-1195" aria-hidden="true" tabindex="-1"></a>    <span class="at">fill =</span> <span class="st">"white"</span>,</span>
+<span id="cb14-1196"><a href="#cb14-1196" aria-hidden="true" tabindex="-1"></a>    <span class="at">colour =</span> my_dark,</span>
+<span id="cb14-1197"><a href="#cb14-1197" aria-hidden="true" tabindex="-1"></a>    <span class="at">outlier.shape =</span> <span class="cn">NA</span></span>
+<span id="cb14-1198"><a href="#cb14-1198" aria-hidden="true" tabindex="-1"></a>  ) <span class="sc">+</span></span>
+<span id="cb14-1199"><a href="#cb14-1199" aria-hidden="true" tabindex="-1"></a>  <span class="fu">labs</span>(</span>
+<span id="cb14-1200"><a href="#cb14-1200" aria-hidden="true" tabindex="-1"></a>    <span class="at">title =</span> <span class="st">"Extension: Violin Plot as a Simpler Alternative"</span>,</span>
+<span id="cb14-1201"><a href="#cb14-1201" aria-hidden="true" tabindex="-1"></a>    <span class="at">subtitle =</span> <span class="st">"A violin plot shows distribution shape with less visual complexity"</span>,</span>
+<span id="cb14-1202"><a href="#cb14-1202" aria-hidden="true" tabindex="-1"></a>    <span class="at">x =</span> <span class="st">"Race"</span>,</span>
+<span id="cb14-1203"><a href="#cb14-1203" aria-hidden="true" tabindex="-1"></a>    <span class="at">y =</span> <span class="st">"English score"</span></span>
+<span id="cb14-1204"><a href="#cb14-1204" aria-hidden="true" tabindex="-1"></a>  ) <span class="sc">+</span></span>
+<span id="cb14-1205"><a href="#cb14-1205" aria-hidden="true" tabindex="-1"></a>  <span class="fu">theme_teal_clean</span>()</span>
+<span id="cb14-1206"><a href="#cb14-1206" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
+<span id="cb14-1207"><a href="#cb14-1207" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb14-1208"><a href="#cb14-1208" aria-hidden="true" tabindex="-1"></a><span class="fu">## The code chunk</span></span>
+<span id="cb14-1209"><a href="#cb14-1209" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb14-1212"><a href="#cb14-1212" aria-hidden="true" tabindex="-1"></a><span class="in">```{r}</span></span>
+<span id="cb14-1213"><a href="#cb14-1213" aria-hidden="true" tabindex="-1"></a><span class="co">#| label: violin-extension-code</span></span>
+<span id="cb14-1214"><a href="#cb14-1214" aria-hidden="true" tabindex="-1"></a><span class="co">#| eval: false</span></span>
+<span id="cb14-1215"><a href="#cb14-1215" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb14-1216"><a href="#cb14-1216" aria-hidden="true" tabindex="-1"></a><span class="fu">ggplot</span>(</span>
+<span id="cb14-1217"><a href="#cb14-1217" aria-hidden="true" tabindex="-1"></a>  exam,</span>
+<span id="cb14-1218"><a href="#cb14-1218" aria-hidden="true" tabindex="-1"></a>  <span class="fu">aes</span>(</span>
+<span id="cb14-1219"><a href="#cb14-1219" aria-hidden="true" tabindex="-1"></a>    <span class="at">x =</span> RACE,</span>
+<span id="cb14-1220"><a href="#cb14-1220" aria-hidden="true" tabindex="-1"></a>    <span class="at">y =</span> ENGLISH</span>
+<span id="cb14-1221"><a href="#cb14-1221" aria-hidden="true" tabindex="-1"></a>  )</span>
+<span id="cb14-1222"><a href="#cb14-1222" aria-hidden="true" tabindex="-1"></a>) <span class="sc">+</span></span>
+<span id="cb14-1223"><a href="#cb14-1223" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_violin</span>(</span>
+<span id="cb14-1224"><a href="#cb14-1224" aria-hidden="true" tabindex="-1"></a>    <span class="at">fill =</span> my_light_teal,</span>
+<span id="cb14-1225"><a href="#cb14-1225" aria-hidden="true" tabindex="-1"></a>    <span class="at">colour =</span> my_dark,</span>
+<span id="cb14-1226"><a href="#cb14-1226" aria-hidden="true" tabindex="-1"></a>    <span class="at">linewidth =</span> <span class="fl">0.35</span>,</span>
+<span id="cb14-1227"><a href="#cb14-1227" aria-hidden="true" tabindex="-1"></a>    <span class="at">alpha =</span> <span class="fl">0.9</span>,</span>
+<span id="cb14-1228"><a href="#cb14-1228" aria-hidden="true" tabindex="-1"></a>    <span class="at">trim =</span> <span class="cn">FALSE</span></span>
+<span id="cb14-1229"><a href="#cb14-1229" aria-hidden="true" tabindex="-1"></a>  ) <span class="sc">+</span></span>
+<span id="cb14-1230"><a href="#cb14-1230" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_boxplot</span>(</span>
+<span id="cb14-1231"><a href="#cb14-1231" aria-hidden="true" tabindex="-1"></a>    <span class="at">width =</span> <span class="fl">0.15</span>,</span>
+<span id="cb14-1232"><a href="#cb14-1232" aria-hidden="true" tabindex="-1"></a>    <span class="at">fill =</span> <span class="st">"white"</span>,</span>
+<span id="cb14-1233"><a href="#cb14-1233" aria-hidden="true" tabindex="-1"></a>    <span class="at">colour =</span> my_dark,</span>
+<span id="cb14-1234"><a href="#cb14-1234" aria-hidden="true" tabindex="-1"></a>    <span class="at">outlier.shape =</span> <span class="cn">NA</span></span>
+<span id="cb14-1235"><a href="#cb14-1235" aria-hidden="true" tabindex="-1"></a>  ) <span class="sc">+</span></span>
+<span id="cb14-1236"><a href="#cb14-1236" aria-hidden="true" tabindex="-1"></a>  <span class="fu">labs</span>(</span>
+<span id="cb14-1237"><a href="#cb14-1237" aria-hidden="true" tabindex="-1"></a>    <span class="at">title =</span> <span class="st">"Extension: Violin Plot as a Simpler Alternative"</span>,</span>
+<span id="cb14-1238"><a href="#cb14-1238" aria-hidden="true" tabindex="-1"></a>    <span class="at">subtitle =</span> <span class="st">"A violin plot shows distribution shape with less visual complexity"</span>,</span>
+<span id="cb14-1239"><a href="#cb14-1239" aria-hidden="true" tabindex="-1"></a>    <span class="at">x =</span> <span class="st">"Race"</span>,</span>
+<span id="cb14-1240"><a href="#cb14-1240" aria-hidden="true" tabindex="-1"></a>    <span class="at">y =</span> <span class="st">"English score"</span></span>
+<span id="cb14-1241"><a href="#cb14-1241" aria-hidden="true" tabindex="-1"></a>  ) <span class="sc">+</span></span>
+<span id="cb14-1242"><a href="#cb14-1242" aria-hidden="true" tabindex="-1"></a>  <span class="fu">theme_teal_clean</span>()</span>
+<span id="cb14-1243"><a href="#cb14-1243" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
+<span id="cb14-1244"><a href="#cb14-1244" aria-hidden="true" tabindex="-1"></a>:::</span>
+<span id="cb14-1245"><a href="#cb14-1245" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb14-1246"><a href="#cb14-1246" aria-hidden="true" tabindex="-1"></a><span class="fu">## 4.5 Reference</span></span>
+<span id="cb14-1247"><a href="#cb14-1247" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb14-1248"><a href="#cb14-1248" aria-hidden="true" tabindex="-1"></a><span class="ss">-   </span>Ridgeline plots are useful for comparing distributions across multiple groups.</span>
+<span id="cb14-1249"><a href="#cb14-1249" aria-hidden="true" tabindex="-1"></a><span class="ss">-   </span>Raincloud plots combine density, summary statistics and raw observations in one chart.</span>
+<span id="cb14-1250"><a href="#cb14-1250" aria-hidden="true" tabindex="-1"></a><span class="ss">-   </span><span class="in">`ggridges`</span> is used for ridgeline plots.</span>
+<span id="cb14-1251"><a href="#cb14-1251" aria-hidden="true" tabindex="-1"></a><span class="ss">-   </span><span class="in">`ggdist`</span> is used for half-eye and dot-based distribution visualisations.</span>
 </code></pre></div><button title="Copy to Clipboard" class="code-copy-button" data-in-quarto-modal=""><i class="bi"></i></button></div>
 </div></div></div></div></div>
 </div> <!-- /content -->

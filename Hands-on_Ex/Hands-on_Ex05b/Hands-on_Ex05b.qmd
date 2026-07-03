@@ -677,8 +677,7 @@ wine_cor <- cor(wine_numeric, use = "pairwise.complete.obs")
 
 corrplot::corrplot(
   wine_cor,
-  lower.col = corr_cols,
-  upper.col = corr_cols,
+  col = corr_cols,
   tl.col = my_dark,
   tl.srt = 45
 )
@@ -691,8 +690,7 @@ wine_cor <- cor(wine_numeric, use = "pairwise.complete.obs")
 
 corrplot::corrplot(
   wine_cor,
-  lower.col = corr_cols,
-  upper.col = corr_cols,
+  col = corr_cols,
   tl.col = my_dark,
   tl.srt = 45
 )
@@ -716,8 +714,7 @@ The default corrplot uses circles to represent correlation strength and directio
 corrplot::corrplot(
   wine_cor,
   method = "ellipse",
-  lower.col = corr_cols,
-  upper.col = corr_cols,
+  col = corr_cols,
   tl.col = my_dark,
   tl.srt = 45
 )
@@ -729,8 +726,7 @@ corrplot::corrplot(
 corrplot::corrplot(
   wine_cor,
   method = "ellipse",
-  lower.col = corr_cols,
-  upper.col = corr_cols,
+  col = corr_cols,
   tl.col = my_dark,
   tl.srt = 45
 )
@@ -755,8 +751,7 @@ corrplot::corrplot(
   wine_cor,
   method = "ellipse",
   type = "lower",
-  lower.col = corr_cols,
-  upper.col = corr_cols,
+  col = corr_cols,
   diag = FALSE,
   tl.col = my_dark,
   tl.srt = 45
@@ -770,8 +765,7 @@ corrplot::corrplot(
   wine_cor,
   method = "ellipse",
   type = "lower",
-  lower.col = corr_cols,
-  upper.col = corr_cols,
+  col = corr_cols,
   diag = FALSE,
   tl.col = my_dark,
   tl.srt = 45
@@ -918,8 +912,7 @@ corrplot::corrplot(
   wine_cor,
   method = "number",
   type = "lower",
-  lower.col = corr_cols,
-  upper.col = corr_cols,
+  col = corr_cols,
   diag = FALSE,
   tl.col = my_dark,
   tl.srt = 45,
@@ -939,8 +932,7 @@ corrplot::corrplot(
   wine_cor,
   method = "number",
   type = "lower",
-  lower.col = corr_cols,
-  upper.col = corr_cols,
+  col = corr_cols,
   diag = FALSE,
   tl.col = my_dark,
   tl.srt = 45,
@@ -1019,8 +1011,7 @@ Reordering helps place similar variables closer together, making hidden structur
 corrplot::corrplot(
   wine_cor,
   method = "ellipse",
-  lower.col = corr_cols,
-  upper.col = corr_cols,
+  col = corr_cols,
   tl.pos = "lt",
   tl.col = my_dark,
   tl.srt = 45,
@@ -1036,8 +1027,7 @@ corrplot::corrplot(
 corrplot::corrplot(
   wine_cor,
   method = "ellipse",
-  lower.col = corr_cols,
-  upper.col = corr_cols,
+  col = corr_cols,
   tl.pos = "lt",
   tl.col = my_dark,
   tl.srt = 45,

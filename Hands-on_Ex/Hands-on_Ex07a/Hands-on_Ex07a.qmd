@@ -1,0 +1,1262 @@
+---
+title: "Hands-on Exercise 7a - Modelling, Visualising and Analysing Network Data with R"
+author: "Yang Yang"
+format:
+  html:
+    theme: sketchy
+    toc: true
+    toc-depth: 3
+    number-sections: false
+    code-copy: true
+    code-overflow: wrap
+editor: visual
+execute:
+  warning: false
+  message: false
+---
+
+```{r}
+#| label: setup
+#| include: false
+
+if (!require(pacman)) {
+  install.packages("pacman")
+}
+
+pacman::p_load(
+  tidyverse,
+  igraph,
+  tidygraph,
+  ggraph,
+  visNetwork,
+  lubridate,
+  DT,
+  scales,
+  ggforce,
+  knitr
+)
+
+my_teal <- "#2A6F6F"
+my_soft_teal <- "#8AA6A3"
+my_dark <- "#1F1F1F"
+my_light_teal <- "#D8E8E6"
+my_grey <- "#F3F4F4"
+my_warning <- "#B07C3E"
+my_red <- "#9A4B4B"
+my_blue <- "#4C78A8"
+
+theme_yy <- theme_minimal(base_size = 13) +
+  theme(
+    plot.title = element_text(face = "bold", colour = my_dark),
+    plot.subtitle = element_text(colour = my_teal),
+    axis.title = element_text(colour = my_dark),
+    axis.text = element_text(colour = my_dark),
+    panel.grid.minor = element_blank(),
+    legend.position = "bottom"
+  )
+
+theme_network_yy <- theme_graph(base_family = "sans") +
+  theme(
+    plot.title = element_text(face = "bold", colour = my_dark, hjust = 0),
+    plot.subtitle = element_text(colour = my_teal, hjust = 0),
+    legend.position = "bottom"
+  )
+
+find_data_file <- function(file_name) {
+  candidates <- c(
+    file.path("data", file_name),
+    file.path("Hands-on_Ex", "Hands-on_Ex07a", "data", file_name)
+  )
+  found <- candidates[file.exists(candidates)]
+
+  if (length(found) == 0) {
+    stop(
+      "Missing required data file: ", file_name,
+      ". Put it inside Hands-on_Ex/Hands-on_Ex07a/data/ before rendering."
+    )
+  }
+
+  found[1]
+}
+```
+
+## 7.1 Overview
+
+Network data is useful when the main analytical question is about relationships rather than individual records. In this hands-on exercise, we use email communication data from GAStech, an oil exploration and extraction company.
+
+The data contains two connected tables:
+
+-   a nodes table showing employees, departments, and job titles,
+-   an edges table showing email flows between employees.
+
+By the end of this exercise, we will be able to:
+
+-   import and prepare network nodes and edges,
+-   create a `tbl_graph` network object using `tidygraph`,
+-   visualise the email network using `ggraph`,
+-   compare network layouts and faceting methods,
+-   compute centrality and community measures,
+-   build an interactive network graph using `visNetwork`,
+-   add a small extension to compare department-to-department communication.
+
+::: callout-important
+## Important
+
+Network visualisation is not only about drawing lines and points. The most important step is modelling the data correctly: nodes represent entities, edges represent relationships, and edge weights represent the strength of those relationships.
+:::
+
+## 7.2 Installing and Launching R Packages
+
+The main packages used in this exercise are `tidygraph`, `ggraph`, and `visNetwork`.
+
+::: panel-tabset
+## View
+
+```{r}
+#| echo: false
+
+package_table <- tibble(
+  Package = c(
+    "tidyverse",
+    "lubridate",
+    "igraph",
+    "tidygraph",
+    "ggraph",
+    "visNetwork",
+    "DT",
+    "scales"
+  ),
+  Purpose = c(
+    "Data import, wrangling, and ggplot2 workflow",
+    "Parsing date fields and creating weekday variables",
+    "Core graph and network data structures",
+    "Tidy network data manipulation",
+    "Static network graph visualisation",
+    "Interactive network visualisation",
+    "Interactive HTML tables",
+    "Rescaling node sizes and formatting values"
+  )
+)
+
+DT::datatable(
+  package_table,
+  rownames = FALSE,
+  class = "compact stripe hover",
+  options = list(dom = "t", pageLength = 8),
+  width = "100%"
+)
+```
+
+## Code
+
+```{r}
+#| eval: false
+
+pacman::p_load(
+  tidyverse,
+  igraph,
+  tidygraph,
+  ggraph,
+  visNetwork,
+  lubridate,
+  DT,
+  scales,
+  ggforce
+)
+```
+:::
+
+## 7.3 The Data
+
+The datasets used in this exercise are:
+
+-   `GAStech_email_node.csv`: employee attributes such as name, department, and title.
+-   `GAStech_email_edge-v2.csv`: email records between employees.
+
+Both files should be placed in the exercise data folder:
+
+```text
+Hands-on_Ex/Hands-on_Ex07a/data/
+```
+
+### 7.3.1 Importing network data
+
+::: panel-tabset
+## View
+
+```{r}
+#| echo: false
+
+node_file <- find_data_file("GAStech_email_node.csv")
+edge_file <- find_data_file("GAStech_email_edge-v2.csv")
+
+GAStech_nodes_raw <- read_csv(node_file, show_col_types = FALSE)
+GAStech_edges_raw <- read_csv(edge_file, show_col_types = FALSE)
+
+glimpse(GAStech_nodes_raw)
+glimpse(GAStech_edges_raw)
+```
+
+## Code
+
+```{r}
+node_file <- find_data_file("GAStech_email_node.csv")
+edge_file <- find_data_file("GAStech_email_edge-v2.csv")
+
+GAStech_nodes_raw <- read_csv(node_file, show_col_types = FALSE)
+GAStech_edges_raw <- read_csv(edge_file, show_col_types = FALSE)
+
+glimpse(GAStech_nodes_raw)
+glimpse(GAStech_edges_raw)
+```
+:::
+
+The nodes table contains employee-level attributes. The edges table contains individual email records, including sender, receiver, date, time, subject category, and employee labels.
+
+### 7.3.2 Reviewing the imported data
+
+::: panel-tabset
+## View
+
+```{r}
+#| echo: false
+
+DT::datatable(
+  head(GAStech_nodes_raw, 12),
+  rownames = FALSE,
+  class = "compact stripe hover",
+  options = list(pageLength = 12, scrollX = TRUE),
+  width = "100%",
+  caption = "First 12 rows of the nodes table"
+)
+
+DT::datatable(
+  head(GAStech_edges_raw, 12),
+  rownames = FALSE,
+  class = "compact stripe hover",
+  options = list(pageLength = 12, scrollX = TRUE),
+  width = "100%",
+  caption = "First 12 rows of the edges table"
+)
+```
+
+## Code
+
+```{r}
+DT::datatable(
+  head(GAStech_nodes_raw, 12),
+  rownames = FALSE,
+  class = "compact stripe hover",
+  options = list(pageLength = 12, scrollX = TRUE),
+  width = "100%"
+)
+
+DT::datatable(
+  head(GAStech_edges_raw, 12),
+  rownames = FALSE,
+  class = "compact stripe hover",
+  options = list(pageLength = 12, scrollX = TRUE),
+  width = "100%"
+)
+```
+:::
+
+::: callout-note
+## Data modelling note
+
+The node `id` values are employee IDs from 1 to 54, but the rows in the node CSV are not arranged in perfect numeric order. Before creating the graph object, the node table is sorted by `id` so the numeric edge endpoints match the correct employees.
+:::
+
+## 7.4 Data Preparation
+
+The raw edges table contains one row per email. For network visualisation, it is more useful to aggregate these records into weighted links between sender and receiver.
+
+### 7.4.1 Preparing nodes and dates
+
+::: panel-tabset
+## View
+
+```{r}
+#| echo: false
+
+GAStech_nodes <- GAStech_nodes_raw %>%
+  arrange(id) %>%
+  mutate(
+    id = as.integer(id),
+    label = as.character(label),
+    Department = as.character(Department),
+    Title = as.character(Title)
+  )
+
+GAStech_edges <- GAStech_edges_raw %>%
+  mutate(
+    source = as.integer(source),
+    target = as.integer(target),
+    SendDate = lubridate::dmy(SentDate),
+    Weekday = lubridate::wday(
+      SendDate,
+      label = TRUE,
+      abbr = FALSE
+    )
+  )
+
+node_check <- tibble(
+  Check = c("Number of employees", "Smallest employee ID", "Largest employee ID"),
+  Value = as.character(c(
+    nrow(GAStech_nodes),
+    min(GAStech_nodes$id),
+    max(GAStech_nodes$id)
+  ))
+)
+
+edge_check <- tibble(
+  Check = c("Number of email records", "Earliest parsed date", "Latest parsed date"),
+  Value = c(
+    nrow(GAStech_edges),
+    as.character(min(GAStech_edges$SendDate, na.rm = TRUE)),
+    as.character(max(GAStech_edges$SendDate, na.rm = TRUE))
+  )
+)
+
+DT::datatable(
+  bind_rows(node_check, edge_check),
+  rownames = FALSE,
+  class = "compact stripe hover",
+  options = list(dom = "t", pageLength = 6),
+  width = "100%"
+)
+```
+
+## Code
+
+```{r}
+GAStech_nodes <- GAStech_nodes_raw %>%
+  arrange(id) %>%
+  mutate(
+    id = as.integer(id),
+    label = as.character(label),
+    Department = as.character(Department),
+    Title = as.character(Title)
+  )
+
+GAStech_edges <- GAStech_edges_raw %>%
+  mutate(
+    source = as.integer(source),
+    target = as.integer(target),
+    SendDate = lubridate::dmy(SentDate),
+    Weekday = lubridate::wday(
+      SendDate,
+      label = TRUE,
+      abbr = FALSE
+    )
+  )
+```
+:::
+
+The original date string is parsed with `dmy()` because the file stores dates such as `6/1/2014` as day/month/year. The weekday is calculated from the parsed `SendDate` field.
+
+### 7.4.2 Aggregating email flows
+
+::: panel-tabset
+## View
+
+```{r}
+#| echo: false
+
+GAStech_edges_aggregated <- GAStech_edges %>%
+  filter(MainSubject == "Work related") %>%
+  group_by(source, target, Weekday) %>%
+  summarise(Weight = n(), .groups = "drop") %>%
+  filter(source != target) %>%
+  filter(Weight > 1)
+
+DT::datatable(
+  head(GAStech_edges_aggregated, 15),
+  rownames = FALSE,
+  class = "compact stripe hover",
+  options = list(pageLength = 15, scrollX = TRUE),
+  width = "100%"
+)
+```
+
+## Code
+
+```{r}
+GAStech_edges_aggregated <- GAStech_edges %>%
+  filter(MainSubject == "Work related") %>%
+  group_by(source, target, Weekday) %>%
+  summarise(Weight = n(), .groups = "drop") %>%
+  filter(source != target) %>%
+  filter(Weight > 1)
+```
+:::
+
+The `Weight` column counts how many work-related emails were sent from one employee to another on the same weekday. Removing self-links and single-email links keeps the graph easier to read.
+
+### 7.4.3 Checking the aggregated edge table
+
+::: panel-tabset
+## View
+
+```{r}
+#| echo: false
+
+summary_table <- tibble(
+  Item = c(
+    "Employees in node table",
+    "Raw email records",
+    "Aggregated work-related links",
+    "Departments"
+  ),
+  Count = c(
+    nrow(GAStech_nodes),
+    nrow(GAStech_edges_raw),
+    nrow(GAStech_edges_aggregated),
+    n_distinct(GAStech_nodes$Department)
+  )
+)
+
+DT::datatable(
+  summary_table,
+  rownames = FALSE,
+  class = "compact stripe hover",
+  options = list(dom = "t", pageLength = 4),
+  width = "100%"
+)
+```
+
+## Code
+
+```{r}
+summary_table <- tibble(
+  Item = c(
+    "Employees in node table",
+    "Raw email records",
+    "Aggregated work-related links",
+    "Departments"
+  ),
+  Count = c(
+    nrow(GAStech_nodes),
+    nrow(GAStech_edges_raw),
+    nrow(GAStech_edges_aggregated),
+    n_distinct(GAStech_nodes$Department)
+  )
+)
+
+summary_table
+```
+:::
+
+## 7.5 Creating a Network Object with tidygraph
+
+The `tidygraph` package represents a network as a `tbl_graph` object. This lets us switch between node data and edge data while still using a tidyverse-style workflow.
+
+### 7.5.1 Building the graph object
+
+::: panel-tabset
+## View
+
+```{r}
+#| echo: false
+
+GAStech_graph <- tbl_graph(
+  nodes = GAStech_nodes,
+  edges = GAStech_edges_aggregated,
+  directed = TRUE
+)
+
+GAStech_graph
+```
+
+## Code
+
+```{r}
+GAStech_graph <- tbl_graph(
+  nodes = GAStech_nodes,
+  edges = GAStech_edges_aggregated,
+  directed = TRUE
+)
+
+GAStech_graph
+```
+:::
+
+The graph is directed because the sender and receiver roles are different. An email from A to B is not the same as an email from B to A.
+
+### 7.5.2 Activating nodes and edges
+
+::: panel-tabset
+## View
+
+```{r}
+#| echo: false
+
+GAStech_graph %>%
+  activate(edges) %>%
+  arrange(desc(Weight))
+```
+
+## Code
+
+```{r}
+GAStech_graph %>%
+  activate(edges) %>%
+  arrange(desc(Weight))
+```
+:::
+
+The `activate()` function switches whether dplyr verbs are applied to the node table or the edge table. In this example, the edge table is activated and arranged by email weight.
+
+## 7.6 Static Network Graphs with ggraph
+
+The `ggraph` package extends `ggplot2` for network visualisation. A network graph normally needs three design choices: the layout, the edges, and the nodes.
+
+### 7.6.1 Basic network graph
+
+::: panel-tabset
+## View
+
+```{r}
+#| echo: false
+#| fig-width: 9
+#| fig-height: 7
+
+department_palette <- c(
+  "Administration" = my_teal,
+  "Engineering" = my_blue,
+  "Executive" = my_warning,
+  "Facilities" = my_soft_teal,
+  "Information Technology" = "#7A9E7E",
+  "Security" = my_red
+)
+
+set.seed(1234)
+
+ggraph(GAStech_graph, layout = "fr") +
+  geom_edge_link(
+    aes(edge_width = Weight),
+    colour = my_soft_teal,
+    alpha = 0.16,
+    show.legend = FALSE
+  ) +
+  geom_node_point(
+    aes(colour = Department),
+    size = 3,
+    alpha = 0.95
+  ) +
+  scale_edge_width(range = c(0.1, 1.4)) +
+  scale_colour_manual(values = department_palette) +
+  labs(
+    title = "GAStech Work-Related Email Network",
+    subtitle = "Nodes are employees; links are aggregated work-related emails by weekday.",
+    colour = "Department"
+  ) +
+  theme_network_yy
+```
+
+## Code
+
+```{r}
+#| eval: false
+
+department_palette <- c(
+  "Administration" = my_teal,
+  "Engineering" = my_blue,
+  "Executive" = my_warning,
+  "Facilities" = my_soft_teal,
+  "Information Technology" = "#7A9E7E",
+  "Security" = my_red
+)
+
+set.seed(1234)
+
+ggraph(GAStech_graph, layout = "fr") +
+  geom_edge_link(
+    aes(edge_width = Weight),
+    colour = my_soft_teal,
+    alpha = 0.16,
+    show.legend = FALSE
+  ) +
+  geom_node_point(
+    aes(colour = Department),
+    size = 3,
+    alpha = 0.95
+  ) +
+  scale_edge_width(range = c(0.1, 1.4)) +
+  scale_colour_manual(values = department_palette) +
+  labs(
+    title = "GAStech Work-Related Email Network",
+    subtitle = "Nodes are employees; links are aggregated work-related emails by weekday.",
+    colour = "Department"
+  ) +
+  theme_network_yy
+```
+:::
+
+The Fruchterman-Reingold layout places strongly connected nodes nearer to one another. Thicker edges represent larger numbers of email records.
+
+### 7.6.2 Comparing network layouts
+
+::: panel-tabset
+## View
+
+```{r}
+#| echo: false
+#| fig-width: 9
+#| fig-height: 6
+
+layout_table <- tibble(
+  Layout = c("fr", "nicely", "circle"),
+  Description = c(
+    "Force-directed layout that tries to separate nodes while keeping connected nodes close",
+    "Default igraph-style layout chosen automatically for readable placement",
+    "Places nodes around a circle, useful for seeing dense connection patterns"
+  )
+)
+
+DT::datatable(
+  layout_table,
+  rownames = FALSE,
+  class = "compact stripe hover",
+  options = list(dom = "t", pageLength = 3),
+  width = "100%"
+)
+```
+
+## Code
+
+```{r}
+#| eval: false
+
+ggraph(GAStech_graph, layout = "fr")
+ggraph(GAStech_graph, layout = "nicely")
+ggraph(GAStech_graph, layout = "circle")
+```
+:::
+
+Different layouts can reveal different patterns. For this exercise, the Fruchterman-Reingold layout is used for most static graphs because it gives a compact view of the email network.
+
+### 7.6.3 Improving node and edge design
+
+::: panel-tabset
+## View
+
+```{r}
+#| echo: false
+#| fig-width: 9
+#| fig-height: 7
+
+GAStech_graph_metrics <- GAStech_graph %>%
+  activate(nodes) %>%
+  mutate(
+    degree_total = centrality_degree(mode = "total"),
+    betweenness = centrality_betweenness(directed = TRUE),
+    community = as.factor(group_infomap(weights = Weight))
+  )
+
+set.seed(1234)
+
+ggraph(GAStech_graph_metrics, layout = "fr") +
+  geom_edge_link(
+    aes(edge_width = Weight),
+    colour = my_soft_teal,
+    alpha = 0.12,
+    show.legend = FALSE
+  ) +
+  geom_node_point(
+    aes(fill = Department, size = degree_total),
+    shape = 21,
+    colour = "white",
+    stroke = 0.6,
+    alpha = 0.95
+  ) +
+  scale_edge_width(range = c(0.1, 1.5)) +
+  scale_size(range = c(2.5, 8), name = "Total degree") +
+  scale_fill_manual(values = department_palette) +
+  labs(
+    title = "Email Network Sized by Total Degree",
+    subtitle = "Larger nodes have more incoming and outgoing work-related email links.",
+    fill = "Department"
+  ) +
+  theme_network_yy
+```
+
+## Code
+
+```{r}
+GAStech_graph_metrics <- GAStech_graph %>%
+  activate(nodes) %>%
+  mutate(
+    degree_total = centrality_degree(mode = "total"),
+    betweenness = centrality_betweenness(directed = TRUE),
+    community = as.factor(group_infomap(weights = Weight))
+  )
+
+set.seed(1234)
+
+ggraph(GAStech_graph_metrics, layout = "fr") +
+  geom_edge_link(
+    aes(edge_width = Weight),
+    colour = my_soft_teal,
+    alpha = 0.12,
+    show.legend = FALSE
+  ) +
+  geom_node_point(
+    aes(fill = Department, size = degree_total),
+    shape = 21,
+    colour = "white",
+    stroke = 0.6,
+    alpha = 0.95
+  ) +
+  scale_edge_width(range = c(0.1, 1.5)) +
+  scale_size(range = c(2.5, 8), name = "Total degree") +
+  scale_fill_manual(values = department_palette) +
+  labs(
+    title = "Email Network Sized by Total Degree",
+    subtitle = "Larger nodes have more incoming and outgoing work-related email links.",
+    fill = "Department"
+  ) +
+  theme_network_yy
+```
+:::
+
+This graph adds a network metric to the design. Employees with more connections become larger, while department colour helps show how communication is structured across groups.
+
+## 7.7 Creating Facet Graphs
+
+Faceting separates the same network into small multiples. This is useful when one graph is too crowded.
+
+### 7.7.1 Faceting edges by weekday
+
+::: panel-tabset
+## View
+
+```{r}
+#| echo: false
+#| fig-width: 10
+#| fig-height: 8
+
+set.seed(1234)
+
+ggraph(GAStech_graph, layout = "fr") +
+  geom_edge_link(
+    aes(edge_width = Weight),
+    colour = my_soft_teal,
+    alpha = 0.22,
+    show.legend = FALSE
+  ) +
+  geom_node_point(
+    aes(colour = Department),
+    size = 1.8,
+    alpha = 0.9
+  ) +
+  facet_edges(~Weekday) +
+  scale_edge_width(range = c(0.1, 1.2)) +
+  scale_colour_manual(values = department_palette) +
+  labs(
+    title = "GAStech Email Network by Weekday",
+    subtitle = "Each panel shows links for one weekday.",
+    colour = "Department"
+  ) +
+  theme_network_yy +
+  theme(
+    strip.text = element_text(face = "bold", colour = my_dark),
+    legend.position = "bottom"
+  )
+```
+
+## Code
+
+```{r}
+#| eval: false
+
+set.seed(1234)
+
+ggraph(GAStech_graph, layout = "fr") +
+  geom_edge_link(
+    aes(edge_width = Weight),
+    colour = my_soft_teal,
+    alpha = 0.22,
+    show.legend = FALSE
+  ) +
+  geom_node_point(
+    aes(colour = Department),
+    size = 1.8,
+    alpha = 0.9
+  ) +
+  facet_edges(~Weekday) +
+  scale_edge_width(range = c(0.1, 1.2)) +
+  scale_colour_manual(values = department_palette) +
+  labs(
+    title = "GAStech Email Network by Weekday",
+    subtitle = "Each panel shows links for one weekday.",
+    colour = "Department"
+  ) +
+  theme_network_yy +
+  theme(
+    strip.text = element_text(face = "bold", colour = my_dark),
+    legend.position = "bottom"
+  )
+```
+:::
+
+Faceting makes it easier to compare daily communication patterns. The overall structure remains similar, but the edge density changes by weekday.
+
+## 7.8 Network Metrics Analysis
+
+Network metrics help identify which employees are structurally important in the email network.
+
+### 7.8.1 Computing centrality indices
+
+::: panel-tabset
+## View
+
+```{r}
+#| echo: false
+
+node_metrics <- GAStech_graph_metrics %>%
+  activate(nodes) %>%
+  as_tibble() %>%
+  arrange(desc(betweenness))
+
+DT::datatable(
+  node_metrics %>%
+    select(id, label, Department, Title, degree_total, betweenness, community) %>%
+    head(12),
+  rownames = FALSE,
+  class = "compact stripe hover",
+  options = list(pageLength = 12, scrollX = TRUE),
+  width = "100%"
+)
+```
+
+## Code
+
+```{r}
+node_metrics <- GAStech_graph_metrics %>%
+  activate(nodes) %>%
+  as_tibble() %>%
+  arrange(desc(betweenness))
+
+node_metrics %>%
+  select(id, label, Department, Title, degree_total, betweenness, community) %>%
+  head(12)
+```
+:::
+
+Degree centrality counts how many links an employee has. Betweenness centrality identifies employees who sit on many shortest paths and may act as bridges between groups.
+
+### 7.8.2 Visualising top betweenness employees
+
+::: panel-tabset
+## View
+
+```{r}
+#| echo: false
+#| fig-width: 9
+#| fig-height: 6
+
+top_betweenness <- node_metrics %>%
+  slice_max(betweenness, n = 10) %>%
+  mutate(label = fct_reorder(label, betweenness))
+
+ggplot(
+  top_betweenness,
+  aes(x = label, y = betweenness, fill = Department)
+) +
+  geom_col(width = 0.72) +
+  coord_flip() +
+  scale_fill_manual(values = department_palette) +
+  labs(
+    title = "Employees with Highest Betweenness Centrality",
+    subtitle = "These employees are likely to connect different parts of the email network.",
+    x = NULL,
+    y = "Betweenness centrality",
+    fill = "Department"
+  ) +
+  theme_yy
+```
+
+## Code
+
+```{r}
+top_betweenness <- node_metrics %>%
+  slice_max(betweenness, n = 10) %>%
+  mutate(label = fct_reorder(label, betweenness))
+
+ggplot(
+  top_betweenness,
+  aes(x = label, y = betweenness, fill = Department)
+) +
+  geom_col(width = 0.72) +
+  coord_flip() +
+  scale_fill_manual(values = department_palette) +
+  labs(
+    title = "Employees with Highest Betweenness Centrality",
+    subtitle = "These employees are likely to connect different parts of the email network.",
+    x = NULL,
+    y = "Betweenness centrality",
+    fill = "Department"
+  ) +
+  theme_yy
+```
+:::
+
+This chart is easier to read than the full network when the question is specifically about which employees are most central.
+
+### 7.8.3 Visualising community structure
+
+::: panel-tabset
+## View
+
+```{r}
+#| echo: false
+#| fig-width: 9
+#| fig-height: 7
+
+community_palette <- c(
+  "#2A6F6F", "#4C78A8", "#B07C3E", "#9A4B4B", "#7A9E7E",
+  "#6E7582", "#9B7E93", "#3F5E5A", "#C9A66B", "#5B8C85",
+  "#7C6F9E", "#A65F46"
+)
+
+set.seed(1234)
+
+ggraph(GAStech_graph_metrics, layout = "fr") +
+  geom_edge_link(
+    aes(edge_width = Weight),
+    colour = my_soft_teal,
+    alpha = 0.12,
+    show.legend = FALSE
+  ) +
+  geom_node_point(
+    aes(fill = community, size = degree_total),
+    shape = 21,
+    colour = "white",
+    stroke = 0.6,
+    alpha = 0.95
+  ) +
+  scale_edge_width(range = c(0.1, 1.3)) +
+  scale_size(range = c(2.5, 8), name = "Total degree") +
+  scale_fill_manual(values = rep(community_palette, length.out = n_distinct(node_metrics$community))) +
+  labs(
+    title = "Community Structure in the GAStech Email Network",
+    subtitle = "Node colour is based on Infomap community detection.",
+    fill = "Community"
+  ) +
+  theme_network_yy
+```
+
+## Code
+
+```{r}
+community_palette <- c(
+  "#2A6F6F", "#4C78A8", "#B07C3E", "#9A4B4B", "#7A9E7E",
+  "#6E7582", "#9B7E93", "#3F5E5A", "#C9A66B", "#5B8C85",
+  "#7C6F9E", "#A65F46"
+)
+
+set.seed(1234)
+
+ggraph(GAStech_graph_metrics, layout = "fr") +
+  geom_edge_link(
+    aes(edge_width = Weight),
+    colour = my_soft_teal,
+    alpha = 0.12,
+    show.legend = FALSE
+  ) +
+  geom_node_point(
+    aes(fill = community, size = degree_total),
+    shape = 21,
+    colour = "white",
+    stroke = 0.6,
+    alpha = 0.95
+  ) +
+  scale_edge_width(range = c(0.1, 1.3)) +
+  scale_size(range = c(2.5, 8), name = "Total degree") +
+  scale_fill_manual(values = rep(community_palette, length.out = n_distinct(node_metrics$community))) +
+  labs(
+    title = "Community Structure in the GAStech Email Network",
+    subtitle = "Node colour is based on Infomap community detection.",
+    fill = "Community"
+  ) +
+  theme_network_yy
+```
+:::
+
+Community detection groups employees with similar connection patterns. This can reveal informal communication clusters that may not perfectly match formal departments.
+
+## 7.9 Interactive Network Graph with visNetwork
+
+Static network graphs are useful for reporting. Interactive network graphs are useful for exploration because users can zoom, drag, and select nodes.
+
+### 7.9.1 Preparing data for visNetwork
+
+::: panel-tabset
+## View
+
+```{r}
+#| echo: false
+
+GAStech_nodes_vis <- GAStech_nodes %>%
+  left_join(
+    node_metrics %>%
+      select(id, degree_total, betweenness, community),
+    by = "id"
+  ) %>%
+  mutate(
+    group = Department,
+    value = scales::rescale(degree_total, to = c(12, 36)),
+    title = paste0(
+      "<b>", label, "</b><br>",
+      "Department: ", Department, "<br>",
+      "Title: ", Title, "<br>",
+      "Total degree: ", degree_total, "<br>",
+      "Betweenness: ", round(betweenness, 2), "<br>",
+      "Community: ", community
+    )
+  )
+
+GAStech_edges_vis <- GAStech_edges_aggregated %>%
+  transmute(
+    from = source,
+    to = target,
+    value = Weight,
+    title = paste0(
+      "Emails: ", Weight,
+      "<br>Weekday: ", Weekday
+    ),
+    arrows = "to"
+  )
+
+DT::datatable(
+  head(GAStech_nodes_vis, 10),
+  rownames = FALSE,
+  class = "compact stripe hover",
+  options = list(pageLength = 10, scrollX = TRUE),
+  width = "100%"
+)
+```
+
+## Code
+
+```{r}
+GAStech_nodes_vis <- GAStech_nodes %>%
+  left_join(
+    node_metrics %>%
+      select(id, degree_total, betweenness, community),
+    by = "id"
+  ) %>%
+  mutate(
+    group = Department,
+    value = scales::rescale(degree_total, to = c(12, 36)),
+    title = paste0(
+      "<b>", label, "</b><br>",
+      "Department: ", Department, "<br>",
+      "Title: ", Title, "<br>",
+      "Total degree: ", degree_total, "<br>",
+      "Betweenness: ", round(betweenness, 2), "<br>",
+      "Community: ", community
+    )
+  )
+
+GAStech_edges_vis <- GAStech_edges_aggregated %>%
+  transmute(
+    from = source,
+    to = target,
+    value = Weight,
+    title = paste0(
+      "Emails: ", Weight,
+      "<br>Weekday: ", Weekday
+    ),
+    arrows = "to"
+  )
+```
+:::
+
+The `visNetwork` package expects a node table with an `id` column and an edge table with `from` and `to` columns.
+
+### 7.9.2 Building the interactive network
+
+::: panel-tabset
+## View
+
+```{r}
+#| echo: false
+
+visNetwork(
+  GAStech_nodes_vis,
+  GAStech_edges_vis,
+  height = "560px",
+  width = "100%"
+) %>%
+  visIgraphLayout(layout = "layout_with_fr") %>%
+  visEdges(
+    smooth = FALSE,
+    color = list(color = my_soft_teal, highlight = my_teal),
+    scaling = list(min = 1, max = 8)
+  ) %>%
+  visNodes(
+    shape = "dot",
+    scaling = list(min = 12, max = 36),
+    font = list(size = 18)
+  ) %>%
+  visOptions(
+    highlightNearest = list(enabled = TRUE, degree = 1, hover = TRUE),
+    nodesIdSelection = TRUE
+  ) %>%
+  visLegend(
+    useGroups = TRUE,
+    position = "left",
+    width = 0.18
+  )
+```
+
+## Code
+
+```{r}
+visNetwork(
+  GAStech_nodes_vis,
+  GAStech_edges_vis,
+  height = "560px",
+  width = "100%"
+) %>%
+  visIgraphLayout(layout = "layout_with_fr") %>%
+  visEdges(
+    smooth = FALSE,
+    color = list(color = my_soft_teal, highlight = my_teal),
+    scaling = list(min = 1, max = 8)
+  ) %>%
+  visNodes(
+    shape = "dot",
+    scaling = list(min = 12, max = 36),
+    font = list(size = 18)
+  ) %>%
+  visOptions(
+    highlightNearest = list(enabled = TRUE, degree = 1, hover = TRUE),
+    nodesIdSelection = TRUE
+  ) %>%
+  visLegend(
+    useGroups = TRUE,
+    position = "left",
+    width = 0.18
+  )
+```
+:::
+
+The interactive graph lets readers inspect individual employees and their nearest connections. Hovering highlights nearby nodes, and the selector helps locate one employee directly.
+
+## 7.10 Extra Analysis: Department-to-Department Email Flow
+
+The employee-level graph is detailed. A department-level summary makes the organisational pattern easier to interpret.
+
+::: panel-tabset
+## View
+
+```{r}
+#| echo: false
+#| fig-width: 9
+#| fig-height: 6
+
+department_edges <- GAStech_edges_aggregated %>%
+  left_join(
+    GAStech_nodes %>%
+      select(source = id, source_department = Department),
+    by = "source"
+  ) %>%
+  left_join(
+    GAStech_nodes %>%
+      select(target = id, target_department = Department),
+    by = "target"
+  ) %>%
+  group_by(source_department, target_department) %>%
+  summarise(total_email = sum(Weight), .groups = "drop") %>%
+  arrange(desc(total_email))
+
+ggplot(
+  department_edges,
+  aes(
+    x = source_department,
+    y = target_department,
+    fill = total_email
+  )
+) +
+  geom_tile(colour = "white", linewidth = 0.6) +
+  geom_text(aes(label = comma(total_email)), size = 3.3, colour = my_dark) +
+  scale_fill_gradient(low = my_light_teal, high = my_teal) +
+  labs(
+    title = "Department-to-Department Work-Related Email Flow",
+    subtitle = "Cells show the total number of aggregated email links by sender and receiver department.",
+    x = "Sender department",
+    y = "Receiver department",
+    fill = "Email count"
+  ) +
+  theme_yy +
+  theme(
+    axis.text.x = element_text(angle = 35, hjust = 1),
+    legend.position = "right"
+  )
+```
+
+## Code
+
+```{r}
+department_edges <- GAStech_edges_aggregated %>%
+  left_join(
+    GAStech_nodes %>%
+      select(source = id, source_department = Department),
+    by = "source"
+  ) %>%
+  left_join(
+    GAStech_nodes %>%
+      select(target = id, target_department = Department),
+    by = "target"
+  ) %>%
+  group_by(source_department, target_department) %>%
+  summarise(total_email = sum(Weight), .groups = "drop") %>%
+  arrange(desc(total_email))
+
+ggplot(
+  department_edges,
+  aes(
+    x = source_department,
+    y = target_department,
+    fill = total_email
+  )
+) +
+  geom_tile(colour = "white", linewidth = 0.6) +
+  geom_text(aes(label = comma(total_email)), size = 3.3, colour = my_dark) +
+  scale_fill_gradient(low = my_light_teal, high = my_teal) +
+  labs(
+    title = "Department-to-Department Work-Related Email Flow",
+    subtitle = "Cells show the total number of aggregated email links by sender and receiver department.",
+    x = "Sender department",
+    y = "Receiver department",
+    fill = "Email count"
+  ) +
+  theme_yy +
+  theme(
+    axis.text.x = element_text(angle = 35, hjust = 1),
+    legend.position = "right"
+  )
+```
+:::
+
+This summary reduces the employee-level network into a department-level view. It helps identify which departments communicate most intensely with each other.
+
+## 7.11 Final Takeaway
+
+This exercise shows how network analysis can turn email records into a visual model of organisational communication. The same data can be explored at different levels: individual employees, centrality rankings, communities, and department-to-department flows.
+
+::: callout-tip
+## Final takeaway
+
+Use network graphs when the relationship between entities is the main story. For GAStech, the email network helps reveal which employees are highly connected, which employees act as bridges, and how departments communicate with one another.
+:::
+
+## 7.12 Reference
+
+-   R4VA Chapter 27: [Modelling, Visualising and Analysing Network Data with R](https://r4va.netlify.app/chap27)
+-   `tidygraph`: <https://tidygraph.data-imaginist.com/>
+-   `ggraph`: <https://ggraph.data-imaginist.com/>
+-   `visNetwork`: <https://datastorm-open.github.io/visNetwork/>

@@ -1,0 +1,651 @@
+---
+title: "Hands-on Exercise 8 - Visualising and Analysing Time-oriented Data"
+author: "Yang Yang"
+format:
+  html:
+    theme: sketchy
+    toc: true
+    toc-depth: 3
+    number-sections: false
+    code-copy: true
+    code-overflow: wrap
+editor: visual
+execute:
+  warning: false
+  message: false
+---
+
+```{r}
+#| label: setup
+#| include: false
+
+user_lib <- Sys.getenv("R_LIBS_USER")
+if (nzchar(user_lib)) {
+  dir.create(user_lib, recursive = TRUE, showWarnings = FALSE)
+  .libPaths(c(user_lib, .libPaths()))
+}
+
+my_teal <- "#2A6F6F"
+my_soft_teal <- "#8AA6A3"
+my_dark <- "#1F1F1F"
+my_light_teal <- "#D8E8E6"
+my_grey <- "#F3F4F4"
+my_warning <- "#B07C3E"
+my_red <- "#9A4B4B"
+my_blue <- "#4C78A8"
+
+find_data_file <- function(file_name) {
+  candidates <- c(
+    file.path("data", file_name),
+    file.path("Hands-on_Ex", "Hands-on_Ex08", "data", file_name)
+  )
+  found <- candidates[file.exists(candidates)]
+
+  if (length(found) == 0) {
+    stop(
+      "Missing required data file: ", file_name,
+      ". Put it inside Hands-on_Ex/Hands-on_Ex08/data/ before rendering."
+    )
+  }
+
+  found[1]
+}
+```
+
+## 17.1 Learning Outcome
+
+This hands-on exercise follows [Chapter 17 of R4VA](https://r4va.netlify.app/chap17), *Visualising and Analysing Time-oriented Data*. By the end of this exercise, the following time-oriented visualisations will be created:
+
+- calendar heatmap using `ggplot2`;
+- multiple calendar heatmaps for the top source countries;
+- cycle plot using `ggplot2`; and
+- slopegraph for comparing two time points.
+
+## 17.2 Getting Started
+
+The code chunk below checks whether `pacman` is installed. If it is missing, it installs it from CRAN. This is included as executable code so the package setup is reproducible.
+
+```{r}
+#| label: install-pacman
+
+if (!requireNamespace("pacman", quietly = TRUE)) {
+  install.packages("pacman", repos = "https://cloud.r-project.org")
+}
+```
+
+## 17.3 Do It Yourself
+
+The code chunk below checks, installs, and launches the packages needed for this exercise. The original Chapter 17 package list includes `CGPfunctions` for `newggslopegraph()`. That package has been removed from live CRAN and currently depends on an archived package that does not load cleanly with this R/ggplot2 setup. For this reason, the evaluated package setup installs and loads the packages used by the runnable exercise, and the slopegraph section uses a `ggplot2` fallback instead of failing.
+
+```{r}
+#| label: install-and-load-packages
+
+required_packages <- c(
+  "scales",
+  "viridis",
+  "lubridate",
+  "ggthemes",
+  "gridExtra",
+  "readxl",
+  "knitr",
+  "data.table",
+  "ggHoriPlot",
+  "tidyverse",
+  "DT"
+)
+
+pacman::p_load(char = required_packages)
+
+cgp_available <- requireNamespace("CGPfunctions", quietly = TRUE)
+```
+
+The archived `CGPfunctions` installation command is shown below for reference. It is not evaluated in this document because its archived dependency `ggmosaic` does not currently load cleanly with this R/ggplot2 setup.
+
+```{r}
+#| label: optional-cgpfunctions-install-code
+#| eval: false
+
+install.packages(
+  "https://cran.r-project.org/src/contrib/Archive/CGPfunctions/CGPfunctions_0.6.3.tar.gz",
+  repos = NULL,
+  type = "source"
+)
+```
+
+```{r}
+#| label: package-status
+
+package_status <- tibble(
+  package = c(required_packages, "CGPfunctions"),
+  status = map_chr(
+    package,
+    ~ if (requireNamespace(.x, quietly = TRUE)) "Available" else "Not available"
+  )
+)
+
+DT::datatable(
+  package_status,
+  rownames = FALSE,
+  options = list(pageLength = 12, dom = "tip")
+)
+```
+
+```{r}
+#| label: theme
+#| include: false
+
+theme_yy <- theme_minimal(base_size = 13) +
+  theme(
+    plot.title = element_text(face = "bold", colour = my_dark),
+    plot.subtitle = element_text(colour = my_teal),
+    axis.title = element_text(colour = my_dark),
+    axis.text = element_text(colour = my_dark),
+    panel.grid.minor = element_blank(),
+    strip.text = element_text(face = "bold", colour = my_dark),
+    legend.position = "bottom"
+  )
+```
+
+## 17.4 Plotting Calendar Heatmap
+
+This section uses `eventlog.csv`, which contains cyber attack records by timestamp, source country, and time zone.
+
+### 17.4.1 The Data
+
+```{r}
+#| label: import-eventlog
+
+attacks_raw <- read_csv(find_data_file("eventlog.csv"), show_col_types = FALSE)
+
+glimpse(attacks_raw)
+```
+
+### 17.4.2 Examining the Data Structure
+
+```{r}
+#| label: eventlog-head
+
+kable(head(attacks_raw))
+```
+
+There are three columns in the data:
+
+- `timestamp`: date-time value of the cyber attack record;
+- `source_country`: ISO 3166-1 alpha-2 country code of the attack source; and
+- `tz`: time zone of the source IP address.
+
+### 17.4.3 Data Preparation
+
+The calendar heatmap needs weekday and hour fields. The function below converts the timestamp by time zone, then derives the weekday and hour.
+
+```{r}
+#| label: make-hour-weekday
+
+make_hr_wkday <- function(ts, sc, tz) {
+  real_times <- ymd_hms(
+    format(ts, "%Y-%m-%d %H:%M:%S"),
+    tz = tz[1],
+    quiet = TRUE
+  )
+
+  data.table(
+    source_country = sc,
+    wkday = weekdays(real_times),
+    hour = hour(real_times)
+  )
+}
+```
+
+```{r}
+#| label: prepare-attacks
+
+wkday_levels <- c(
+  "Saturday", "Friday", "Thursday", "Wednesday",
+  "Tuesday", "Monday", "Sunday"
+)
+
+attacks <- attacks_raw |>
+  group_by(tz) |>
+  group_modify(
+    ~ make_hr_wkday(
+      ts = .x$timestamp,
+      sc = .x$source_country,
+      tz = .y$tz
+    )
+  ) |>
+  ungroup() |>
+  mutate(
+    wkday = factor(wkday, levels = wkday_levels),
+    hour = factor(hour, levels = 0:23)
+  )
+
+kable(head(attacks))
+```
+
+### 17.4.4 Building the Calendar Heatmap
+
+::: panel-tabset
+
+## View
+
+```{r}
+#| label: calendar-heatmap-view
+#| echo: false
+#| fig-width: 10
+#| fig-height: 5.8
+
+grouped <- attacks |>
+  count(wkday, hour) |>
+  ungroup() |>
+  na.omit()
+
+ggplot(
+  grouped,
+  aes(hour, wkday, fill = n)
+) +
+  geom_tile(color = "white", linewidth = 0.1) +
+  theme_tufte(base_family = "Helvetica") +
+  coord_equal() +
+  scale_fill_gradient(
+    name = "# of attacks",
+    low = "sky blue",
+    high = "dark blue",
+    labels = comma
+  ) +
+  labs(
+    x = NULL,
+    y = NULL,
+    title = "Attacks by Weekday and Time of Day"
+  ) +
+  theme(
+    axis.ticks = element_blank(),
+    plot.title = element_text(hjust = 0.5, face = "bold"),
+    legend.title = element_text(size = 8),
+    legend.text = element_text(size = 6)
+  )
+```
+
+## Code
+
+```{r}
+#| label: calendar-heatmap-code
+#| eval: false
+
+grouped <- attacks |>
+  count(wkday, hour) |>
+  ungroup() |>
+  na.omit()
+
+ggplot(grouped, aes(hour, wkday, fill = n)) +
+  geom_tile(color = "white", linewidth = 0.1) +
+  theme_tufte(base_family = "Helvetica") +
+  coord_equal() +
+  scale_fill_gradient(
+    name = "# of attacks",
+    low = "sky blue",
+    high = "dark blue"
+  ) +
+  labs(
+    x = NULL,
+    y = NULL,
+    title = "Attacks by Weekday and Time of Day"
+  )
+```
+
+:::
+
+### 17.4.5 Building Multiple Calendar Heatmaps
+
+The top four source countries are identified by attack count, then the calendar heatmap is faceted by country.
+
+```{r}
+#| label: attacks-by-country
+
+attacks_by_country <- count(attacks, source_country) |>
+  mutate(percent = percent(n / sum(n))) |>
+  arrange(desc(n))
+
+DT::datatable(
+  attacks_by_country,
+  rownames = FALSE,
+  options = list(pageLength = 10, dom = "tip")
+)
+```
+
+```{r}
+#| label: prepare-top4-attacks
+
+top4 <- attacks_by_country$source_country[1:4]
+
+top4_attacks <- attacks |>
+  filter(source_country %in% top4) |>
+  count(source_country, wkday, hour) |>
+  ungroup() |>
+  mutate(source_country = factor(source_country, levels = top4)) |>
+  na.omit()
+```
+
+::: panel-tabset
+
+## View
+
+```{r}
+#| label: multiple-calendar-heatmap-view
+#| echo: false
+#| fig-width: 10
+#| fig-height: 8
+
+ggplot(
+  top4_attacks,
+  aes(hour, wkday, fill = n)
+) +
+  geom_tile(color = "white", linewidth = 0.1) +
+  theme_tufte(base_family = "Helvetica") +
+  coord_equal() +
+  scale_fill_gradient(
+    name = "# of attacks",
+    low = "sky blue",
+    high = "dark blue",
+    labels = comma
+  ) +
+  facet_wrap(~source_country, ncol = 2) +
+  labs(
+    x = NULL,
+    y = NULL,
+    title = "Attacks on Top 4 Countries by Weekday and Time of Day"
+  ) +
+  theme(
+    axis.ticks = element_blank(),
+    axis.text.x = element_text(size = 7),
+    plot.title = element_text(hjust = 0.5, face = "bold"),
+    legend.title = element_text(size = 8),
+    legend.text = element_text(size = 6)
+  )
+```
+
+## Code
+
+```{r}
+#| label: multiple-calendar-heatmap-code
+#| eval: false
+
+ggplot(top4_attacks, aes(hour, wkday, fill = n)) +
+  geom_tile(color = "white", linewidth = 0.1) +
+  theme_tufte(base_family = "Helvetica") +
+  coord_equal() +
+  scale_fill_gradient(
+    name = "# of attacks",
+    low = "sky blue",
+    high = "dark blue"
+  ) +
+  facet_wrap(~source_country, ncol = 2) +
+  labs(
+    x = NULL,
+    y = NULL,
+    title = "Attacks on Top 4 Countries by Weekday and Time of Day"
+  )
+```
+
+:::
+
+## 17.5 Plotting Cycle Plot
+
+This section uses `arrivals_by_air.xlsx` to visualise visitor arrivals from Vietnam by month and year.
+
+### 17.5.1 Step 1: Data Import
+
+```{r}
+#| label: import-air
+
+air <- read_excel(find_data_file("arrivals_by_air.xlsx"))
+
+kable(head(air[, 1:6]))
+```
+
+### 17.5.2 Step 2: Deriving Month and Year Fields
+
+```{r}
+#| label: derive-air-date-fields
+
+air <- air |>
+  mutate(
+    month = factor(
+      month(`Month-Year`),
+      levels = 1:12,
+      labels = month.abb,
+      ordered = TRUE
+    ),
+    year = year(ymd(`Month-Year`))
+  )
+```
+
+### 17.5.3 Step 4: Extracting the Target Country
+
+```{r}
+#| label: extract-vietnam
+
+Vietnam <- air |>
+  select(Vietnam, month, year) |>
+  filter(year >= 2010)
+
+kable(head(Vietnam))
+```
+
+### 17.5.4 Step 5: Computing Year Average Arrivals by Month
+
+```{r}
+#| label: vietnam-month-average
+
+hline.data <- Vietnam |>
+  group_by(month) |>
+  summarise(avgvalue = mean(Vietnam), .groups = "drop")
+
+kable(hline.data)
+```
+
+### 17.5.5 Step 6: Plotting the Cycle Plot
+
+::: panel-tabset
+
+## View
+
+```{r}
+#| label: cycle-plot-view
+#| echo: false
+#| fig-width: 12
+#| fig-height: 5.8
+
+ggplot() +
+  geom_line(
+    data = Vietnam,
+    aes(x = year, y = Vietnam, group = month),
+    colour = my_dark,
+    linewidth = 0.45
+  ) +
+  geom_hline(
+    aes(yintercept = avgvalue),
+    data = hline.data,
+    linetype = 6,
+    colour = my_red,
+    linewidth = 0.5
+  ) +
+  facet_grid(~month) +
+  labs(
+    title = "Visitor Arrivals from Vietnam by Air, Jan 2010-Dec 2019",
+    x = NULL,
+    y = "No. of Visitors"
+  ) +
+  scale_y_continuous(labels = comma) +
+  theme_tufte(base_family = "Helvetica") +
+  theme(
+    axis.text.x = element_blank(),
+    plot.title = element_text(hjust = 0.5, face = "bold")
+  )
+```
+
+## Code
+
+```{r}
+#| label: cycle-plot-code
+#| eval: false
+
+ggplot() +
+  geom_line(
+    data = Vietnam,
+    aes(x = year, y = Vietnam, group = month),
+    colour = "black"
+  ) +
+  geom_hline(
+    aes(yintercept = avgvalue),
+    data = hline.data,
+    linetype = 6,
+    colour = "red",
+    linewidth = 0.5
+  ) +
+  facet_grid(~month) +
+  labs(
+    title = "Visitor arrivals from Vietnam by air, Jan 2010-Dec 2019",
+    x = "",
+    y = "No. of Visitors"
+  ) +
+  theme_tufte(base_family = "Helvetica")
+```
+
+:::
+
+## 17.6 Plotting Slopegraph
+
+Chapter 17 uses `newggslopegraph()` from `CGPfunctions`. Because `CGPfunctions` is not currently installable cleanly in this R setup, this section creates the same type of two-year comparison using `ggplot2`, which is already available and keeps the exercise runnable.
+
+### 17.6.1 Step 1: Data Import
+
+```{r}
+#| label: import-rice
+
+rice <- read_csv(find_data_file("rice.csv"), show_col_types = FALSE)
+
+kable(head(rice))
+```
+
+### 17.6.2 Step 2: Plotting the Slopegraph
+
+```{r}
+#| label: prepare-rice-slope
+
+rice_slope <- rice |>
+  mutate(Year = factor(Year)) |>
+  filter(Year %in% c("1961", "1980")) |>
+  group_by(Country) |>
+  filter(n_distinct(Year) == 2) |>
+  ungroup()
+```
+
+::: panel-tabset
+
+## View
+
+```{r}
+#| label: slopegraph-view
+#| echo: false
+#| fig-width: 10
+#| fig-height: 7
+
+left_labels <- rice_slope |>
+  filter(Year == "1961")
+
+right_labels <- rice_slope |>
+  filter(Year == "1980")
+
+ggplot(
+  rice_slope,
+  aes(x = Year, y = Yield, group = Country, colour = Country)
+) +
+  geom_line(linewidth = 0.8, alpha = 0.85) +
+  geom_point(size = 2.4) +
+  geom_text(
+    data = left_labels,
+    aes(label = Country),
+    hjust = 1.12,
+    size = 3.2,
+    show.legend = FALSE
+  ) +
+  geom_text(
+    data = right_labels,
+    aes(label = Country),
+    hjust = -0.12,
+    size = 3.2,
+    show.legend = FALSE
+  ) +
+  scale_y_continuous(labels = comma) +
+  scale_x_discrete(expand = expansion(mult = 0.22)) +
+  coord_cartesian(clip = "off") +
+  labs(
+    title = "Rice Yield of Top 11 Asian Countries",
+    subtitle = "1961-1980",
+    caption = "Prepared by: Yang Yang",
+    x = NULL,
+    y = "Yield"
+  ) +
+  theme_yy +
+  theme(
+    legend.position = "none",
+    plot.margin = margin(10, 60, 10, 60)
+  )
+```
+
+## Code
+
+```{r}
+#| label: slopegraph-code
+#| eval: false
+
+rice_slope <- rice |>
+  mutate(Year = factor(Year)) |>
+  filter(Year %in% c("1961", "1980")) |>
+  group_by(Country) |>
+  filter(n_distinct(Year) == 2) |>
+  ungroup()
+
+ggplot(
+  rice_slope,
+  aes(x = Year, y = Yield, group = Country, colour = Country)
+) +
+  geom_line(linewidth = 0.8) +
+  geom_point(size = 2.4) +
+  geom_text(
+    data = filter(rice_slope, Year == "1961"),
+    aes(label = Country),
+    hjust = 1.12,
+    show.legend = FALSE
+  ) +
+  geom_text(
+    data = filter(rice_slope, Year == "1980"),
+    aes(label = Country),
+    hjust = -0.12,
+    show.legend = FALSE
+  ) +
+  coord_cartesian(clip = "off") +
+  theme_yy +
+  theme(legend.position = "none")
+```
+
+:::
+
+## Key Takeaways
+
+::: {.callout-tip}
+Time-oriented visualisation works best when the date-time fields are converted into meaningful analysis fields such as weekday, hour, month, and year. Once these fields are derived, `ggplot2` can be used to build calendar heatmaps, cycle plots, and slopegraphs.
+:::
+
+In this exercise:
+
+- calendar heatmaps reveal attack intensity by weekday and hour;
+- faceted calendar heatmaps compare temporal attack patterns across countries;
+- cycle plots compare monthly seasonal patterns across years; and
+- slopegraphs show how country-level rice yield changed between 1961 and 1980.
+
+## References
+
+- [R4VA Chapter 17: Visualising and Analysing Time-oriented Data](https://r4va.netlify.app/chap17)
+- [CRAN: CGPfunctions package status](https://cran.r-project.org/package=CGPfunctions)
+- [CRAN Archive: CGPfunctions](https://cran.r-project.org/src/contrib/Archive/CGPfunctions/)

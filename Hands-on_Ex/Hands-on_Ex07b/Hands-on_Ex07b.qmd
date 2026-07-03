@@ -1,0 +1,811 @@
+---
+title: "Hands-on Exercise 7b - Visualising and Analysing Text Data with R"
+author: "Yang Yang"
+format:
+  html:
+    theme: sketchy
+    toc: true
+    toc-depth: 3
+    number-sections: false
+    code-copy: true
+    code-overflow: wrap
+editor: visual
+execute:
+  warning: false
+  message: false
+---
+
+```{r}
+#| label: setup
+#| include: false
+
+user_lib <- Sys.getenv("R_LIBS_USER")
+if (nzchar(user_lib) && dir.exists(user_lib)) {
+  .libPaths(c(user_lib, .libPaths()))
+}
+
+if (!require(pacman)) {
+  install.packages("pacman")
+}
+
+pacman::p_load(
+  tidyverse,
+  tidytext,
+  widyr,
+  wordcloud,
+  ggwordcloud,
+  DT,
+  igraph,
+  tidygraph,
+  ggraph,
+  scales,
+  knitr
+)
+
+my_teal <- "#2A6F6F"
+my_soft_teal <- "#8AA6A3"
+my_dark <- "#1F1F1F"
+my_light_teal <- "#D8E8E6"
+my_grey <- "#F3F4F4"
+my_warning <- "#B07C3E"
+my_red <- "#9A4B4B"
+my_blue <- "#4C78A8"
+
+theme_yy <- theme_minimal(base_size = 13) +
+  theme(
+    plot.title = element_text(face = "bold", colour = my_dark),
+    plot.subtitle = element_text(colour = my_teal),
+    axis.title = element_text(colour = my_dark),
+    axis.text = element_text(colour = my_dark),
+    panel.grid.minor = element_blank(),
+    strip.text = element_text(face = "bold", colour = my_dark),
+    legend.position = "bottom"
+  )
+
+theme_network_yy <- theme_void(base_family = "sans") +
+  theme(
+    plot.title = element_text(face = "bold", colour = my_dark, hjust = 0),
+    plot.subtitle = element_text(colour = my_teal, hjust = 0),
+    legend.position = "bottom"
+  )
+
+find_data_dir <- function() {
+  candidates <- c(
+    file.path("data", "20news"),
+    file.path("Hands-on_Ex", "Hands-on_Ex07b", "data", "20news")
+  )
+  found <- candidates[dir.exists(candidates)]
+
+  if (length(found) == 0) {
+    stop(
+      "Missing required data folder: 20news. ",
+      "Put it inside Hands-on_Ex/Hands-on_Ex07b/data/ before rendering."
+    )
+  }
+
+  found[1]
+}
+```
+
+## 1 Overview
+
+This hands-on exercise follows the workflow in [Chapter 29 of R4VA](https://r4va.netlify.app/chap29), *Visualising and Analysing Text Data with R: tidytext methods*. The exercise uses the `20news` text collection to practise importing many text files, cleaning Usenet-style messages, tokenising text, computing word statistics, visualising TF-IDF, and building simple text networks.
+
+The main tasks are:
+
+- import multiple text files from multiple topic folders;
+- clean message headers, signatures, and nested quoted replies;
+- transform unstructured text into tidy tokens;
+- visualise frequent words using word clouds;
+- identify topic-specific terms using TF-IDF;
+- compare newsgroups using word-count correlations; and
+- visualise common bigrams as a directed network.
+
+## 2 Getting Started
+
+### 2.1 Installing and Loading the Packages
+
+The packages used in this exercise are loaded in the setup chunk.
+
+```{r}
+#| label: package-table
+
+tribble(
+  ~Package, ~Purpose,
+  "tidyverse", "Data wrangling, plotting, string handling, and file import.",
+  "tidytext", "Tokenising text and calculating text statistics such as TF-IDF.",
+  "widyr", "Pairwise correlations between newsgroups based on shared words.",
+  "wordcloud", "Base R word cloud visualisation.",
+  "ggwordcloud", "ggplot2-friendly word cloud visualisation.",
+  "DT", "Interactive tables.",
+  "igraph", "Network object creation.",
+  "tidygraph", "Tidy graph structures.",
+  "ggraph", "Network graph visualisation.",
+  "scales", "Axis and label formatting.",
+  "knitr", "Neater tables in the rendered report."
+) |>
+  datatable(
+    rownames = FALSE,
+    options = list(pageLength = 10, dom = "tip")
+  )
+```
+
+## 3 Importing Multiple Text Files from Multiple Folders
+
+The `20news` folder contains one subfolder per newsgroup. Each subfolder contains individual message files.
+
+```{r}
+#| label: locate-data
+
+news20 <- find_data_dir()
+
+newsgroup_folders <- tibble(
+  folder = dir(news20, full.names = TRUE)
+) |>
+  filter(dir.exists(folder)) |>
+  mutate(newsgroup = basename(folder))
+
+newsgroup_folders |>
+  count(newsgroup, name = "folder_count") |>
+  datatable(
+    rownames = FALSE,
+    options = list(pageLength = 10, dom = "tip")
+  )
+```
+
+### 3.1 Reading One Folder
+
+The helper function below reads every message file inside one folder. Each line of each message becomes one row.
+
+```{r}
+#| label: read-folder-function
+
+read_folder <- function(infolder) {
+  tibble(file = dir(infolder, full.names = TRUE)) |>
+    filter(!dir.exists(file)) |>
+    mutate(
+      text = map(
+        file,
+        read_lines,
+        locale = locale(encoding = "UTF-8"),
+        progress = FALSE
+      )
+    ) |>
+    transmute(
+      id = basename(file),
+      text
+    ) |>
+    unnest(text)
+}
+```
+
+### 3.2 Reading All Messages
+
+The function is then mapped across all newsgroup folders.
+
+```{r}
+#| label: read-all-messages
+
+raw_text <- tibble(folder = dir(news20, full.names = TRUE)) |>
+  filter(dir.exists(folder)) |>
+  mutate(folder_out = map(folder, read_folder)) |>
+  unnest(cols = c(folder_out)) |>
+  transmute(
+    newsgroup = basename(folder),
+    id,
+    text
+  )
+
+raw_text |>
+  slice_head(n = 10) |>
+  datatable(
+    rownames = FALSE,
+    options = list(pageLength = 10, scrollX = TRUE, dom = "tip")
+  )
+```
+
+## 4 Initial Exploratory Data Analysis
+
+There are 20 newsgroups in the local dataset. Each newsgroup contributes 10 message files.
+
+::: panel-tabset
+
+## View
+
+```{r}
+#| label: message-counts-view
+#| echo: false
+
+message_counts <- raw_text |>
+  group_by(newsgroup) |>
+  summarise(messages = n_distinct(id), .groups = "drop")
+
+ggplot(message_counts, aes(messages, reorder(newsgroup, messages))) +
+  geom_col(fill = my_soft_teal, width = 0.75) +
+  geom_text(
+    aes(label = messages),
+    hjust = -0.2,
+    size = 3.5,
+    colour = my_dark
+  ) +
+  scale_x_continuous(expand = expansion(mult = c(0, 0.15))) +
+  labs(
+    title = "Messages by Newsgroup",
+    subtitle = "The provided local sample contains 10 message files per topic.",
+    x = "Number of message files",
+    y = NULL
+  ) +
+  theme_yy
+```
+
+## Code
+
+```{r}
+#| label: message-counts-code
+#| eval: false
+
+message_counts <- raw_text |>
+  group_by(newsgroup) |>
+  summarise(messages = n_distinct(id), .groups = "drop")
+
+ggplot(message_counts, aes(messages, reorder(newsgroup, messages))) +
+  geom_col(fill = my_soft_teal, width = 0.75) +
+  labs(
+    title = "Messages by Newsgroup",
+    x = "Number of message files",
+    y = NULL
+  ) +
+  theme_yy
+```
+
+:::
+
+```{r}
+#| label: raw-text-summary
+
+raw_summary <- tibble(
+  measure = c(
+    "Newsgroups",
+    "Message files",
+    "Text lines before cleaning"
+  ),
+  value = c(
+    n_distinct(raw_text$newsgroup),
+    n_distinct(paste(raw_text$newsgroup, raw_text$id)),
+    nrow(raw_text)
+  )
+)
+
+kable(raw_summary)
+```
+
+## 5 Introducing tidytext
+
+The `tidytext` framework treats text as data in a tidy table: one token per row. Before tokenising, the raw Usenet messages need to be cleaned so that headers, signatures, and quoted reply text do not dominate the analysis.
+
+### 5.1 Removing Headers, Signatures, and Nested Text
+
+```{r}
+#| label: clean-text
+
+cleaned_text <- raw_text |>
+  group_by(newsgroup, id) |>
+  filter(
+    cumsum(text == "") > 0,
+    cumsum(str_detect(text, "^--")) == 0
+  ) |>
+  ungroup() |>
+  filter(
+    str_detect(text, "^[^>]+[A-Za-z0-9]") | text == "",
+    !str_detect(text, "writes(:|[.][.][.])$"),
+    !str_detect(text, "^In article <")
+  )
+
+tibble(
+  stage = c("Before cleaning", "After cleaning"),
+  lines = c(nrow(raw_text), nrow(cleaned_text))
+) |>
+  kable()
+```
+
+### 5.2 Tokenising the Text
+
+The cleaned lines are tokenised into words. Stop words and non-alphabetic tokens are removed.
+
+```{r}
+#| label: tokenise-words
+
+usenet_words <- cleaned_text |>
+  unnest_tokens(word, text) |>
+  filter(
+    str_detect(word, "^[a-z]+$"),
+    !word %in% stop_words$word
+  )
+
+words_by_newsgroup <- usenet_words |>
+  count(newsgroup, word, sort = TRUE) |>
+  ungroup()
+
+words_by_newsgroup |>
+  slice_head(n = 15) |>
+  datatable(
+    rownames = FALSE,
+    options = list(pageLength = 10, dom = "tip")
+  )
+```
+
+### 5.3 Word Cloud
+
+::: panel-tabset
+
+## View
+
+```{r}
+#| label: wordcloud-view
+#| echo: false
+#| fig-width: 8
+#| fig-height: 6
+
+set.seed(1234)
+par(mar = c(0, 0, 0, 0))
+wordcloud(
+  words = words_by_newsgroup$word,
+  freq = words_by_newsgroup$n,
+  max.words = 150,
+  random.order = FALSE,
+  colors = c(my_teal, my_blue, my_warning, my_red, my_dark)
+)
+```
+
+## Code
+
+```{r}
+#| label: wordcloud-code
+#| eval: false
+
+set.seed(1234)
+wordcloud(
+  words = words_by_newsgroup$word,
+  freq = words_by_newsgroup$n,
+  max.words = 150,
+  random.order = FALSE
+)
+```
+
+:::
+
+### 5.4 Word Clouds by Newsgroup
+
+The faceted word cloud below uses the top words from each newsgroup so that all 20 topics remain readable.
+
+::: panel-tabset
+
+## View
+
+```{r}
+#| label: ggwordcloud-view
+#| echo: false
+#| fig-width: 11
+#| fig-height: 9
+
+top_words_for_cloud <- words_by_newsgroup |>
+  group_by(newsgroup) |>
+  slice_max(n, n = 15, with_ties = FALSE) |>
+  ungroup()
+
+set.seed(1234)
+ggplot(top_words_for_cloud, aes(label = word, size = n, colour = n)) +
+  geom_text_wordcloud_area(rm_outside = TRUE) +
+  facet_wrap(~newsgroup, scales = "free") +
+  scale_colour_gradient(low = my_soft_teal, high = my_red) +
+  scale_size_area(max_size = 8) +
+  labs(
+    title = "Frequent Words by Newsgroup",
+    subtitle = "Top 15 non-stop words are shown for each topic.",
+    colour = "Count",
+    size = "Count"
+  ) +
+  theme_minimal(base_size = 11) +
+  theme(
+    plot.title = element_text(face = "bold", colour = my_dark),
+    plot.subtitle = element_text(colour = my_teal),
+    panel.grid = element_blank(),
+    strip.text = element_text(face = "bold", colour = my_dark),
+    legend.position = "bottom"
+  )
+```
+
+## Code
+
+```{r}
+#| label: ggwordcloud-code
+#| eval: false
+
+top_words_for_cloud <- words_by_newsgroup |>
+  group_by(newsgroup) |>
+  slice_max(n, n = 15, with_ties = FALSE) |>
+  ungroup()
+
+set.seed(1234)
+ggplot(top_words_for_cloud, aes(label = word, size = n, colour = n)) +
+  geom_text_wordcloud_area(rm_outside = TRUE) +
+  facet_wrap(~newsgroup, scales = "free") +
+  scale_size_area(max_size = 8) +
+  theme_minimal()
+```
+
+:::
+
+## 6 Term Frequency-Inverse Document Frequency
+
+TF-IDF highlights words that are common in one newsgroup but uncommon across the rest of the dataset.
+
+```{r}
+#| label: tf-idf-table
+
+tf_idf <- words_by_newsgroup |>
+  bind_tf_idf(word, newsgroup, n) |>
+  arrange(desc(tf_idf))
+
+tf_idf |>
+  slice_head(n = 100) |>
+  datatable(
+    rownames = FALSE,
+    filter = "top",
+    options = list(pageLength = 10, scrollX = TRUE)
+  ) |>
+  formatRound(columns = c("tf", "idf", "tf_idf"), digits = 4)
+```
+
+### 6.1 TF-IDF in the Science Newsgroups
+
+::: panel-tabset
+
+## View
+
+```{r}
+#| label: tf-idf-science-view
+#| echo: false
+#| fig-width: 10
+#| fig-height: 7
+
+sci_tf_idf <- tf_idf |>
+  filter(str_detect(newsgroup, "^sci[.]")) |>
+  group_by(newsgroup) |>
+  slice_max(tf_idf, n = 10, with_ties = FALSE) |>
+  ungroup() |>
+  mutate(word = reorder_within(word, tf_idf, newsgroup))
+
+ggplot(sci_tf_idf, aes(tf_idf, word, fill = newsgroup)) +
+  geom_col(show.legend = FALSE, width = 0.75) +
+  facet_wrap(~newsgroup, scales = "free_y") +
+  scale_y_reordered() +
+  scale_fill_manual(values = c(my_teal, my_blue, my_warning, my_red)) +
+  labs(
+    title = "Most Distinctive Words in the Science Newsgroups",
+    subtitle = "TF-IDF surfaces terms that distinguish each science topic from the rest.",
+    x = "TF-IDF",
+    y = NULL
+  ) +
+  theme_yy
+```
+
+## Code
+
+```{r}
+#| label: tf-idf-science-code
+#| eval: false
+
+sci_tf_idf <- tf_idf |>
+  filter(str_detect(newsgroup, "^sci[.]")) |>
+  group_by(newsgroup) |>
+  slice_max(tf_idf, n = 10, with_ties = FALSE) |>
+  ungroup() |>
+  mutate(word = reorder_within(word, tf_idf, newsgroup))
+
+ggplot(sci_tf_idf, aes(tf_idf, word, fill = newsgroup)) +
+  geom_col(show.legend = FALSE) +
+  facet_wrap(~newsgroup, scales = "free_y") +
+  scale_y_reordered() +
+  labs(x = "TF-IDF", y = NULL) +
+  theme_yy
+```
+
+:::
+
+## 7 Pairwise Newsgroup Correlations
+
+The `widyr::pairwise_cor()` function can compare newsgroups based on the words they use. Positive correlations suggest that two topics share similar vocabulary.
+
+```{r}
+#| label: newsgroup-correlation
+
+newsgroup_cors <- words_by_newsgroup |>
+  group_by(word) |>
+  filter(sum(n) >= 3) |>
+  ungroup() |>
+  pairwise_cor(newsgroup, word, n, sort = TRUE)
+
+newsgroup_cors |>
+  slice_head(n = 20) |>
+  datatable(
+    rownames = FALSE,
+    options = list(pageLength = 10, dom = "tip")
+  ) |>
+  formatRound(columns = "correlation", digits = 3)
+```
+
+### 7.1 Correlation Network
+
+::: panel-tabset
+
+## View
+
+```{r}
+#| label: correlation-network-view
+#| echo: false
+#| fig-width: 9
+#| fig-height: 7
+
+correlation_graph <- newsgroup_cors |>
+  filter(correlation > 0.15) |>
+  graph_from_data_frame(directed = FALSE)
+
+set.seed(2017)
+ggraph(correlation_graph, layout = "fr") +
+  geom_edge_link(
+    aes(edge_alpha = correlation, edge_width = correlation),
+    colour = my_soft_teal,
+    show.legend = FALSE
+  ) +
+  geom_node_point(size = 6, colour = my_light_teal) +
+  geom_node_text(
+    aes(label = name),
+    colour = my_dark,
+    repel = TRUE,
+    size = 3.5
+  ) +
+  labs(
+    title = "Newsgroup Correlation Network",
+    subtitle = "Edges connect topics with word-count correlation above 0.15."
+  ) +
+  theme_network_yy
+```
+
+## Code
+
+```{r}
+#| label: correlation-network-code
+#| eval: false
+
+correlation_graph <- newsgroup_cors |>
+  filter(correlation > 0.15) |>
+  graph_from_data_frame(directed = FALSE)
+
+set.seed(2017)
+ggraph(correlation_graph, layout = "fr") +
+  geom_edge_link(aes(edge_alpha = correlation, edge_width = correlation)) +
+  geom_node_point(size = 6) +
+  geom_node_text(aes(label = name), repel = TRUE) +
+  theme_void()
+```
+
+:::
+
+## 8 Bigram Analysis
+
+Bigrams are two-word sequences. They are useful because some meaning is lost when words are analysed one at a time.
+
+### 8.1 Creating and Counting Bigrams
+
+```{r}
+#| label: create-bigrams
+
+bigrams <- cleaned_text |>
+  unnest_tokens(bigram, text, token = "ngrams", n = 2)
+
+bigrams_count <- bigrams |>
+  filter(!is.na(bigram)) |>
+  count(bigram, sort = TRUE)
+
+bigrams_count |>
+  slice_head(n = 15) |>
+  datatable(
+    rownames = FALSE,
+    options = list(pageLength = 10, dom = "tip")
+  )
+```
+
+### 8.2 Cleaning Bigrams
+
+The raw bigram counts are dominated by stop-word combinations such as "of the". The two-word strings are separated so each word can be filtered.
+
+```{r}
+#| label: clean-bigrams
+
+bigrams_filtered <- bigrams |>
+  filter(!is.na(bigram)) |>
+  separate(bigram, c("word1", "word2"), sep = " ") |>
+  filter(
+    !word1 %in% stop_words$word,
+    !word2 %in% stop_words$word,
+    str_detect(word1, "^[a-z]+$"),
+    str_detect(word2, "^[a-z]+$")
+  )
+
+bigram_counts <- bigrams_filtered |>
+  count(word1, word2, sort = TRUE)
+
+bigram_counts |>
+  slice_head(n = 15) |>
+  datatable(
+    rownames = FALSE,
+    options = list(pageLength = 10, dom = "tip")
+  )
+```
+
+### 8.3 Bigram Network
+
+::: panel-tabset
+
+## View
+
+```{r}
+#| label: bigram-network-view
+#| echo: false
+#| fig-width: 9
+#| fig-height: 7
+
+bigram_graph <- bigram_counts |>
+  filter(n >= 2) |>
+  slice_max(n, n = 60, with_ties = FALSE) |>
+  graph_from_data_frame()
+
+set.seed(1234)
+arrow_style <- grid::arrow(type = "closed", length = unit(0.12, "inches"))
+
+ggraph(bigram_graph, layout = "fr") +
+  geom_edge_link(
+    aes(edge_alpha = n, edge_width = n),
+    arrow = arrow_style,
+    end_cap = circle(0.06, "inches"),
+    colour = my_soft_teal,
+    show.legend = FALSE
+  ) +
+  geom_node_point(colour = my_light_teal, size = 5) +
+  geom_node_text(
+    aes(label = name),
+    colour = my_dark,
+    repel = TRUE,
+    size = 3.2
+  ) +
+  labs(
+    title = "Network of Common Bigrams",
+    subtitle = "Directed edges show the order of words in frequent two-word phrases."
+  ) +
+  theme_network_yy
+```
+
+## Code
+
+```{r}
+#| label: bigram-network-code
+#| eval: false
+
+bigram_graph <- bigram_counts |>
+  filter(n >= 2) |>
+  slice_max(n, n = 60, with_ties = FALSE) |>
+  graph_from_data_frame()
+
+set.seed(1234)
+arrow_style <- grid::arrow(type = "closed", length = unit(0.12, "inches"))
+
+ggraph(bigram_graph, layout = "fr") +
+  geom_edge_link(
+    aes(edge_alpha = n, edge_width = n),
+    arrow = arrow_style,
+    end_cap = circle(0.06, "inches"),
+    show.legend = FALSE
+  ) +
+  geom_node_point(size = 5) +
+  geom_node_text(aes(label = name), repel = TRUE) +
+  theme_void()
+```
+
+:::
+
+## 9 Additional Analysis: Topic Families
+
+The original 20 newsgroups can be grouped into broader families such as computer, recreation, science, politics, and religion. This gives a compact view of the vocabulary that distinguishes higher-level topic families.
+
+```{r}
+#| label: topic-family
+
+family_words <- usenet_words |>
+  mutate(
+    topic_family = case_when(
+      str_starts(newsgroup, "comp.") ~ "Computer",
+      str_starts(newsgroup, "rec.") ~ "Recreation",
+      str_starts(newsgroup, "sci.") ~ "Science",
+      str_starts(newsgroup, "talk.politics") ~ "Politics",
+      str_detect(newsgroup, "religion|atheism") ~ "Religion",
+      TRUE ~ "Other"
+    )
+  ) |>
+  count(topic_family, word, sort = TRUE) |>
+  bind_tf_idf(word, topic_family, n)
+
+top_family_words <- family_words |>
+  group_by(topic_family) |>
+  slice_max(tf_idf, n = 8, with_ties = FALSE) |>
+  ungroup() |>
+  mutate(word = reorder_within(word, tf_idf, topic_family))
+```
+
+::: panel-tabset
+
+## View
+
+```{r}
+#| label: topic-family-view
+#| echo: false
+#| fig-width: 10
+#| fig-height: 7
+
+ggplot(top_family_words, aes(tf_idf, word, fill = topic_family)) +
+  geom_col(show.legend = FALSE, width = 0.75) +
+  facet_wrap(~topic_family, scales = "free_y") +
+  scale_y_reordered() +
+  scale_fill_manual(
+    values = c(
+      "Computer" = my_teal,
+      "Other" = my_soft_teal,
+      "Politics" = my_red,
+      "Recreation" = my_blue,
+      "Religion" = my_warning,
+      "Science" = my_dark
+    )
+  ) +
+  labs(
+    title = "Distinctive Words by Topic Family",
+    subtitle = "TF-IDF summarises the broad vocabulary differences across topic families.",
+    x = "TF-IDF",
+    y = NULL
+  ) +
+  theme_yy
+```
+
+## Code
+
+```{r}
+#| label: topic-family-code
+#| eval: false
+
+ggplot(top_family_words, aes(tf_idf, word, fill = topic_family)) +
+  geom_col(show.legend = FALSE) +
+  facet_wrap(~topic_family, scales = "free_y") +
+  scale_y_reordered() +
+  labs(x = "TF-IDF", y = NULL) +
+  theme_yy
+```
+
+:::
+
+## 10 Key Takeaways
+
+::: {.callout-tip}
+The tidytext workflow turns unstructured message files into tidy rows of tokens. Once the text is tidy, familiar tidyverse methods can be used for counting, filtering, grouping, visualising, and modelling the relationships among terms and topics.
+:::
+
+From this exercise:
+
+- word counts show the most common terms after cleaning;
+- TF-IDF reveals terms that are distinctive to specific newsgroups;
+- pairwise correlations identify topics with similar vocabulary; and
+- bigram networks preserve some phrase structure that single-word analysis removes.
+
+## 11 References
+
+- [R4VA Chapter 29: Visualising and Analysing Text Data with R: tidytext methods](https://r4va.netlify.app/chap29)
+- [tidytext: Text Mining using dplyr, ggplot2, and other tidy tools](https://www.tidytextmining.com/)
+- [widyr: Widen, Process, then Re-tidy Data](https://cran.r-project.org/package=widyr)

@@ -1,0 +1,824 @@
+---
+title: "Hands-on Exercise 9a - Choropleth Mapping in R"
+author: "Yang Yang"
+format:
+  html:
+    theme: sketchy
+    toc: true
+    toc-depth: 3
+    number-sections: false
+    code-copy: true
+    code-overflow: wrap
+editor: visual
+execute:
+  warning: false
+  message: false
+---
+
+```{r}
+#| label: setup
+#| include: false
+
+user_lib <- Sys.getenv("R_LIBS_USER")
+if (nzchar(user_lib)) {
+  dir.create(user_lib, recursive = TRUE, showWarnings = FALSE)
+  .libPaths(c(user_lib, .libPaths()))
+}
+
+if (!requireNamespace("pacman", quietly = TRUE)) {
+  install.packages("pacman", repos = "https://cloud.r-project.org")
+}
+
+pacman::p_load(
+  sf,
+  tmap,
+  tidyverse,
+  DT,
+  knitr,
+  scales
+)
+
+tmap_mode("plot")
+
+my_teal <- "#2A6F6F"
+my_soft_teal <- "#8AA6A3"
+my_dark <- "#1F1F1F"
+my_light_teal <- "#D8E8E6"
+my_grey <- "#F3F4F4"
+my_warning <- "#B07C3E"
+my_red <- "#9A4B4B"
+my_blue <- "#4C78A8"
+
+find_data_file <- function(file_name, subfolder) {
+  candidates <- c(
+    file.path("data", subfolder, file_name),
+    file.path("Hands-on_Ex", "Hands-on_Ex09a", "data", subfolder, file_name)
+  )
+  found <- candidates[file.exists(candidates)]
+
+  if (length(found) == 0) {
+    stop(
+      "Missing required data file: ", file_name,
+      ". Put it inside Hands-on_Ex/Hands-on_Ex09a/data/", subfolder,
+      "/ before rendering."
+    )
+  }
+
+  found[1]
+}
+
+find_data_dir <- function(subfolder) {
+  candidates <- c(
+    file.path("data", subfolder),
+    file.path("Hands-on_Ex", "Hands-on_Ex09a", "data", subfolder)
+  )
+  found <- candidates[dir.exists(candidates)]
+
+  if (length(found) == 0) {
+    stop(
+      "Missing required data folder: ", subfolder,
+      ". Put it inside Hands-on_Ex/Hands-on_Ex09a/data/ before rendering."
+    )
+  }
+
+  found[1]
+}
+
+theme_yy <- theme_minimal(base_size = 13) +
+  theme(
+    plot.title = element_text(face = "bold", colour = my_dark),
+    plot.subtitle = element_text(colour = my_teal),
+    axis.title = element_text(colour = my_dark),
+    axis.text = element_text(colour = my_dark),
+    panel.grid.minor = element_blank(),
+    legend.position = "bottom"
+  )
+```
+
+## 21.1 Overview
+
+This hands-on exercise follows [Chapter 21 of R4VA](https://r4va.netlify.app/chap21), *Choropleth Mapping with R*. The chapter introduces choropleth mapping by using Singapore Master Plan 2014 subzone boundaries and 2020 resident population attributes.
+
+The main tasks are:
+
+- import geospatial data with `sf`;
+- import aspatial population data with `readr`;
+- prepare young, economy-active, aged, total, and dependency-ratio variables;
+- join the spatial and attribute data;
+- create choropleth maps with `tmap`;
+- compare data classification methods and colour schemes; and
+- create small multiple maps and selection maps.
+
+## 21.2 Getting Started
+
+The key package in this exercise is `tmap`. The `sf` package handles geospatial data, and `tidyverse` provides `readr`, `tidyr`, and `dplyr` for data import and wrangling.
+
+```{r}
+#| label: package-table
+
+tribble(
+  ~Package, ~Purpose,
+  "sf", "Importing and handling simple feature geospatial data.",
+  "tmap", "Creating static and interactive thematic maps.",
+  "tidyverse", "Reading, tidying, transforming, and plotting data.",
+  "DT", "Interactive tables.",
+  "knitr", "Clean tables in the rendered report.",
+  "scales", "Formatted numbers and percentages."
+) |>
+  datatable(
+    rownames = FALSE,
+    options = list(pageLength = 10, dom = "tip")
+  )
+```
+
+The package installation and loading code is included in the setup chunk:
+
+```{r}
+#| label: package-code
+#| eval: false
+
+if (!requireNamespace("pacman", quietly = TRUE)) {
+  install.packages("pacman", repos = "https://cloud.r-project.org")
+}
+
+pacman::p_load(sf, tmap, tidyverse, DT, knitr, scales)
+```
+
+## 21.3 Importing Data into R
+
+### 21.3.1 The Data
+
+Two datasets are used:
+
+- `MP14_SUBZONE_WEB_PL`, an ESRI shapefile of Singapore Master Plan 2014 planning subzones;
+- `respopagesextod2011to2020.csv`, a CSV file of Singapore residents by planning area, subzone, age group, sex, type of dwelling, and year.
+
+### 21.3.2 Importing Geospatial Data into R
+
+```{r}
+#| label: import-geospatial
+
+mpsz <- st_read(
+  dsn = find_data_dir("geospatial"),
+  layer = "MP14_SUBZONE_WEB_PL",
+  quiet = TRUE
+)
+
+mpsz
+```
+
+```{r}
+#| label: geospatial-summary
+
+tibble(
+  measure = c(
+    "Number of subzone polygons",
+    "Number of attribute fields",
+    "Geometry type",
+    "Coordinate reference system"
+  ),
+  value = c(
+    nrow(mpsz),
+    ncol(st_drop_geometry(mpsz)),
+    paste(unique(st_geometry_type(mpsz)), collapse = ", "),
+    st_crs(mpsz)$input
+  )
+) |>
+  kable()
+```
+
+### 21.3.3 Importing Attribute Data into R
+
+```{r}
+#| label: import-attribute-data
+
+popdata <- read_csv(
+  find_data_file("respopagesextod2011to2020.csv", "aspatial"),
+  show_col_types = FALSE
+)
+
+popdata |>
+  slice_head(n = 10) |>
+  datatable(
+    rownames = FALSE,
+    options = list(pageLength = 10, scrollX = TRUE, dom = "tip")
+  )
+```
+
+### 21.3.4 Data Preparation
+
+The chapter prepares a 2020 table with these variables:
+
+- `YOUNG`: residents aged 0 to 24;
+- `ECONOMY ACTIVE`: residents aged 25 to 64;
+- `AGED`: residents aged 65 and above;
+- `TOTAL`: all residents in the selected age groups; and
+- `DEPENDENCY`: `(YOUNG + AGED) / ECONOMY ACTIVE`.
+
+The code below uses explicit age-group names from the CSV so the calculation does not depend on the column order produced by `pivot_wider()`.
+
+```{r}
+#| label: prepare-population-data
+
+young_ags <- c(
+  "0_to_4", "5_to_9", "10_to_14", "15_to_19", "20_to_24"
+)
+
+active_ags <- c(
+  "25_to_29", "30_to_34", "35_to_39", "40_to_44",
+  "45_to_49", "50_to_54", "55_to_59", "60_to_64"
+)
+
+aged_ags <- c(
+  "65_to_69", "70_to_74", "75_to_79",
+  "80_to_84", "85_to_89", "90_and_over"
+)
+
+popdata2020 <- popdata |>
+  filter(Time == 2020) |>
+  mutate(
+    AGE_GROUP = case_when(
+      AG %in% young_ags ~ "YOUNG",
+      AG %in% active_ags ~ "ECONOMY ACTIVE",
+      AG %in% aged_ags ~ "AGED",
+      TRUE ~ NA_character_
+    )
+  ) |>
+  filter(!is.na(AGE_GROUP)) |>
+  group_by(PA, SZ, AGE_GROUP) |>
+  summarise(POP = sum(Pop), .groups = "drop") |>
+  pivot_wider(
+    names_from = AGE_GROUP,
+    values_from = POP,
+    values_fill = 0
+  ) |>
+  mutate(
+    TOTAL = YOUNG + `ECONOMY ACTIVE` + AGED,
+    DEPENDENCY = (YOUNG + AGED) / `ECONOMY ACTIVE`
+  ) |>
+  select(
+    PA, SZ, YOUNG, `ECONOMY ACTIVE`,
+    AGED, TOTAL, DEPENDENCY
+  ) |>
+  mutate(across(c(PA, SZ), toupper)) |>
+  filter(`ECONOMY ACTIVE` > 0)
+
+popdata2020 |>
+  slice_head(n = 10) |>
+  datatable(
+    rownames = FALSE,
+    options = list(pageLength = 10, scrollX = TRUE, dom = "tip")
+  ) |>
+  formatRound(columns = "DEPENDENCY", digits = 3)
+```
+
+### 21.3.5 Joining Attribute and Geospatial Data
+
+The georelational join is performed with the spatial object on the left side of `left_join()`. This preserves the output as a simple feature data frame.
+
+```{r}
+#| label: join-spatial-attribute
+
+mpsz_pop2020 <- left_join(
+  mpsz,
+  popdata2020,
+  by = c("SUBZONE_N" = "SZ")
+)
+
+dir.create(file.path("data", "rds"), recursive = TRUE, showWarnings = FALSE)
+write_rds(mpsz_pop2020, file.path("data", "rds", "mpszpop2020.rds"))
+
+tibble(
+  measure = c(
+    "Subzone polygons after join",
+    "Polygons with dependency values",
+    "Polygons with missing dependency values"
+  ),
+  value = c(
+    nrow(mpsz_pop2020),
+    sum(!is.na(mpsz_pop2020$DEPENDENCY)),
+    sum(is.na(mpsz_pop2020$DEPENDENCY))
+  )
+) |>
+  kable()
+```
+
+```{r}
+#| label: dependency-summary
+
+summary(mpsz_pop2020$DEPENDENCY)
+```
+
+## 21.4 Choropleth Mapping Geospatial Data Using tmap
+
+### 21.4.1 Plotting a Choropleth Map Quickly with `qtm()`
+
+::: panel-tabset
+
+## View
+
+```{r}
+#| label: qtm-map-view
+#| echo: false
+#| fig-width: 8
+#| fig-height: 6
+
+qtm(mpsz_pop2020, fill = "DEPENDENCY")
+```
+
+## Code
+
+```{r}
+#| label: qtm-map-code
+#| eval: false
+
+tmap_mode("plot")
+qtm(mpsz_pop2020, fill = "DEPENDENCY")
+```
+
+:::
+
+### 21.4.2 Creating a Choropleth Map by Using tmap Elements
+
+The map below uses `tm_shape()`, `tm_polygons()`, `tm_borders()`, and map layout elements. The syntax follows `tmap` version 4.
+
+::: panel-tabset
+
+## View
+
+```{r}
+#| label: custom-choropleth-view
+#| echo: false
+#| fig-width: 8
+#| fig-height: 7
+
+tm_shape(mpsz_pop2020) +
+  tm_polygons(
+    fill = "DEPENDENCY",
+    fill.scale = tm_scale_intervals(
+      style = "quantile",
+      n = 5,
+      values = "brewer.blues"
+    ),
+    fill.legend = tm_legend(title = "Dependency ratio")
+  ) +
+  tm_title("Distribution of Dependency Ratio by Planning Subzone") +
+  tm_layout(frame = TRUE) +
+  tm_borders(fill_alpha = 0.5) +
+  tm_compass(type = "8star", size = 2) +
+  tm_grid(alpha = 0.2) +
+  tm_credits(
+    "Source: URA Master Plan 2014 subzone boundary and Singapore resident population data",
+    position = c("left", "bottom")
+  )
+```
+
+## Code
+
+```{r}
+#| label: custom-choropleth-code
+#| eval: false
+
+tm_shape(mpsz_pop2020) +
+  tm_polygons(
+    fill = "DEPENDENCY",
+    fill.scale = tm_scale_intervals(
+      style = "quantile",
+      n = 5,
+      values = "brewer.blues"
+    ),
+    fill.legend = tm_legend(title = "Dependency ratio")
+  ) +
+  tm_title("Distribution of Dependency Ratio by Planning Subzone") +
+  tm_layout(frame = TRUE) +
+  tm_borders(fill_alpha = 0.5) +
+  tm_compass(type = "8star", size = 2) +
+  tm_grid(alpha = 0.2)
+```
+
+:::
+
+### 21.4.3 Data Classification Methods of tmap
+
+Choropleth maps can look very different depending on how values are classified into map classes. The maps below compare Jenks and equal-interval classification.
+
+::: panel-tabset
+
+## View
+
+```{r}
+#| label: classification-comparison-view
+#| echo: false
+#| fig-width: 10
+#| fig-height: 5.5
+
+jenks_map <- tm_shape(mpsz_pop2020) +
+  tm_polygons(
+    fill = "DEPENDENCY",
+    fill.scale = tm_scale_intervals(style = "jenks", n = 5),
+    fill.legend = tm_legend(title = "Jenks")
+  ) +
+  tm_title("Jenks Classification") +
+  tm_borders(fill_alpha = 0.5)
+
+equal_map <- tm_shape(mpsz_pop2020) +
+  tm_polygons(
+    fill = "DEPENDENCY",
+    fill.scale = tm_scale_intervals(style = "equal", n = 5),
+    fill.legend = tm_legend(title = "Equal")
+  ) +
+  tm_title("Equal Classification") +
+  tm_borders(fill_alpha = 0.5)
+
+tmap_arrange(jenks_map, equal_map, ncol = 2)
+```
+
+## Code
+
+```{r}
+#| label: classification-comparison-code
+#| eval: false
+
+jenks_map <- tm_shape(mpsz_pop2020) +
+  tm_polygons(
+    fill = "DEPENDENCY",
+    fill.scale = tm_scale_intervals(style = "jenks", n = 5)
+  ) +
+  tm_title("Jenks Classification") +
+  tm_borders(fill_alpha = 0.5)
+
+equal_map <- tm_shape(mpsz_pop2020) +
+  tm_polygons(
+    fill = "DEPENDENCY",
+    fill.scale = tm_scale_intervals(style = "equal", n = 5)
+  ) +
+  tm_title("Equal Classification") +
+  tm_borders(fill_alpha = 0.5)
+
+tmap_arrange(jenks_map, equal_map, ncol = 2)
+```
+
+:::
+
+::: {.callout-warning}
+Maps can mislead. The same values may appear spatially different when a different classification method or number of classes is used.
+:::
+
+### 21.4.4 Plotting Choropleth Map with Custom Breaks
+
+Before setting custom breaks, it is useful to inspect the distribution of the target variable.
+
+```{r}
+#| label: dependency-statistics
+
+dependency_stats <- mpsz_pop2020 |>
+  st_drop_geometry() |>
+  summarise(
+    min = min(DEPENDENCY, na.rm = TRUE),
+    q1 = quantile(DEPENDENCY, 0.25, na.rm = TRUE),
+    median = median(DEPENDENCY, na.rm = TRUE),
+    mean = mean(DEPENDENCY, na.rm = TRUE),
+    q3 = quantile(DEPENDENCY, 0.75, na.rm = TRUE),
+    max = max(DEPENDENCY, na.rm = TRUE),
+    missing = sum(is.na(DEPENDENCY))
+  )
+
+kable(dependency_stats, digits = 3)
+```
+
+::: panel-tabset
+
+## View
+
+```{r}
+#| label: custom-breaks-view
+#| echo: false
+#| fig-width: 8
+#| fig-height: 6
+
+tm_shape(mpsz_pop2020) +
+  tm_polygons(
+    fill = "DEPENDENCY",
+    fill.scale = tm_scale_intervals(
+      breaks = c(0, 0.60, 0.70, 0.80, 0.90, 1.00, 20),
+      values = "brewer.blues"
+    ),
+    fill.legend = tm_legend(title = "Dependency ratio")
+  ) +
+  tm_title("Dependency Ratio with Custom Breaks") +
+  tm_borders(fill_alpha = 0.5)
+```
+
+## Code
+
+```{r}
+#| label: custom-breaks-code
+#| eval: false
+
+tm_shape(mpsz_pop2020) +
+  tm_polygons(
+    fill = "DEPENDENCY",
+    fill.scale = tm_scale_intervals(
+      breaks = c(0, 0.60, 0.70, 0.80, 0.90, 1.00, 20),
+      values = "brewer.blues"
+    )
+  ) +
+  tm_borders(fill_alpha = 0.5)
+```
+
+:::
+
+### 21.4.5 Colour Scheme
+
+The colour scheme can be changed by passing a palette to `values`.
+
+::: panel-tabset
+
+## View
+
+```{r}
+#| label: colour-scheme-view
+#| echo: false
+#| fig-width: 10
+#| fig-height: 5.5
+
+green_map <- tm_shape(mpsz_pop2020) +
+  tm_polygons(
+    fill = "DEPENDENCY",
+    fill.scale = tm_scale_intervals(
+      style = "quantile",
+      n = 5,
+      values = "brewer.greens"
+    )
+  ) +
+  tm_title("Greens") +
+  tm_borders(fill_alpha = 0.5)
+
+reverse_green_map <- tm_shape(mpsz_pop2020) +
+  tm_polygons(
+    fill = "DEPENDENCY",
+    fill.scale = tm_scale_intervals(
+      style = "quantile",
+      n = 5,
+      values = "-brewer.greens"
+    )
+  ) +
+  tm_title("Reversed Greens") +
+  tm_borders(fill_alpha = 0.5)
+
+tmap_arrange(green_map, reverse_green_map, ncol = 2)
+```
+
+## Code
+
+```{r}
+#| label: colour-scheme-code
+#| eval: false
+
+tm_shape(mpsz_pop2020) +
+  tm_polygons(
+    fill = "DEPENDENCY",
+    fill.scale = tm_scale_intervals(
+      style = "quantile",
+      n = 5,
+      values = "brewer.greens"
+    )
+  ) +
+  tm_borders(fill_alpha = 0.5)
+```
+
+:::
+
+### 21.4.6 Map Layouts and Cartographic Furniture
+
+::: panel-tabset
+
+## View
+
+```{r}
+#| label: map-layout-view
+#| echo: false
+#| fig-width: 8
+#| fig-height: 7
+
+tm_shape(mpsz_pop2020) +
+  tm_polygons(
+    fill = "DEPENDENCY",
+    fill.scale = tm_scale_intervals(
+      style = "jenks",
+      n = 5,
+      values = "brewer.greens"
+    ),
+    fill.legend = tm_legend(title = "Dependency ratio")
+  ) +
+  tm_title("Distribution of Dependency Ratio by Planning Subzone\n(Jenks Classification)") +
+  tm_layout(frame = FALSE) +
+  tm_borders(fill_alpha = 0.5) +
+  tm_compass(type = "8star", size = 2) +
+  tm_scalebar() +
+  tm_grid(alpha = 0.2)
+```
+
+## Code
+
+```{r}
+#| label: map-layout-code
+#| eval: false
+
+tm_shape(mpsz_pop2020) +
+  tm_polygons(
+    fill = "DEPENDENCY",
+    fill.scale = tm_scale_intervals(
+      style = "jenks",
+      n = 5,
+      values = "brewer.greens"
+    ),
+    fill.legend = tm_legend(title = "Dependency ratio")
+  ) +
+  tm_title("Distribution of Dependency Ratio by Planning Subzone") +
+  tm_layout(frame = FALSE) +
+  tm_borders(fill_alpha = 0.5) +
+  tm_compass(type = "8star", size = 2) +
+  tm_scalebar() +
+  tm_grid(alpha = 0.2)
+```
+
+:::
+
+### 21.4.7 Drawing Small Multiple Choropleth Maps
+
+Small multiple maps make it possible to compare more than one variable or category using the same spatial units.
+
+::: panel-tabset
+
+## View
+
+```{r}
+#| label: small-multiple-view
+#| echo: false
+#| fig-width: 10
+#| fig-height: 5.5
+
+tm_shape(mpsz_pop2020) +
+  tm_polygons(
+    fill = c("YOUNG", "AGED"),
+    fill.scale = tm_scale_intervals(
+      style = "equal",
+      values = "brewer.blues"
+    ),
+    fill.legend = tm_legend(title = "Population")
+  ) +
+  tm_layout(legend.position = c("right", "bottom")) +
+  tm_borders(fill_alpha = 0.5)
+```
+
+## Code
+
+```{r}
+#| label: small-multiple-code
+#| eval: false
+
+tm_shape(mpsz_pop2020) +
+  tm_polygons(
+    fill = c("YOUNG", "AGED"),
+    fill.scale = tm_scale_intervals(
+      style = "equal",
+      values = "brewer.blues"
+    )
+  ) +
+  tm_layout(legend.position = c("right", "bottom")) +
+  tm_borders(fill_alpha = 0.5)
+```
+
+:::
+
+### 21.4.8 Facet Maps by Region
+
+```{r}
+#| label: region-counts
+
+mpsz_pop2020 |>
+  st_drop_geometry() |>
+  count(REGION_N, sort = TRUE) |>
+  kable()
+```
+
+::: panel-tabset
+
+## View
+
+```{r}
+#| label: region-facet-view
+#| echo: false
+#| fig-width: 10
+#| fig-height: 8
+
+tm_shape(mpsz_pop2020) +
+  tm_polygons(
+    fill = "DEPENDENCY",
+    fill.scale = tm_scale_intervals(
+      style = "quantile",
+      values = "brewer.blues"
+    )
+  ) +
+  tm_facets(by = "REGION_N", free.coords = TRUE) +
+  tm_layout(
+    legend.show = FALSE,
+    title.position = c("center", "center"),
+    title.size = 1.2
+  ) +
+  tm_borders(fill_alpha = 0.5)
+```
+
+## Code
+
+```{r}
+#| label: region-facet-code
+#| eval: false
+
+tm_shape(mpsz_pop2020) +
+  tm_polygons(
+    fill = "DEPENDENCY",
+    fill.scale = tm_scale_intervals(
+      style = "quantile",
+      values = "brewer.blues"
+    )
+  ) +
+  tm_facets(by = "REGION_N", free.coords = TRUE) +
+  tm_layout(legend.show = FALSE) +
+  tm_borders(fill_alpha = 0.5)
+```
+
+:::
+
+### 21.4.9 Mapping Spatial Objects Meeting a Selection Criterion
+
+The map below selects only subzones in the Central Region.
+
+::: panel-tabset
+
+## View
+
+```{r}
+#| label: selected-region-view
+#| echo: false
+#| fig-width: 8
+#| fig-height: 7
+
+tm_shape(mpsz_pop2020[mpsz_pop2020$REGION_N == "CENTRAL REGION", ]) +
+  tm_polygons(
+    fill = "DEPENDENCY",
+    fill.scale = tm_scale_intervals(
+      style = "quantile",
+      values = "brewer.blues"
+    ),
+    fill.legend = tm_legend(title = "Dependency ratio")
+  ) +
+  tm_layout(
+    legend.outside = TRUE,
+    legend.height = 0.45,
+    frame = FALSE
+  ) +
+  tm_title("Central Region Subzones") +
+  tm_borders(fill_alpha = 0.5)
+```
+
+## Code
+
+```{r}
+#| label: selected-region-code
+#| eval: false
+
+tm_shape(mpsz_pop2020[mpsz_pop2020$REGION_N == "CENTRAL REGION", ]) +
+  tm_polygons(
+    fill = "DEPENDENCY",
+    fill.scale = tm_scale_intervals(
+      style = "quantile",
+      values = "brewer.blues"
+    )
+  ) +
+  tm_layout(legend.outside = TRUE, frame = FALSE) +
+  tm_borders(fill_alpha = 0.5)
+```
+
+:::
+
+## Key Takeaways
+
+::: {.callout-tip}
+The reliability of a choropleth map depends on both the spatial join and the classification choices. Before mapping, always check whether the join created missing values and whether the selected classification method changes the visual story.
+:::
+
+In this exercise:
+
+- `st_read()` imports the shapefile as a simple feature data frame;
+- `read_csv()`, `pivot_wider()`, and `mutate()` prepare population measures;
+- `left_join()` preserves the joined result as an `sf` object;
+- `qtm()` gives a quick choropleth map; and
+- `tm_shape()` with `tm_polygons()` gives more control over classification, colour, legends, and layout.
+
+## References
+
+- [R4VA Chapter 21: Choropleth Mapping with R](https://r4va.netlify.app/chap21)
+- [tmap: Thematic Maps in R](https://cran.r-project.org/package=tmap)
+- [sf: Simple Features for R](https://cran.r-project.org/package=sf)

@@ -918,6 +918,7 @@ ggplot(
     justification = 1.15,
     binwidth = 0.5,
     dotsize = 1.6,
+    overflow = "compress",
     colour = my_dark,
     fill = my_teal
   ) +
@@ -968,6 +969,7 @@ ggplot(
     justification = 1.15,
     binwidth = 0.5,
     dotsize = 1.6,
+    overflow = "compress",
     colour = my_dark,
     fill = my_teal
   ) +
@@ -1032,6 +1034,7 @@ ggplot(
     justification = 1.15,
     binwidth = 0.5,
     dotsize = 1.45,
+    overflow = "compress",
     colour = my_dark,
     fill = my_teal
   ) +
@@ -1087,6 +1090,7 @@ ggplot(
     justification = 1.15,
     binwidth = 0.5,
     dotsize = 1.45,
+    overflow = "compress",
     colour = my_dark,
     fill = my_teal
   ) +

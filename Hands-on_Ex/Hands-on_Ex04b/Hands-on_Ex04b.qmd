@@ -1,5 +1,5 @@
 ---
-title: "Hands-on Exercise 4b - Visual satistical analysis"
+title: "Hands-on Exercise 4b - Visual Statistical Analysis"
 author: "Yang Yang"
 format:
   html:
