@@ -219,9 +219,9 @@
   {
     "objectID": "index.html",
     "href": "index.html",
-    "title": "ISSS608-VAA",
+    "title": "Visual Analytics Portfolio",
     "section": "",
-    "text": "Welcome to ISSS608 Visual Analytics and Applications. In this website, you will find my Coursework prepared for this course."
+    "text": "ISSS608 Visual Analytics and Applications\n\n\n\nA curated coursework website by Yang Yang, bringing together hands-on visual analytics practice, interactive graphics, geospatial mapping, text analysis, network analysis, and dashboard design.\n\n\nView Latest Exercise Start from Exercise 1"
   },
   {
     "objectID": "Hands-on_Ex/Hands-on_Ex03b/Hands-on_Ex03b.html",
@@ -1741,5 +1741,12 @@
     "title": "Hands-on Exercise 10 - Information Dashboard Design: R methods",
     "section": "References",
     "text": "References\n\nR4VA Chapter 31: Information Dashboard Design: R methods\ngt\ngtExtras\nreactable\nreactablefmtr"
+  },
+  {
+    "objectID": "index.html#coursework-studio",
+    "href": "index.html#coursework-studio",
+    "title": "Visual Analytics Portfolio",
+    "section": "Coursework Studio",
+    "text": "Coursework Studio\n\n\nHands-on Exercises\nStep-by-step practice in visual analytics methods, from layered statistical graphics to network, text, geospatial, and dashboard design.\nOpen Hands-on Work\n\n\nTake-home Exercises\nApplied analytical reports prepared as coursework deliverables, with technical explanation and visual evidence.\nOpen Take-home Work\n\n\nVisual Methods\nThe portfolio combines statistical graphics, interactive charts, uncertainty visualisation, text mining, mapping, and information dashboard methods.\nExplore Dashboard Design\n\n\n\nThis website is prepared for ISSS608 Visual Analytics and Applications. It is designed as a learning portfolio: each page documents the method, code, visual output, and interpretation in a reproducible Quarto workflow."
   }
 ]

@@ -1,1 +1,198 @@
 /* css styles */
+
+:root {
+  --vaa-teal: #2a6f6f;
+  --vaa-teal-soft: #8aa6a3;
+  --vaa-ink: #1f2f2d;
+  --vaa-muted: #647371;
+  --vaa-paper: #f7faf8;
+  --vaa-line: #d7e5e1;
+  --vaa-gold: #c9963e;
+  --vaa-red: #9a4b4b;
+  --vaa-blue: #4c78a8;
+}
+
+body {
+  color: var(--vaa-ink);
+}
+
+.vaa-hero {
+  min-height: 72vh;
+  box-sizing: border-box;
+  width: 100vw;
+  margin: -1.2rem calc(50% - 50vw) 2.25rem;
+  padding: clamp(3rem, 7vw, 6rem) max(2rem, calc((100vw - 1120px) / 2)) 3rem;
+  display: flex;
+  align-items: center;
+  background-image:
+    linear-gradient(
+      90deg,
+      rgba(247, 250, 248, 0.98) 0%,
+      rgba(247, 250, 248, 0.96) 42%,
+      rgba(247, 250, 248, 0.72) 62%,
+      rgba(247, 250, 248, 0.16) 100%
+    ),
+    url("images/visual-analytics-hero.png");
+  background-size: cover;
+  background-position: center;
+  border-bottom: 1px solid var(--vaa-line);
+}
+
+.vaa-hero-copy {
+  max-width: 620px;
+}
+
+.vaa-kicker {
+  display: inline-block;
+  margin-bottom: 1rem;
+  color: var(--vaa-teal);
+  font-size: 0.82rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.vaa-hero h1 {
+  margin: 0 0 1rem;
+  color: var(--vaa-ink);
+  font-size: clamp(2.8rem, 7vw, 5.8rem);
+  line-height: 0.95;
+  letter-spacing: 0;
+}
+
+.vaa-subtitle {
+  max-width: 500px;
+  margin: 0 0 1.5rem;
+  color: #40504d;
+  font-size: clamp(1rem, 2vw, 1.25rem);
+  line-height: 1.6;
+  overflow-wrap: break-word;
+}
+
+.vaa-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+}
+
+.vaa-button {
+  display: inline-flex;
+  align-items: center;
+  min-height: 44px;
+  padding: 0.65rem 1rem;
+  border: 1px solid var(--vaa-teal);
+  border-radius: 8px;
+  font-weight: 700;
+  text-decoration: none;
+}
+
+.vaa-button.primary {
+  background: var(--vaa-teal);
+  color: #fff;
+}
+
+.vaa-button.secondary {
+  background: rgba(255, 255, 255, 0.76);
+  color: var(--vaa-teal);
+}
+
+.vaa-button:hover {
+  filter: brightness(0.96);
+  text-decoration: none;
+}
+
+.vaa-stats {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 1px;
+  margin: 0 0 2.4rem;
+  overflow: hidden;
+  border: 1px solid var(--vaa-line);
+  border-radius: 8px;
+  background: var(--vaa-line);
+}
+
+.vaa-stat {
+  min-height: 110px;
+  padding: 1.1rem;
+  background: #fff;
+}
+
+.vaa-stat-number {
+  display: block;
+  color: var(--vaa-teal);
+  font-size: clamp(1.45rem, 3vw, 2rem);
+  font-weight: 800;
+  line-height: 1.1;
+}
+
+.vaa-stat-label {
+  display: block;
+  margin-top: 0.45rem;
+  color: var(--vaa-muted);
+  font-size: 0.95rem;
+}
+
+.vaa-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 1rem;
+  margin: 1rem 0 1.5rem;
+}
+
+.vaa-card {
+  padding: 1.25rem;
+  border: 1px solid var(--vaa-line);
+  border-radius: 8px;
+  background: #fff;
+}
+
+.vaa-card h3 {
+  margin-top: 0;
+  color: var(--vaa-teal);
+}
+
+.vaa-card p {
+  color: var(--vaa-muted);
+}
+
+.vaa-card a {
+  color: var(--vaa-teal);
+  font-weight: 700;
+}
+
+.vaa-note {
+  margin: 2rem 0 0;
+  padding: 1rem 1.15rem;
+  border-left: 4px solid var(--vaa-gold);
+  background: #fbf8f0;
+  color: #4d4d43;
+}
+
+@media (max-width: 860px) {
+  .vaa-hero {
+    min-height: 68vh;
+    padding: 3rem 1.25rem 2rem;
+    background-image:
+      linear-gradient(
+        rgba(247, 250, 248, 0.94),
+        rgba(247, 250, 248, 0.94)
+      ),
+      url("images/visual-analytics-hero.png");
+    background-position: 68% center;
+  }
+
+  .vaa-hero-copy {
+    max-width: 100%;
+  }
+
+  .vaa-subtitle {
+    max-width: 23rem;
+    font-size: 1rem;
+  }
+
+  .vaa-stats,
+  .vaa-grid {
+    grid-template-columns: 1fr;
+  }
+}

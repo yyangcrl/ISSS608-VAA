@@ -1,5 +1,82 @@
 ---
-title: "ISSS608-VAA"
+title: "Visual Analytics Portfolio"
+format:
+  html:
+    toc: false
 ---
 
-Welcome to **ISSS608 Visual Analytics and Applications.** In this website, you will find my Coursework prepared for this course.
+```{=html}
+<style>
+#title-block-header {
+  display: none;
+}
+</style>
+```
+
+::::: vaa-hero
+:::: vaa-hero-copy
+[ISSS608 Visual Analytics and Applications]{.vaa-kicker}
+
+# Visual Analytics Portfolio
+
+<p class="vaa-subtitle">
+
+A curated coursework website by <strong>Yang Yang</strong>, bringing together hands-on visual analytics practice, interactive graphics, geospatial mapping, text analysis, network analysis, and dashboard design.
+
+</p>
+
+::: vaa-actions
+<a class="vaa-button primary" href="Hands-on_Ex/Hands-on_Ex10/Hands-on_Ex10.html">View Latest Exercise</a> <a class="vaa-button secondary" href="Hands-on_Ex/Hands-on_Ex01/Hands-on_Ex01.html">Start from Exercise 1</a>
+:::
+::::
+:::::
+
+::::::: vaa-stats
+::: vaa-stat
+[20]{.vaa-stat-number} [Hands-on exercises]{.vaa-stat-label}
+:::
+
+::: vaa-stat
+[R + Quarto]{.vaa-stat-number} [Reproducible workflow]{.vaa-stat-label}
+:::
+
+::: vaa-stat
+[Maps]{.vaa-stat-number} [Geospatial analytics]{.vaa-stat-label}
+:::
+
+::: vaa-stat
+[Dashboards]{.vaa-stat-number} [Compact visual reporting]{.vaa-stat-label}
+:::
+:::::::
+
+## Coursework Studio
+
+:::::: vaa-grid
+::: vaa-card
+### Hands-on Exercises
+
+Step-by-step practice in visual analytics methods, from layered statistical graphics to network, text, geospatial, and dashboard design.
+
+[Open Hands-on Work](Hands-on_Ex/Hands-on_Ex07a/Hands-on_Ex07a.html)
+:::
+
+::: vaa-card
+### Take-home Exercises
+
+Applied analytical reports prepared as coursework deliverables, with technical explanation and visual evidence.
+
+[Open Take-home Work](Take-home_Ex/Take-home_Ex01/Technical_Report.html)
+:::
+
+::: vaa-card
+### Visual Methods
+
+The portfolio combines statistical graphics, interactive charts, uncertainty visualisation, text mining, mapping, and information dashboard methods.
+
+[Explore Dashboard Design](Hands-on_Ex/Hands-on_Ex10/Hands-on_Ex10.html)
+:::
+::::::
+
+::: vaa-note
+This website is prepared for ISSS608 Visual Analytics and Applications. It is designed as a learning portfolio: each page documents the method, code, visual output, and interpretation in a reproducible Quarto workflow.
+:::
