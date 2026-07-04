@@ -1095,3 +1095,16 @@ This exercise covered:
 -   histogram-enhanced interactive plots,
 -   regional average profiles,
 -   top-versus-bottom happiness country comparison.
+
+::: vaa-exercise-footer
+### Portfolio note
+
+**Key takeaway.** Parallel coordinates expose multivariate profiles and trade-offs across dimensions.
+
+**Practical use.** Use it when individual observations need to be compared over many variables.
+
+::: vaa-footer-nav
+[Back to Gallery](../../hands-on-gallery.html) [Previous: Exercise 5c](../Hands-on_Ex05c/Hands-on_Ex05c.html) [Next: Exercise 5e](../Hands-on_Ex05e/Hands-on_Ex05e.html)
+:::
+:::
+

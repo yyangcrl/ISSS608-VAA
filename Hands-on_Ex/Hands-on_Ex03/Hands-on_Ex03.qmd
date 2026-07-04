@@ -1431,3 +1431,16 @@ Useful topics to review:
 
 `ggiraph` is closer to ggplot2 and is useful for controlled tooltip and hover design. `plotly` is stronger for zooming, selecting, and building interactive web charts quickly. `DT` and `crosstalk` are useful when the reader needs to connect charts with exact data records.
 :::
+
+::: vaa-exercise-footer
+### Portfolio note
+
+**Key takeaway.** Interactivity helps viewers inspect details that a static chart may hide.
+
+**Practical use.** Use it when exploration, filtering, tooltips, or direct inspection can support better analytical reading.
+
+::: vaa-footer-nav
+[Back to Gallery](../../hands-on-gallery.html) [Previous: Exercise 2](../Hands-on_Ex02/Hands-on_Ex02.html) [Next: Exercise 3b](../Hands-on_Ex03b/Hands-on_Ex03b.html)
+:::
+:::
+

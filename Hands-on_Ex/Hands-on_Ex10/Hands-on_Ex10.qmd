@@ -757,3 +757,16 @@ In this exercise:
 - [gtExtras](https://jthomasmock.github.io/gtExtras/)
 - [reactable](https://glin.github.io/reactable/)
 - [reactablefmtr](https://kcuilla.github.io/reactablefmtr/)
+
+::: vaa-exercise-footer
+### Portfolio note
+
+**Key takeaway.** Dashboard design turns multiple indicators into a compact monitoring view.
+
+**Practical use.** Use it when decision makers need concise, repeatable, and scannable visual reporting.
+
+::: vaa-footer-nav
+[Back to Gallery](../../hands-on-gallery.html) [Previous: Exercise 9c](../Hands-on_Ex09c/Hands-on_Ex09c.html)
+:::
+:::
+

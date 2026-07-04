@@ -26,7 +26,7 @@ A curated coursework website by <strong>Yang Yang</strong>, bringing together ha
 </p>
 
 ::: vaa-actions
-<a class="vaa-button primary" href="Hands-on_Ex/Hands-on_Ex10/Hands-on_Ex10.html">View Latest Exercise</a> <a class="vaa-button secondary" href="Hands-on_Ex/Hands-on_Ex01/Hands-on_Ex01.html">Start from Exercise 1</a>
+<a class="vaa-button primary" href="Hands-on_Ex/Hands-on_Ex10/Hands-on_Ex10.html">View Latest Exercise</a> <a class="vaa-button secondary" href="hands-on-gallery.html">Explore Gallery</a>
 :::
 ::::
 :::::
@@ -49,31 +49,157 @@ A curated coursework website by <strong>Yang Yang</strong>, bringing together ha
 :::
 :::::::
 
-## Coursework Studio
+::: vaa-section-intro
+[Portfolio routes]{.vaa-section-kicker}
 
-:::::: vaa-grid
-::: vaa-card
-### Hands-on Exercises
+## Explore by Method
 
-Step-by-step practice in visual analytics methods, from layered statistical graphics to network, text, geospatial, and dashboard design.
-
-[Open Hands-on Work](Hands-on_Ex/Hands-on_Ex07a/Hands-on_Ex07a.html)
+Choose a route based on the analytical method you want to inspect. Each path links directly into the hands-on work while keeping the full gallery one click away.
 :::
 
-::: vaa-card
-### Take-home Exercises
+::::::::: vaa-method-grid
+::: vaa-method-card
+[ggplot2]{.vaa-tag} [foundations]{.vaa-tag}
 
-Applied analytical reports prepared as coursework deliverables, with technical explanation and visual evidence.
+### Statistical Graphics
 
-[Open Take-home Work](Take-home_Ex/Take-home_Ex01/Technical_Report.html)
+Layered grammar, annotation, themes, and small multiples for clear statistical communication.
+
+[Start with Exercise 1](Hands-on_Ex/Hands-on_Ex01/Hands-on_Ex01.html)
 :::
 
-::: vaa-card
-### Visual Methods
+::: vaa-method-card
+[interactive]{.vaa-tag} [animation]{.vaa-tag}
 
-The portfolio combines statistical graphics, interactive charts, uncertainty visualisation, text mining, mapping, and information dashboard methods.
+### Interactivity
 
-[Explore Dashboard Design](Hands-on_Ex/Hands-on_Ex10/Hands-on_Ex10.html)
+Interactive and animated graphics that make comparisons easier to explore over time and across groups.
+
+[Open Exercise 3a](Hands-on_Ex/Hands-on_Ex03/Hands-on_Ex03.html)
+:::
+
+::: vaa-method-card
+[network]{.vaa-tag} [text]{.vaa-tag}
+
+### Network and Text
+
+Email networks and document collections transformed into structured visual evidence.
+
+[Open Exercise 7a](Hands-on_Ex/Hands-on_Ex07a/Hands-on_Ex07a.html)
+:::
+
+::: vaa-method-card
+[time]{.vaa-tag} [events]{.vaa-tag}
+
+### Time-oriented Data
+
+Patterns, sequences, and event logs organised so changes can be read across time.
+
+[Open Exercise 8](Hands-on_Ex/Hands-on_Ex08/Hands-on_Ex08.html)
+:::
+
+::: vaa-method-card
+[maps]{.vaa-tag} [spatial]{.vaa-tag}
+
+### Geospatial Analytics
+
+Choropleth, point, and analytical mapping for spatial pattern discovery.
+
+[Open Exercise 9a](Hands-on_Ex/Hands-on_Ex09a/Hands-on_Ex09a.html)
+:::
+
+::: vaa-method-card
+[dashboard]{.vaa-tag} [reporting]{.vaa-tag}
+
+### Dashboard Design
+
+Compact visual reporting using bullet charts, sparklines, and interactive tables.
+
+[Open Exercise 10](Hands-on_Ex/Hands-on_Ex10/Hands-on_Ex10.html)
+:::
+:::::::::
+
+::: vaa-section-intro
+[Learning arc]{.vaa-section-kicker}
+
+## Learning Journey
+
+The portfolio follows a practical sequence: build visual grammar, improve statistical judgement, add interactivity, then move into specialised analytical domains.
+:::
+
+:::::::: vaa-timeline
+::: vaa-timeline-item
+[01]{.vaa-timeline-step}
+
+### Foundations
+
+Exercises 1-2 establish layered graphics, annotation, theming, and composition.
+:::
+
+::: vaa-timeline-item
+[02]{.vaa-timeline-step}
+
+### Interactive and Animated Views
+
+Exercises 3a-3b and 4a explore interaction, animation, and time-aware presentation.
+:::
+
+::: vaa-timeline-item
+[03]{.vaa-timeline-step}
+
+### Statistical Visual Analysis
+
+Exercises 4b-5e move into uncertainty, funnel plots, correlation, heatmaps, parallel coordinates, and treemaps.
+:::
+
+::: vaa-timeline-item
+[04]{.vaa-timeline-step}
+
+### Network, Text, and Time
+
+Exercises 7a, 7b, and 8 turn relational, textual, and temporal data into interpretable visual structures.
+:::
+
+::: vaa-timeline-item
+[05]{.vaa-timeline-step}
+
+### Spatial and Dashboard Methods
+
+Exercises 9a-10 close the sequence with mapping, spatial analysis, and information dashboard design.
+:::
+::::::::
+
+::: vaa-section-intro
+[Selected entries]{.vaa-section-kicker}
+
+## Featured Work
+
+These pages are strong entry points for seeing the range of visual analytics methods in the portfolio.
+:::
+
+:::::: vaa-feature-grid
+::: vaa-feature-card
+### Dashboard Design
+
+Bullet charts, sparklines, and interactive reporting methods for compact business-style monitoring.
+
+[View Exercise 10](Hands-on_Ex/Hands-on_Ex10/Hands-on_Ex10.html)
+:::
+
+::: vaa-feature-card
+### Geospatial Analysis
+
+Three linked mapping exercises covering choropleth, point pattern, and analytical mapping.
+
+[View Exercise 9c](Hands-on_Ex/Hands-on_Ex09c/Hands-on_Ex09c.html)
+:::
+
+::: vaa-feature-card
+### Full Hands-on Gallery
+
+Browse every hands-on exercise by learning area, method tag, and direct link.
+
+[Open the Gallery](hands-on-gallery.html)
 :::
 ::::::
 

@@ -981,3 +981,16 @@ This exercise covered:
 - outlier identification using the 99.9% upper control limit.
 
 The main interpretation principle is simple: a funnel plot identifies unusual variation, not automatic causation.
+
+::: vaa-exercise-footer
+### Portfolio note
+
+**Key takeaway.** Funnel plots help separate meaningful outliers from expected variation.
+
+**Practical use.** Use it when comparing rates across groups with different sample sizes.
+
+::: vaa-footer-nav
+[Back to Gallery](../../hands-on-gallery.html) [Previous: Exercise 4c](../Hands-on_Ex04c/Hands-on_Ex04c.html) [Next: Exercise 5a](../Hands-on_Ex05a/Hands-on_Ex05a.html)
+:::
+:::
+

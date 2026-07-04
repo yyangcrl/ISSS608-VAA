@@ -138,11 +138,16 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 </button>
           <div class="collapse navbar-collapse" id="navbarCollapse">
             <ul class="navbar-nav navbar-nav-scroll me-auto">
+  <li class="nav-item">
+    <a class="nav-link" href="../../hands-on-gallery.html"> 
+<span class="menu-text">Hands-on Gallery</span></a>
+  </li>  
   <li class="nav-item dropdown ">
     <a class="nav-link dropdown-toggle" href="#" id="nav-menu-hands-on-exercise" role="link" data-bs-toggle="dropdown" aria-expanded="false">
  <span class="menu-text">Hands-on Exercise</span>
     </a>
     <ul class="dropdown-menu" aria-labelledby="nav-menu-hands-on-exercise">    
+        <li class="dropdown-header">Foundations</li>
         <li>
     <a class="dropdown-item" href="../../Hands-on_Ex/Hands-on_Ex01/Hands-on_Ex01.html">
  <span class="dropdown-text">Hands-on Exercise 1</span></a>
@@ -151,9 +156,10 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
     <a class="dropdown-item" href="../../Hands-on_Ex/Hands-on_Ex02/Hands-on_Ex02.html">
  <span class="dropdown-text">Hands-on Exercise 2</span></a>
   </li>  
+        <li class="dropdown-header">Interactive and Animated Visualisation</li>
         <li>
     <a class="dropdown-item" href="../../Hands-on_Ex/Hands-on_Ex03/Hands-on_Ex03.html">
- <span class="dropdown-text">Hands-on Exercise 3</span></a>
+ <span class="dropdown-text">Hands-on Exercise 3a</span></a>
   </li>  
         <li>
     <a class="dropdown-item" href="../../Hands-on_Ex/Hands-on_Ex03b/Hands-on_Ex03b.html">
@@ -163,6 +169,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
     <a class="dropdown-item" href="../../Hands-on_Ex/Hands-on_Ex04a/Hands-on_Ex04a.html">
  <span class="dropdown-text">Hands-on Exercise 4a</span></a>
   </li>  
+        <li class="dropdown-header">Statistical Visual Analysis</li>
         <li>
     <a class="dropdown-item" href="../../Hands-on_Ex/Hands-on_Ex04b/Hands-on_Ex04b.html">
  <span class="dropdown-text">Hands-on Exercise 4b</span></a>
@@ -195,6 +202,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
     <a class="dropdown-item" href="../../Hands-on_Ex/Hands-on_Ex05e/Hands-on_Ex05e.html">
  <span class="dropdown-text">Hands-on Exercise 5e</span></a>
   </li>  
+        <li class="dropdown-header">Network, Text, and Time</li>
         <li>
     <a class="dropdown-item" href="../../Hands-on_Ex/Hands-on_Ex07a/Hands-on_Ex07a.html">
  <span class="dropdown-text">Hands-on Exercise 7a</span></a>
@@ -207,6 +215,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
     <a class="dropdown-item" href="../../Hands-on_Ex/Hands-on_Ex08/Hands-on_Ex08.html">
  <span class="dropdown-text">Hands-on Exercise 8</span></a>
   </li>  
+        <li class="dropdown-header">Geospatial Analytics</li>
         <li>
     <a class="dropdown-item" href="../../Hands-on_Ex/Hands-on_Ex09a/Hands-on_Ex09a.html">
  <span class="dropdown-text">Hands-on Exercise 9a</span></a>
@@ -219,6 +228,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
     <a class="dropdown-item" href="../../Hands-on_Ex/Hands-on_Ex09c/Hands-on_Ex09c.html">
  <span class="dropdown-text">Hands-on Exercise 9c</span></a>
   </li>  
+        <li class="dropdown-header">Dashboard Design</li>
         <li>
     <a class="dropdown-item" href="../../Hands-on_Ex/Hands-on_Ex10/Hands-on_Ex10.html">
  <span class="dropdown-text">Hands-on Exercise 10</span></a>
@@ -296,7 +306,10 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
   <li><a href="#step-2-plotting-the-slopegraph" id="toc-step-2-plotting-the-slopegraph" class="nav-link" data-scroll-target="#step-2-plotting-the-slopegraph">17.6.2 Step 2: Plotting the Slopegraph</a></li>
   </ul></li>
   <li><a href="#key-takeaways" id="toc-key-takeaways" class="nav-link" data-scroll-target="#key-takeaways">Key Takeaways</a></li>
-  <li><a href="#references" id="toc-references" class="nav-link" data-scroll-target="#references">References</a></li>
+  <li><a href="#references" id="toc-references" class="nav-link" data-scroll-target="#references">References</a>
+  <ul class="collapse">
+  <li><a href="#portfolio-note" id="toc-portfolio-note" class="nav-link" data-scroll-target="#portfolio-note">Portfolio note</a></li>
+  </ul></li>
   </ul>
 </nav>
     </div>
@@ -392,8 +405,8 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <span id="cb4-12"><a href="#cb4-12" aria-hidden="true" tabindex="-1"></a>  <span class="at">options =</span> <span class="fu">list</span>(<span class="at">pageLength =</span> <span class="dv">12</span>, <span class="at">dom =</span> <span class="st">"tip"</span>)</span>
 <span id="cb4-13"><a href="#cb4-13" aria-hidden="true" tabindex="-1"></a>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 <div class="cell-output-display">
-<div class="datatables html-widget html-fill-item" id="htmlwidget-b52ad475b4ae8277c260" style="width:100%;height:auto;"></div>
-<script type="application/json" data-for="htmlwidget-b52ad475b4ae8277c260">{"x":{"filter":"none","vertical":false,"data":[["scales","viridis","lubridate","ggthemes","gridExtra","readxl","knitr","data.table","ggHoriPlot","tidyverse","DT","CGPfunctions"],["Available","Available","Available","Available","Available","Available","Available","Available","Available","Available","Available","Not available"]],"container":"<table class=\"display\">\n  <thead>\n    <tr>\n      <th>package<\/th>\n      <th>status<\/th>\n    <\/tr>\n  <\/thead>\n<\/table>","options":{"pageLength":12,"dom":"tip","columnDefs":[{"name":"package","targets":0},{"name":"status","targets":1}],"order":[],"autoWidth":false,"orderClasses":false,"lengthMenu":[10,12,25,50,100]}},"evals":[],"jsHooks":[]}</script>
+<div class="datatables html-widget html-fill-item" id="htmlwidget-d51effee31fcfab69474" style="width:100%;height:auto;"></div>
+<script type="application/json" data-for="htmlwidget-d51effee31fcfab69474">{"x":{"filter":"none","vertical":false,"data":[["scales","viridis","lubridate","ggthemes","gridExtra","readxl","knitr","data.table","ggHoriPlot","tidyverse","DT","CGPfunctions"],["Available","Available","Available","Available","Available","Available","Available","Available","Available","Available","Available","Not available"]],"container":"<table class=\"display\">\n  <thead>\n    <tr>\n      <th>package<\/th>\n      <th>status<\/th>\n    <\/tr>\n  <\/thead>\n<\/table>","options":{"pageLength":12,"dom":"tip","columnDefs":[{"name":"package","targets":0},{"name":"status","targets":1}],"order":[],"autoWidth":false,"orderClasses":false,"lengthMenu":[10,12,25,50,100]}},"evals":[],"jsHooks":[]}</script>
 </div>
 </div>
 </section>
@@ -618,8 +631,8 @@ $ tz             &lt;chr&gt; "Asia/Shanghai", "Europe/Paris", "Asia/Shanghai", "
 <span id="cb11-8"><a href="#cb11-8" aria-hidden="true" tabindex="-1"></a>  <span class="at">options =</span> <span class="fu">list</span>(<span class="at">pageLength =</span> <span class="dv">10</span>, <span class="at">dom =</span> <span class="st">"tip"</span>)</span>
 <span id="cb11-9"><a href="#cb11-9" aria-hidden="true" tabindex="-1"></a>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 <div class="cell-output-display">
-<div class="datatables html-widget html-fill-item" id="htmlwidget-31057e1cdb116b510120" style="width:100%;height:auto;"></div>
-<script type="application/json" data-for="htmlwidget-31057e1cdb116b510120">{"x":{"filter":"none","vertical":false,"data":[["CN","US","KR","NL","VN","TW","GB","FR","UA","DE","AR","CA","RU","JP","SG","HK","BE","BR","PL","ES","MD","IN","TR","PT","RO","IT","IL","null","SA","TH","AU","ZA","ID","MY","SE","CO","IS","LT","IE","AE","DK","IR","CZ","NG","GE","MX","NZ","LY","BG","NO","RS","AT","CR","GR","MT","PR","LV","CH","MN","EG","PA","LB","KW","NI","KE","LU","PK","PS","NC","HU","BY","HR","BB","KP","VI","GA","TN","KH","AL","CL","SK","BO","KZ","MA","VG","A1","EE","FI","PH","BD","AF","DO","GT","JO","ZW","BA","BZ","FJ","IQ","QA","BT","LK","KG","UG","UZ","EC","HN","OM","AM","JM","SV","A2","GP","KN","PY","SI","ZM"],[85243,48684,12648,8572,6340,3469,3266,3252,2219,2055,1793,1646,1633,1476,1278,1239,962,927,908,837,783,760,639,623,528,491,477,444,442,415,378,342,335,296,274,262,228,210,201,189,138,132,126,125,120,117,115,113,112,104,102,101,85,85,85,82,77,70,70,69,67,63,58,54,51,49,49,46,45,44,43,39,37,35,35,32,29,25,24,24,22,20,20,20,20,19,19,19,17,16,15,15,15,14,14,11,9,9,9,8,7,7,4,4,4,3,3,3,2,2,2,1,1,1,1,1,1],["42.62171%","24.34212%","6.32403%","4.28602%","3.17002%","1.73451%","1.63301%","1.62601%","1.10951%","1.02751%","0.89650%","0.82300%","0.81650%","0.73800%","0.63900%","0.61950%","0.48100%","0.46350%","0.45400%","0.41850%","0.39150%","0.38000%","0.31950%","0.31150%","0.26400%","0.24550%","0.23850%","0.22200%","0.22100%","0.20750%","0.18900%","0.17100%","0.16750%","0.14800%","0.13700%","0.13100%","0.11400%","0.10500%","0.10050%","0.09450%","0.06900%","0.06600%","0.06300%","0.06250%","0.06000%","0.05850%","0.05750%","0.05650%","0.05600%","0.05200%","0.05100%","0.05050%","0.04250%","0.04250%","0.04250%","0.04100%","0.03850%","0.03500%","0.03500%","0.03450%","0.03350%","0.03150%","0.02900%","0.02700%","0.02550%","0.02450%","0.02450%","0.02300%","0.02250%","0.02200%","0.02150%","0.01950%","0.01850%","0.01750%","0.01750%","0.01600%","0.01450%","0.01250%","0.01200%","0.01200%","0.01100%","0.01000%","0.01000%","0.01000%","0.01000%","0.00950%","0.00950%","0.00950%","0.00850%","0.00800%","0.00750%","0.00750%","0.00750%","0.00700%","0.00700%","0.00550%","0.00450%","0.00450%","0.00450%","0.00400%","0.00350%","0.00350%","0.00200%","0.00200%","0.00200%","0.00150%","0.00150%","0.00150%","0.00100%","0.00100%","0.00100%","0.00050%","0.00050%","0.00050%","0.00050%","0.00050%","0.00050%"]],"container":"<table class=\"display\">\n  <thead>\n    <tr>\n      <th>source_country<\/th>\n      <th>n<\/th>\n      <th>percent<\/th>\n    <\/tr>\n  <\/thead>\n<\/table>","options":{"pageLength":10,"dom":"tip","columnDefs":[{"className":"dt-right","targets":1},{"name":"source_country","targets":0},{"name":"n","targets":1},{"name":"percent","targets":2}],"order":[],"autoWidth":false,"orderClasses":false}},"evals":[],"jsHooks":[]}</script>
+<div class="datatables html-widget html-fill-item" id="htmlwidget-0484da3ff731f287c57d" style="width:100%;height:auto;"></div>
+<script type="application/json" data-for="htmlwidget-0484da3ff731f287c57d">{"x":{"filter":"none","vertical":false,"data":[["CN","US","KR","NL","VN","TW","GB","FR","UA","DE","AR","CA","RU","JP","SG","HK","BE","BR","PL","ES","MD","IN","TR","PT","RO","IT","IL","null","SA","TH","AU","ZA","ID","MY","SE","CO","IS","LT","IE","AE","DK","IR","CZ","NG","GE","MX","NZ","LY","BG","NO","RS","AT","CR","GR","MT","PR","LV","CH","MN","EG","PA","LB","KW","NI","KE","LU","PK","PS","NC","HU","BY","HR","BB","KP","VI","GA","TN","KH","AL","CL","SK","BO","KZ","MA","VG","A1","EE","FI","PH","BD","AF","DO","GT","JO","ZW","BA","BZ","FJ","IQ","QA","BT","LK","KG","UG","UZ","EC","HN","OM","AM","JM","SV","A2","GP","KN","PY","SI","ZM"],[85243,48684,12648,8572,6340,3469,3266,3252,2219,2055,1793,1646,1633,1476,1278,1239,962,927,908,837,783,760,639,623,528,491,477,444,442,415,378,342,335,296,274,262,228,210,201,189,138,132,126,125,120,117,115,113,112,104,102,101,85,85,85,82,77,70,70,69,67,63,58,54,51,49,49,46,45,44,43,39,37,35,35,32,29,25,24,24,22,20,20,20,20,19,19,19,17,16,15,15,15,14,14,11,9,9,9,8,7,7,4,4,4,3,3,3,2,2,2,1,1,1,1,1,1],["42.62171%","24.34212%","6.32403%","4.28602%","3.17002%","1.73451%","1.63301%","1.62601%","1.10951%","1.02751%","0.89650%","0.82300%","0.81650%","0.73800%","0.63900%","0.61950%","0.48100%","0.46350%","0.45400%","0.41850%","0.39150%","0.38000%","0.31950%","0.31150%","0.26400%","0.24550%","0.23850%","0.22200%","0.22100%","0.20750%","0.18900%","0.17100%","0.16750%","0.14800%","0.13700%","0.13100%","0.11400%","0.10500%","0.10050%","0.09450%","0.06900%","0.06600%","0.06300%","0.06250%","0.06000%","0.05850%","0.05750%","0.05650%","0.05600%","0.05200%","0.05100%","0.05050%","0.04250%","0.04250%","0.04250%","0.04100%","0.03850%","0.03500%","0.03500%","0.03450%","0.03350%","0.03150%","0.02900%","0.02700%","0.02550%","0.02450%","0.02450%","0.02300%","0.02250%","0.02200%","0.02150%","0.01950%","0.01850%","0.01750%","0.01750%","0.01600%","0.01450%","0.01250%","0.01200%","0.01200%","0.01100%","0.01000%","0.01000%","0.01000%","0.01000%","0.00950%","0.00950%","0.00950%","0.00850%","0.00800%","0.00750%","0.00750%","0.00750%","0.00700%","0.00700%","0.00550%","0.00450%","0.00450%","0.00450%","0.00400%","0.00350%","0.00350%","0.00200%","0.00200%","0.00200%","0.00150%","0.00150%","0.00150%","0.00100%","0.00100%","0.00100%","0.00050%","0.00050%","0.00050%","0.00050%","0.00050%","0.00050%"]],"container":"<table class=\"display\">\n  <thead>\n    <tr>\n      <th>source_country<\/th>\n      <th>n<\/th>\n      <th>percent<\/th>\n    <\/tr>\n  <\/thead>\n<\/table>","options":{"pageLength":10,"dom":"tip","columnDefs":[{"className":"dt-right","targets":1},{"name":"source_country","targets":0},{"name":"n","targets":1},{"name":"percent","targets":2}],"order":[],"autoWidth":false,"orderClasses":false}},"evals":[],"jsHooks":[]}</script>
 </div>
 </div>
 <div class="cell">
@@ -1085,6 +1098,14 @@ Tip
 <li><a href="https://cran.r-project.org/package=CGPfunctions">CRAN: CGPfunctions package status</a></li>
 <li><a href="https://cran.r-project.org/src/contrib/Archive/CGPfunctions/">CRAN Archive: CGPfunctions</a></li>
 </ul>
+<section id="portfolio-note" class="level3 vaa-exercise-footer">
+<h3 class="anchored" data-anchor-id="portfolio-note">Portfolio note</h3>
+<p><strong>Key takeaway.</strong> Time-oriented graphics organise event patterns so change can be read as a sequence.</p>
+<p><strong>Practical use.</strong> Use it when timing, order, seasonality, or duration affects the analytical question.</p>
+<div class="vaa-footer-nav">
+<p><a href="../../hands-on-gallery.html">Back to Gallery</a> <a href="../Hands-on_Ex07b/Hands-on_Ex07b.html">Previous: Exercise 7b</a> <a href="../Hands-on_Ex09a/Hands-on_Ex09a.html">Next: Exercise 9a</a></p>
+</div>
+</section>
 
 
 </section>

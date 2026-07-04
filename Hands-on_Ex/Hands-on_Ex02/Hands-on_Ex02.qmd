@@ -705,3 +705,16 @@ Instead of only placing the three plots together, we also apply a consistent the
 -   [ggplot2 Theme Elements Demonstration](https://henrywang.nl/ggplot2-theme-elements-demonstration/)
 
 -   [ggplot2 Theme Elements Reference Sheet](https://isabella-b.com/blog/ggplot2-theme-elements-reference/)
+
+::: vaa-exercise-footer
+### Portfolio note
+
+**Key takeaway.** Annotations, themes, and composition make analytical graphics easier to read and compare.
+
+**Practical use.** Use it when a visual needs clearer labelling, stronger visual hierarchy, or multiple coordinated views.
+
+::: vaa-footer-nav
+[Back to Gallery](../../hands-on-gallery.html) [Previous: Exercise 1](../Hands-on_Ex01/Hands-on_Ex01.html) [Next: Exercise 3a](../Hands-on_Ex03/Hands-on_Ex03.html)
+:::
+:::
+

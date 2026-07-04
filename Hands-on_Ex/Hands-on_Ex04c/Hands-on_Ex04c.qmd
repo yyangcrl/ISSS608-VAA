@@ -1135,3 +1135,16 @@ This exercise covered three main approaches to visualising uncertainty:
 - animated uncertainty thinking through HOPs.
 
 The main lesson is that uncertainty should be shown clearly, not hidden behind a single mean value. A good uncertainty chart helps readers understand both the estimate and how much confidence they should place in it.
+
+::: vaa-exercise-footer
+### Portfolio note
+
+**Key takeaway.** Uncertainty visualisation makes variation and confidence part of the interpretation.
+
+**Practical use.** Use it when point estimates alone would give a false sense of precision.
+
+::: vaa-footer-nav
+[Back to Gallery](../../hands-on-gallery.html) [Previous: Exercise 4b](../Hands-on_Ex04b/Hands-on_Ex04b.html) [Next: Exercise 4d](../Hands-on_Ex04d/Hands-on_Ex04d.html)
+:::
+:::
+

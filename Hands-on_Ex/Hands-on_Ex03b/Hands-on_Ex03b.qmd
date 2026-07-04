@@ -673,3 +673,16 @@ Useful references:
 
 Use animation when change over time is the main message. Use `gganimate` for smooth presentation-style motion, and use `plotly` when the reader should be able to explore the animated chart interactively.
 :::
+
+::: vaa-exercise-footer
+### Portfolio note
+
+**Key takeaway.** Animation can show how values or relationships change across stages.
+
+**Practical use.** Use it when sequence, transition, or temporal movement is central to the story.
+
+::: vaa-footer-nav
+[Back to Gallery](../../hands-on-gallery.html) [Previous: Exercise 3a](../Hands-on_Ex03/Hands-on_Ex03.html) [Next: Exercise 4a](../Hands-on_Ex04a/Hands-on_Ex04a.html)
+:::
+:::
+

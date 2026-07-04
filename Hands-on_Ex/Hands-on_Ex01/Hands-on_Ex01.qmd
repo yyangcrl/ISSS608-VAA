@@ -679,3 +679,16 @@ ggplot(data=exam_data,
 -   [Learning ggplot2 on Paper – Layer](https://henrywang.nl/learning-ggplot2-on-paper-layer/)
 
 -   [Learning ggplot2 on Paper – Scale](https://henrywang.nl/tag/learning-ggplot2-on-paper/)
+
+::: vaa-exercise-footer
+### Portfolio note
+
+**Key takeaway.** Layered grammar is the base language for turning data into visual evidence.
+
+**Practical use.** Use it when a chart needs to be built transparently from data, aesthetics, geometry, and statistical transformation.
+
+::: vaa-footer-nav
+[Back to Gallery](../../hands-on-gallery.html) [Next: Exercise 2](../Hands-on_Ex02/Hands-on_Ex02.html)
+:::
+:::
+

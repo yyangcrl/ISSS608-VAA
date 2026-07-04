@@ -1,0 +1,294 @@
+---
+title: "Hands-on Exercise Gallery"
+format:
+  html:
+    toc: false
+---
+
+```{=html}
+<style>
+#title-block-header {
+  display: none;
+}
+</style>
+```
+
+::: vaa-page-hero
+[Coursework index]{.vaa-section-kicker}
+
+# Hands-on Exercise Gallery
+
+This gallery turns the hands-on coursework into a browsable visual analytics studio. Use it to move by topic, method, and learning stage instead of relying only on the long navigation menu.
+:::
+
+::: vaa-page-actions
+[Start from Exercise 1](Hands-on_Ex/Hands-on_Ex01/Hands-on_Ex01.html) [Jump to Dashboard Design](Hands-on_Ex/Hands-on_Ex10/Hands-on_Ex10.html) [Return Home](index.html)
+:::
+
+## Foundations
+
+:::: vaa-gallery-grid
+::: vaa-gallery-card
+[Exercise 1]{.vaa-card-kicker}
+
+### A Layered Grammar of Graphics
+
+[ggplot2]{.vaa-tag} [grammar]{.vaa-tag} [foundations]{.vaa-tag}
+
+Builds the base vocabulary for layered visual analytics using data, aesthetics, geoms, stats, facets, coordinates, and themes.
+
+[Open Exercise 1](Hands-on_Ex/Hands-on_Ex01/Hands-on_Ex01.html)
+:::
+
+::: vaa-gallery-card
+[Exercise 2]{.vaa-card-kicker}
+
+### Beyond ggplot2 Fundamentals
+
+[annotation]{.vaa-tag} [themes]{.vaa-tag} [composition]{.vaa-tag}
+
+Extends static graphics with clearer labels, reusable themes, and multi-plot composition.
+
+[Open Exercise 2](Hands-on_Ex/Hands-on_Ex02/Hands-on_Ex02.html)
+:::
+::::
+
+## Interactive and Animated Visualisation
+
+:::: vaa-gallery-grid
+::: vaa-gallery-card
+[Exercise 3a]{.vaa-card-kicker}
+
+### Interactive Data Visualisation
+
+[interactive]{.vaa-tag} [exploration]{.vaa-tag} [R]{.vaa-tag}
+
+Introduces interactive views that let users inspect values, filter patterns, and explore visual evidence more actively.
+
+[Open Exercise 3a](Hands-on_Ex/Hands-on_Ex03/Hands-on_Ex03.html)
+:::
+
+::: vaa-gallery-card
+[Exercise 3b]{.vaa-card-kicker}
+
+### Animated Statistical Graphics
+
+[animation]{.vaa-tag} [transition]{.vaa-tag} [time]{.vaa-tag}
+
+Uses animation to show how patterns shift across stages, groups, or temporal sequences.
+
+[Open Exercise 3b](Hands-on_Ex/Hands-on_Ex03b/Hands-on_Ex03b.html)
+:::
+
+::: vaa-gallery-card
+[Exercise 4a]{.vaa-card-kicker}
+
+### Programming Animated Statistical Graphics
+
+[animation]{.vaa-tag} [storytelling]{.vaa-tag} [statistics]{.vaa-tag}
+
+Develops animated statistical graphics as a visual storytelling method for comparison and change.
+
+[Open Exercise 4a](Hands-on_Ex/Hands-on_Ex04a/Hands-on_Ex04a.html)
+:::
+::::
+
+## Statistical Visual Analysis
+
+:::: vaa-gallery-grid
+::: vaa-gallery-card
+[Exercise 4b]{.vaa-card-kicker}
+
+### Visual Statistical Analysis
+
+[statistics]{.vaa-tag} [comparison]{.vaa-tag} [ggstatsplot]{.vaa-tag}
+
+Combines statistical testing and visual explanation so evidence and interpretation stay close together.
+
+[Open Exercise 4b](Hands-on_Ex/Hands-on_Ex04b/Hands-on_Ex04b.html)
+:::
+
+::: vaa-gallery-card
+[Exercise 4c]{.vaa-card-kicker}
+
+### Visualising Uncertainty
+
+[uncertainty]{.vaa-tag} [intervals]{.vaa-tag} [inference]{.vaa-tag}
+
+Focuses on visual methods that make variation, uncertainty, and confidence easier to reason about.
+
+[Open Exercise 4c](Hands-on_Ex/Hands-on_Ex04c/Hands-on_Ex04c.html)
+:::
+
+::: vaa-gallery-card
+[Exercise 4d]{.vaa-card-kicker}
+
+### Funnel Plots for Fair Comparisons
+
+[funnel plot]{.vaa-tag} [outliers]{.vaa-tag} [fair comparison]{.vaa-tag}
+
+Uses funnel plots to compare rates while accounting for different sample sizes and expected variation.
+
+[Open Exercise 4d](Hands-on_Ex/Hands-on_Ex04d/Hands-on_Ex04d.html)
+:::
+
+::: vaa-gallery-card
+[Exercise 5a]{.vaa-card-kicker}
+
+### Ternary Plot
+
+[composition]{.vaa-tag} [ternary]{.vaa-tag} [multivariate]{.vaa-tag}
+
+Shows how three-part compositions can be mapped into a triangular coordinate system.
+
+[Open Exercise 5a](Hands-on_Ex/Hands-on_Ex05a/Hands-on_Ex05a.html)
+:::
+
+::: vaa-gallery-card
+[Exercise 5b]{.vaa-card-kicker}
+
+### Visual Correlation Analysis
+
+[correlation]{.vaa-tag} [association]{.vaa-tag} [matrix]{.vaa-tag}
+
+Explores relationships between variables using visual correlation and association patterns.
+
+[Open Exercise 5b](Hands-on_Ex/Hands-on_Ex05b/Hands-on_Ex05b.html)
+:::
+
+::: vaa-gallery-card
+[Exercise 5c]{.vaa-card-kicker}
+
+### Heatmap for Multivariate Data
+
+[heatmap]{.vaa-tag} [clusters]{.vaa-tag} [multivariate]{.vaa-tag}
+
+Uses heatmaps to reveal structure, clustering, and high-low contrasts in multivariate data.
+
+[Open Exercise 5c](Hands-on_Ex/Hands-on_Ex05c/Hands-on_Ex05c.html)
+:::
+
+::: vaa-gallery-card
+[Exercise 5d]{.vaa-card-kicker}
+
+### Parallel Coordinates Plot
+
+[parallel coordinates]{.vaa-tag} [profiles]{.vaa-tag} [multivariate]{.vaa-tag}
+
+Compares multivariate profiles by tracing each observation across several variables.
+
+[Open Exercise 5d](Hands-on_Ex/Hands-on_Ex05d/Hands-on_Ex05d.html)
+:::
+
+::: vaa-gallery-card
+[Exercise 5e]{.vaa-card-kicker}
+
+### Treemap Visualisation
+
+[treemap]{.vaa-tag} [hierarchy]{.vaa-tag} [part-to-whole]{.vaa-tag}
+
+Presents hierarchical and part-to-whole relationships through nested rectangular space.
+
+[Open Exercise 5e](Hands-on_Ex/Hands-on_Ex05e/Hands-on_Ex05e.html)
+:::
+::::
+
+## Network, Text, and Time
+
+:::: vaa-gallery-grid
+::: vaa-gallery-card
+[Exercise 7a]{.vaa-card-kicker}
+
+### Network Data Analysis
+
+[network]{.vaa-tag} [nodes]{.vaa-tag} [edges]{.vaa-tag}
+
+Models and visualises relationships in email communication data using network structures.
+
+[Open Exercise 7a](Hands-on_Ex/Hands-on_Ex07a/Hands-on_Ex07a.html)
+:::
+
+::: vaa-gallery-card
+[Exercise 7b]{.vaa-card-kicker}
+
+### Text Data Analysis
+
+[text]{.vaa-tag} [tokens]{.vaa-tag} [topics]{.vaa-tag}
+
+Transforms document collections into readable textual patterns and visual summaries.
+
+[Open Exercise 7b](Hands-on_Ex/Hands-on_Ex07b/Hands-on_Ex07b.html)
+:::
+
+::: vaa-gallery-card
+[Exercise 8]{.vaa-card-kicker}
+
+### Time-oriented Data
+
+[time]{.vaa-tag} [event log]{.vaa-tag} [sequence]{.vaa-tag}
+
+Analyses temporal data so event patterns and changes across time can be inspected visually.
+
+[Open Exercise 8](Hands-on_Ex/Hands-on_Ex08/Hands-on_Ex08.html)
+:::
+::::
+
+## Geospatial Analytics
+
+:::: vaa-gallery-grid
+::: vaa-gallery-card
+[Exercise 9a]{.vaa-card-kicker}
+
+### Choropleth Mapping
+
+[choropleth]{.vaa-tag} [tmap]{.vaa-tag} [classification]{.vaa-tag}
+
+Maps area-based population patterns with classification, colour, and cartographic layout choices.
+
+[Open Exercise 9a](Hands-on_Ex/Hands-on_Ex09a/Hands-on_Ex09a.html)
+:::
+
+::: vaa-gallery-card
+[Exercise 9b]{.vaa-card-kicker}
+
+### Geospatial Point Data
+
+[point map]{.vaa-tag} [spatial]{.vaa-tag} [Singapore]{.vaa-tag}
+
+Explores point locations and spatial distribution patterns using geospatial visualisation methods.
+
+[Open Exercise 9b](Hands-on_Ex/Hands-on_Ex09b/Hands-on_Ex09b.html)
+:::
+
+::: vaa-gallery-card
+[Exercise 9c]{.vaa-card-kicker}
+
+### Analytical Mapping
+
+[analytical map]{.vaa-tag} [spatial analysis]{.vaa-tag} [Nigeria]{.vaa-tag}
+
+Uses analytical mapping methods to examine spatial relationships and regional patterns.
+
+[Open Exercise 9c](Hands-on_Ex/Hands-on_Ex09c/Hands-on_Ex09c.html)
+:::
+::::
+
+## Dashboard Design
+
+:::: vaa-gallery-grid
+::: vaa-gallery-card
+[Exercise 10]{.vaa-card-kicker}
+
+### Information Dashboard Design
+
+[dashboard]{.vaa-tag} [sparklines]{.vaa-tag} [bullet charts]{.vaa-tag}
+
+Builds compact reporting views with dashboard components, tabular displays, and interactive summaries.
+
+[Open Exercise 10](Hands-on_Ex/Hands-on_Ex10/Hands-on_Ex10.html)
+:::
+::::
+
+::: vaa-note
+The gallery is intended as the practical entry point for the hands-on portfolio: each card links to a reproducible Quarto page with code, visual output, and interpretation.
+:::

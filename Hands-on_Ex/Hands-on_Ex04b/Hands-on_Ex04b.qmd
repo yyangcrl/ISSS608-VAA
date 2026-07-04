@@ -1023,3 +1023,16 @@ Useful functions from this exercise:
 -   `ggbarstats()` for association tests,
 -   `cut()` for converting numerical scores into categorical bands,
 -   `summarise()` and `across()` for quick descriptive summaries.
+
+::: vaa-exercise-footer
+### Portfolio note
+
+**Key takeaway.** Statistical graphics are strongest when the result and the evidence are shown together.
+
+**Practical use.** Use it when statistical comparison needs both visual intuition and inferential support.
+
+::: vaa-footer-nav
+[Back to Gallery](../../hands-on-gallery.html) [Previous: Exercise 4a](../Hands-on_Ex04a/Hands-on_Ex04a.html) [Next: Exercise 4c](../Hands-on_Ex04c/Hands-on_Ex04c.html)
+:::
+:::
+

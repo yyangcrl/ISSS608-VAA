@@ -809,3 +809,16 @@ From this exercise:
 - [R4VA Chapter 29: Visualising and Analysing Text Data with R: tidytext methods](https://r4va.netlify.app/chap29)
 - [tidytext: Text Mining using dplyr, ggplot2, and other tidy tools](https://www.tidytextmining.com/)
 - [widyr: Widen, Process, then Re-tidy Data](https://cran.r-project.org/package=widyr)
+
+::: vaa-exercise-footer
+### Portfolio note
+
+**Key takeaway.** Text visualisation helps make large document collections more inspectable.
+
+**Practical use.** Use it when patterns in words, topics, or document similarity need to be summarised visually.
+
+::: vaa-footer-nav
+[Back to Gallery](../../hands-on-gallery.html) [Previous: Exercise 7a](../Hands-on_Ex07a/Hands-on_Ex07a.html) [Next: Exercise 8](../Hands-on_Ex08/Hands-on_Ex08.html)
+:::
+:::
+

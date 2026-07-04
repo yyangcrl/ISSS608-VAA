@@ -23,41 +23,6 @@ ul.task-list li input[type="checkbox"] {
   margin: 0 0.8em 0.2em -1em; /* quarto-specific, see https://github.com/quarto-dev/quarto-cli/issues/4556 */ 
   vertical-align: middle;
 }
-/* CSS for syntax highlighting */
-html { -webkit-text-size-adjust: 100%; }
-pre > code.sourceCode { white-space: pre; position: relative; }
-pre > code.sourceCode > span { display: inline-block; line-height: 1.25; }
-pre > code.sourceCode > span:empty { height: 1.2em; }
-.sourceCode { overflow: visible; }
-code.sourceCode > span { color: inherit; text-decoration: inherit; }
-div.sourceCode { margin: 1em 0; }
-pre.sourceCode { margin: 0; }
-@media screen {
-div.sourceCode { overflow: auto; }
-}
-@media print {
-pre > code.sourceCode { white-space: pre-wrap; }
-pre > code.sourceCode > span { text-indent: -5em; padding-left: 5em; }
-}
-pre.numberSource code
-  { counter-reset: source-line 0; }
-pre.numberSource code > span
-  { position: relative; left: -4em; counter-increment: source-line; }
-pre.numberSource code > span > a:first-child::before
-  { content: counter(source-line);
-    position: relative; left: -1em; text-align: right; vertical-align: baseline;
-    border: none; display: inline-block;
-    -webkit-touch-callout: none; -webkit-user-select: none;
-    -khtml-user-select: none; -moz-user-select: none;
-    -ms-user-select: none; user-select: none;
-    padding: 0 4px; width: 4em;
-  }
-pre.numberSource { margin-left: 3em;  padding-left: 4px; }
-div.sourceCode
-  {   }
-@media screen {
-pre > code.sourceCode > span > a:first-child::before { text-decoration: underline; }
-}
 </style>
 
 
@@ -110,7 +75,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <link rel="stylesheet" href="styles.css">
 </head>
 
-<body class="nav-fixed quarto-light">
+<body class="nav-fixed fullcontent quarto-light">
 
 <div id="quarto-search-results"></div>
   <header id="quarto-header" class="headroom fixed-top">
@@ -127,11 +92,16 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 </button>
           <div class="collapse navbar-collapse" id="navbarCollapse">
             <ul class="navbar-nav navbar-nav-scroll me-auto">
+  <li class="nav-item">
+    <a class="nav-link" href="./hands-on-gallery.html"> 
+<span class="menu-text">Hands-on Gallery</span></a>
+  </li>  
   <li class="nav-item dropdown ">
     <a class="nav-link dropdown-toggle" href="#" id="nav-menu-hands-on-exercise" role="link" data-bs-toggle="dropdown" aria-expanded="false">
  <span class="menu-text">Hands-on Exercise</span>
     </a>
     <ul class="dropdown-menu" aria-labelledby="nav-menu-hands-on-exercise">    
+        <li class="dropdown-header">Foundations</li>
         <li>
     <a class="dropdown-item" href="./Hands-on_Ex/Hands-on_Ex01/Hands-on_Ex01.html">
  <span class="dropdown-text">Hands-on Exercise 1</span></a>
@@ -140,9 +110,10 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
     <a class="dropdown-item" href="./Hands-on_Ex/Hands-on_Ex02/Hands-on_Ex02.html">
  <span class="dropdown-text">Hands-on Exercise 2</span></a>
   </li>  
+        <li class="dropdown-header">Interactive and Animated Visualisation</li>
         <li>
     <a class="dropdown-item" href="./Hands-on_Ex/Hands-on_Ex03/Hands-on_Ex03.html">
- <span class="dropdown-text">Hands-on Exercise 3</span></a>
+ <span class="dropdown-text">Hands-on Exercise 3a</span></a>
   </li>  
         <li>
     <a class="dropdown-item" href="./Hands-on_Ex/Hands-on_Ex03b/Hands-on_Ex03b.html">
@@ -152,6 +123,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
     <a class="dropdown-item" href="./Hands-on_Ex/Hands-on_Ex04a/Hands-on_Ex04a.html">
  <span class="dropdown-text">Hands-on Exercise 4a</span></a>
   </li>  
+        <li class="dropdown-header">Statistical Visual Analysis</li>
         <li>
     <a class="dropdown-item" href="./Hands-on_Ex/Hands-on_Ex04b/Hands-on_Ex04b.html">
  <span class="dropdown-text">Hands-on Exercise 4b</span></a>
@@ -181,8 +153,39 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
  <span class="dropdown-text">Hands-on Exercise 5d</span></a>
   </li>  
         <li>
-    <a class="dropdown-item" href="./Hands-on_Ex/Hands-on_Ex05e/Hands-on_Ex05e.html”">
+    <a class="dropdown-item" href="./Hands-on_Ex/Hands-on_Ex05e/Hands-on_Ex05e.html">
  <span class="dropdown-text">Hands-on Exercise 5e</span></a>
+  </li>  
+        <li class="dropdown-header">Network, Text, and Time</li>
+        <li>
+    <a class="dropdown-item" href="./Hands-on_Ex/Hands-on_Ex07a/Hands-on_Ex07a.html">
+ <span class="dropdown-text">Hands-on Exercise 7a</span></a>
+  </li>  
+        <li>
+    <a class="dropdown-item" href="./Hands-on_Ex/Hands-on_Ex07b/Hands-on_Ex07b.html">
+ <span class="dropdown-text">Hands-on Exercise 7b</span></a>
+  </li>  
+        <li>
+    <a class="dropdown-item" href="./Hands-on_Ex/Hands-on_Ex08/Hands-on_Ex08.html">
+ <span class="dropdown-text">Hands-on Exercise 8</span></a>
+  </li>  
+        <li class="dropdown-header">Geospatial Analytics</li>
+        <li>
+    <a class="dropdown-item" href="./Hands-on_Ex/Hands-on_Ex09a/Hands-on_Ex09a.html">
+ <span class="dropdown-text">Hands-on Exercise 9a</span></a>
+  </li>  
+        <li>
+    <a class="dropdown-item" href="./Hands-on_Ex/Hands-on_Ex09b/Hands-on_Ex09b.html">
+ <span class="dropdown-text">Hands-on Exercise 9b</span></a>
+  </li>  
+        <li>
+    <a class="dropdown-item" href="./Hands-on_Ex/Hands-on_Ex09c/Hands-on_Ex09c.html">
+ <span class="dropdown-text">Hands-on Exercise 9c</span></a>
+  </li>  
+        <li class="dropdown-header">Dashboard Design</li>
+        <li>
+    <a class="dropdown-item" href="./Hands-on_Ex/Hands-on_Ex10/Hands-on_Ex10.html">
+ <span class="dropdown-text">Hands-on Exercise 10</span></a>
   </li>  
     </ul>
   </li>
@@ -227,9 +230,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <div id="quarto-content" class="quarto-container page-columns page-rows-contents page-layout-article page-navbar">
 <!-- sidebar -->
 <!-- margin-sidebar -->
-    <div id="quarto-margin-sidebar" class="sidebar margin-sidebar zindex-bottom">
-        
-    </div>
+    
 <!-- main -->
 <main class="content" id="quarto-document-content">
 
@@ -252,15 +253,63 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 </header>
 
 
-<p>About this site</p>
-<div class="cell">
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb1"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="dv">1</span> <span class="sc">+</span> <span class="dv">1</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
-<div class="cell-output cell-output-stdout">
-<pre><code>[1] 2</code></pre>
+<style>
+#title-block-header {
+  display: none;
+}
+</style>
+<div class="vaa-page-hero">
+<p><span class="vaa-section-kicker">Portfolio author</span></p>
+<section id="yang-yang" class="level1">
+<h1>Yang Yang</h1>
+<p>This website is prepared for <strong>ISSS608 Visual Analytics and Applications</strong> as a portfolio of coursework, hands-on practice, and applied visual analytics learning.</p>
+</section>
 </div>
+<div class="vaa-profile-grid">
+<section id="portfolio-focus" class="level3 vaa-profile-panel">
+<h3 class="anchored" data-anchor-id="portfolio-focus">Portfolio Focus</h3>
+<p>The portfolio documents a practical journey through visual analytics methods in R. It moves from graphical foundations into statistical visualisation, interactive graphics, network analysis, text analysis, time-oriented data, geospatial mapping, and information dashboard design.</p>
+</section>
+<section id="tools-and-workflow" class="level3 vaa-profile-panel">
+<h3 class="anchored" data-anchor-id="tools-and-workflow">Tools and Workflow</h3>
+<p><span class="vaa-tag">R</span> <span class="vaa-tag">Quarto</span> <span class="vaa-tag">ggplot2</span> <span class="vaa-tag">tidyverse</span> <span class="vaa-tag">tmap</span> <span class="vaa-tag">network</span> <span class="vaa-tag">text mining</span> <span class="vaa-tag">dashboard design</span></p>
+<p>The website is built as a reproducible Quarto site so that code, visual output, interpretation, and navigation sit together in one consistent learning artefact.</p>
+</section>
+</div>
+<section id="learning-approach" class="level2">
+<h2 class="anchored" data-anchor-id="learning-approach">Learning Approach</h2>
+<p>The coursework is treated as more than a collection of exercises. Each page records how a visual method works, what kind of question it can support, and how design choices affect interpretation. The goal is to make the portfolio useful both as a submission website and as a reference for future analytical work.</p>
+<div class="vaa-feature-grid">
+<section id="practical" class="level3 vaa-feature-card">
+<h3 class="anchored" data-anchor-id="practical">Practical</h3>
+<p>Exercises are organised around real analytical tasks: comparing distributions, mapping spatial patterns, identifying network structures, and summarising dashboards.</p>
+</section>
+<section id="exploratory" class="level3 vaa-feature-card">
+<h3 class="anchored" data-anchor-id="exploratory">Exploratory</h3>
+<p>The gallery and method pathways let visitors browse by topic instead of reading the site only in exercise order.</p>
+</section>
+<section id="professional" class="level3 vaa-feature-card">
+<h3 class="anchored" data-anchor-id="professional">Professional</h3>
+<p>The site uses a consistent visual system, direct navigation, and concise page summaries to make the coursework easier to review.</p>
+</section>
+</div>
+</section>
+<section id="what-this-portfolio-demonstrates" class="level2">
+<h2 class="anchored" data-anchor-id="what-this-portfolio-demonstrates">What This Portfolio Demonstrates</h2>
+<div class="vaa-check-list">
+<ul>
+<li>The ability to translate raw data into readable visual evidence.</li>
+<li>Awareness of visual design choices such as colour, layout, annotation, scale, and comparison.</li>
+<li>Hands-on experience with static, interactive, geospatial, network, text, temporal, and dashboard-oriented methods.</li>
+<li>A reproducible workflow using R, Quarto, and HTML output.</li>
+</ul>
+</div>
+<div class="vaa-note">
+<p>Prepared by Yang Yang for ISSS608 Visual Analytics and Applications.</p>
 </div>
 
 
+</section>
 
 </main> <!-- /main -->
 <script id="quarto-html-after-body" type="application/javascript">

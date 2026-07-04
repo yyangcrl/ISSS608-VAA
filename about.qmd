@@ -1,9 +1,75 @@
 ---
 title: "About"
+format:
+  html:
+    toc: false
 ---
 
-About this site
-
-```{r}
-1 + 1
+```{=html}
+<style>
+#title-block-header {
+  display: none;
+}
+</style>
 ```
+
+::: vaa-page-hero
+[Portfolio author]{.vaa-section-kicker}
+
+# Yang Yang
+
+This website is prepared for **ISSS608 Visual Analytics and Applications** as a portfolio of coursework, hands-on practice, and applied visual analytics learning.
+:::
+
+:::: vaa-profile-grid
+::: vaa-profile-panel
+### Portfolio Focus
+
+The portfolio documents a practical journey through visual analytics methods in R. It moves from graphical foundations into statistical visualisation, interactive graphics, network analysis, text analysis, time-oriented data, geospatial mapping, and information dashboard design.
+:::
+
+::: vaa-profile-panel
+### Tools and Workflow
+
+[R]{.vaa-tag} [Quarto]{.vaa-tag} [ggplot2]{.vaa-tag} [tidyverse]{.vaa-tag} [tmap]{.vaa-tag} [network]{.vaa-tag} [text mining]{.vaa-tag} [dashboard design]{.vaa-tag}
+
+The website is built as a reproducible Quarto site so that code, visual output, interpretation, and navigation sit together in one consistent learning artefact.
+:::
+::::
+
+## Learning Approach
+
+The coursework is treated as more than a collection of exercises. Each page records how a visual method works, what kind of question it can support, and how design choices affect interpretation. The goal is to make the portfolio useful both as a submission website and as a reference for future analytical work.
+
+:::: vaa-feature-grid
+::: vaa-feature-card
+### Practical
+
+Exercises are organised around real analytical tasks: comparing distributions, mapping spatial patterns, identifying network structures, and summarising dashboards.
+:::
+
+::: vaa-feature-card
+### Exploratory
+
+The gallery and method pathways let visitors browse by topic instead of reading the site only in exercise order.
+:::
+
+::: vaa-feature-card
+### Professional
+
+The site uses a consistent visual system, direct navigation, and concise page summaries to make the coursework easier to review.
+:::
+::::
+
+## What This Portfolio Demonstrates
+
+::: vaa-check-list
+- The ability to translate raw data into readable visual evidence.
+- Awareness of visual design choices such as colour, layout, annotation, scale, and comparison.
+- Hands-on experience with static, interactive, geospatial, network, text, temporal, and dashboard-oriented methods.
+- A reproducible workflow using R, Quarto, and HTML output.
+:::
+
+::: vaa-note
+Prepared by Yang Yang for ISSS608 Visual Analytics and Applications.
+:::

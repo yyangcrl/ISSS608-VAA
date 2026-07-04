@@ -1,22 +1,37 @@
 project:
   type: website
+  render:
+    - "*.qmd"
+    - "Hands-on_Ex/**/*.qmd"
+    - "Take-home_Ex/**/*.qmd"
+    - "VAST_Challenge_2026_MC1/*.qmd"
+    - "VAST_Challenge_2026_MC1/*.md"
+    - "!docs/**"
 
 website:
   title: "ISSS608-VAA"
   navbar:
     left:
+      - text: "Hands-on Gallery"
+        href: hands-on-gallery.qmd
+
       - text: "Hands-on Exercise"
         menu:
+          - text: "Foundations"
           - text: "Hands-on Exercise 1"
             href: Hands-on_Ex/Hands-on_Ex01/Hands-on_Ex01.html
           - text: "Hands-on Exercise 2"
             href: Hands-on_Ex/Hands-on_Ex02/Hands-on_Ex02.html
-          - text: "Hands-on Exercise 3"
+
+          - text: "Interactive and Animated Visualisation"
+          - text: "Hands-on Exercise 3a"
             href: Hands-on_Ex/Hands-on_Ex03/Hands-on_Ex03.html
           - text: "Hands-on Exercise 3b"
             href: Hands-on_Ex/Hands-on_Ex03b/Hands-on_Ex03b.html
           - text: "Hands-on Exercise 4a"
             href: Hands-on_Ex/Hands-on_Ex04a/Hands-on_Ex04a.html
+
+          - text: "Statistical Visual Analysis"
           - text: "Hands-on Exercise 4b"
             href: Hands-on_Ex/Hands-on_Ex04b/Hands-on_Ex04b.html
           - text: "Hands-on Exercise 4c"
@@ -33,18 +48,24 @@ website:
             href: Hands-on_Ex/Hands-on_Ex05d/Hands-on_Ex05d.html
           - text: "Hands-on Exercise 5e"
             href: Hands-on_Ex/Hands-on_Ex05e/Hands-on_Ex05e.html
+
+          - text: "Network, Text, and Time"
           - text: "Hands-on Exercise 7a"
             href: Hands-on_Ex/Hands-on_Ex07a/Hands-on_Ex07a.html
           - text: "Hands-on Exercise 7b"
             href: Hands-on_Ex/Hands-on_Ex07b/Hands-on_Ex07b.html
           - text: "Hands-on Exercise 8"
             href: Hands-on_Ex/Hands-on_Ex08/Hands-on_Ex08.html
+
+          - text: "Geospatial Analytics"
           - text: "Hands-on Exercise 9a"
             href: Hands-on_Ex/Hands-on_Ex09a/Hands-on_Ex09a.html
           - text: "Hands-on Exercise 9b"
             href: Hands-on_Ex/Hands-on_Ex09b/Hands-on_Ex09b.html
           - text: "Hands-on Exercise 9c"
             href: Hands-on_Ex/Hands-on_Ex09c/Hands-on_Ex09c.html
+
+          - text: "Dashboard Design"
           - text: "Hands-on Exercise 10"
             href: Hands-on_Ex/Hands-on_Ex10/Hands-on_Ex10.html
 

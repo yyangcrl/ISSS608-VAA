@@ -822,3 +822,16 @@ In this exercise:
 - [R4VA Chapter 21: Choropleth Mapping with R](https://r4va.netlify.app/chap21)
 - [tmap: Thematic Maps in R](https://cran.r-project.org/package=tmap)
 - [sf: Simple Features for R](https://cran.r-project.org/package=sf)
+
+::: vaa-exercise-footer
+### Portfolio note
+
+**Key takeaway.** Choropleth maps show how area-based values vary across geography.
+
+**Practical use.** Use it when spatial comparison depends on regional boundaries and classification choices.
+
+::: vaa-footer-nav
+[Back to Gallery](../../hands-on-gallery.html) [Previous: Exercise 8](../Hands-on_Ex08/Hands-on_Ex08.html) [Next: Exercise 9b](../Hands-on_Ex09b/Hands-on_Ex09b.html)
+:::
+:::
+

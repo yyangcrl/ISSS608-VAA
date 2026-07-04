@@ -1204,3 +1204,16 @@ This exercise covered:
 - regional average heatmaps,
 - correlation heatmaps,
 - top-bottom country comparison heatmaps.
+
+::: vaa-exercise-footer
+### Portfolio note
+
+**Key takeaway.** Heatmaps compress multivariate structure into readable colour patterns.
+
+**Practical use.** Use it when the goal is to compare many values, clusters, or high-low contrasts at once.
+
+::: vaa-footer-nav
+[Back to Gallery](../../hands-on-gallery.html) [Previous: Exercise 5b](../Hands-on_Ex05b/Hands-on_Ex05b.html) [Next: Exercise 5d](../Hands-on_Ex05d/Hands-on_Ex05d.html)
+:::
+:::
+

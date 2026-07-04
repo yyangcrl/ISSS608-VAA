@@ -1260,3 +1260,16 @@ Use network graphs when the relationship between entities is the main story. For
 -   `tidygraph`: <https://tidygraph.data-imaginist.com/>
 -   `ggraph`: <https://ggraph.data-imaginist.com/>
 -   `visNetwork`: <https://datastorm-open.github.io/visNetwork/>
+
+::: vaa-exercise-footer
+### Portfolio note
+
+**Key takeaway.** Network visualisation turns relationships into visible structure.
+
+**Practical use.** Use it when the question depends on connections, centrality, communities, or communication flow.
+
+::: vaa-footer-nav
+[Back to Gallery](../../hands-on-gallery.html) [Previous: Exercise 5e](../Hands-on_Ex05e/Hands-on_Ex05e.html) [Next: Exercise 7b](../Hands-on_Ex07b/Hands-on_Ex07b.html)
+:::
+:::
+

@@ -501,3 +501,16 @@ In this exercise:
 - [R4VA Chapter 22: Visualising Geospatial Point Data](https://r4va.netlify.app/chap22)
 - [sf: Simple Features for R](https://cran.r-project.org/package=sf)
 - [tmap: Thematic Maps in R](https://cran.r-project.org/package=tmap)
+
+::: vaa-exercise-footer
+### Portfolio note
+
+**Key takeaway.** Point maps reveal location patterns that area summaries may hide.
+
+**Practical use.** Use it when the distribution, clustering, or proximity of individual locations matters.
+
+::: vaa-footer-nav
+[Back to Gallery](../../hands-on-gallery.html) [Previous: Exercise 9a](../Hands-on_Ex09a/Hands-on_Ex09a.html) [Next: Exercise 9c](../Hands-on_Ex09c/Hands-on_Ex09c.html)
+:::
+:::
+

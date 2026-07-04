@@ -649,3 +649,16 @@ In this exercise:
 - [R4VA Chapter 17: Visualising and Analysing Time-oriented Data](https://r4va.netlify.app/chap17)
 - [CRAN: CGPfunctions package status](https://cran.r-project.org/package=CGPfunctions)
 - [CRAN Archive: CGPfunctions](https://cran.r-project.org/src/contrib/Archive/CGPfunctions/)
+
+::: vaa-exercise-footer
+### Portfolio note
+
+**Key takeaway.** Time-oriented graphics organise event patterns so change can be read as a sequence.
+
+**Practical use.** Use it when timing, order, seasonality, or duration affects the analytical question.
+
+::: vaa-footer-nav
+[Back to Gallery](../../hands-on-gallery.html) [Previous: Exercise 7b](../Hands-on_Ex07b/Hands-on_Ex07b.html) [Next: Exercise 9a](../Hands-on_Ex09a/Hands-on_Ex09a.html)
+:::
+:::
+

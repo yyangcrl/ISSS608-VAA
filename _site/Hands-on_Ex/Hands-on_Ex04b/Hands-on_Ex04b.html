@@ -138,11 +138,16 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 </button>
           <div class="collapse navbar-collapse" id="navbarCollapse">
             <ul class="navbar-nav navbar-nav-scroll me-auto">
+  <li class="nav-item">
+    <a class="nav-link" href="../../hands-on-gallery.html"> 
+<span class="menu-text">Hands-on Gallery</span></a>
+  </li>  
   <li class="nav-item dropdown ">
     <a class="nav-link dropdown-toggle" href="#" id="nav-menu-hands-on-exercise" role="link" data-bs-toggle="dropdown" aria-expanded="false">
  <span class="menu-text">Hands-on Exercise</span>
     </a>
     <ul class="dropdown-menu" aria-labelledby="nav-menu-hands-on-exercise">    
+        <li class="dropdown-header">Foundations</li>
         <li>
     <a class="dropdown-item" href="../../Hands-on_Ex/Hands-on_Ex01/Hands-on_Ex01.html">
  <span class="dropdown-text">Hands-on Exercise 1</span></a>
@@ -151,9 +156,10 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
     <a class="dropdown-item" href="../../Hands-on_Ex/Hands-on_Ex02/Hands-on_Ex02.html">
  <span class="dropdown-text">Hands-on Exercise 2</span></a>
   </li>  
+        <li class="dropdown-header">Interactive and Animated Visualisation</li>
         <li>
     <a class="dropdown-item" href="../../Hands-on_Ex/Hands-on_Ex03/Hands-on_Ex03.html">
- <span class="dropdown-text">Hands-on Exercise 3</span></a>
+ <span class="dropdown-text">Hands-on Exercise 3a</span></a>
   </li>  
         <li>
     <a class="dropdown-item" href="../../Hands-on_Ex/Hands-on_Ex03b/Hands-on_Ex03b.html">
@@ -163,6 +169,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
     <a class="dropdown-item" href="../../Hands-on_Ex/Hands-on_Ex04a/Hands-on_Ex04a.html">
  <span class="dropdown-text">Hands-on Exercise 4a</span></a>
   </li>  
+        <li class="dropdown-header">Statistical Visual Analysis</li>
         <li>
     <a class="dropdown-item" href="../../Hands-on_Ex/Hands-on_Ex04b/Hands-on_Ex04b.html">
  <span class="dropdown-text">Hands-on Exercise 4b</span></a>
@@ -195,6 +202,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
     <a class="dropdown-item" href="../../Hands-on_Ex/Hands-on_Ex05e/Hands-on_Ex05e.html">
  <span class="dropdown-text">Hands-on Exercise 5e</span></a>
   </li>  
+        <li class="dropdown-header">Network, Text, and Time</li>
         <li>
     <a class="dropdown-item" href="../../Hands-on_Ex/Hands-on_Ex07a/Hands-on_Ex07a.html">
  <span class="dropdown-text">Hands-on Exercise 7a</span></a>
@@ -207,6 +215,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
     <a class="dropdown-item" href="../../Hands-on_Ex/Hands-on_Ex08/Hands-on_Ex08.html">
  <span class="dropdown-text">Hands-on Exercise 8</span></a>
   </li>  
+        <li class="dropdown-header">Geospatial Analytics</li>
         <li>
     <a class="dropdown-item" href="../../Hands-on_Ex/Hands-on_Ex09a/Hands-on_Ex09a.html">
  <span class="dropdown-text">Hands-on Exercise 9a</span></a>
@@ -219,6 +228,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
     <a class="dropdown-item" href="../../Hands-on_Ex/Hands-on_Ex09c/Hands-on_Ex09c.html">
  <span class="dropdown-text">Hands-on Exercise 9c</span></a>
   </li>  
+        <li class="dropdown-header">Dashboard Design</li>
         <li>
     <a class="dropdown-item" href="../../Hands-on_Ex/Hands-on_Ex10/Hands-on_Ex10.html">
  <span class="dropdown-text">Hands-on Exercise 10</span></a>
@@ -291,7 +301,10 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
   <li><a href="#extra-view-proportion-chart" id="toc-extra-view-proportion-chart" class="nav-link" data-scroll-target="#extra-view-proportion-chart">4.3.14 Extra view: proportion chart</a></li>
   </ul></li>
   <li><a href="#final-interpretation" id="toc-final-interpretation" class="nav-link" data-scroll-target="#final-interpretation">4.4 Final Interpretation</a></li>
-  <li><a href="#reference" id="toc-reference" class="nav-link" data-scroll-target="#reference">4.5 Reference</a></li>
+  <li><a href="#reference" id="toc-reference" class="nav-link" data-scroll-target="#reference">4.5 Reference</a>
+  <ul class="collapse">
+  <li><a href="#portfolio-note" id="toc-portfolio-note" class="nav-link" data-scroll-target="#portfolio-note">Portfolio note</a></li>
+  </ul></li>
   </ul>
 </nav>
     </div>
@@ -488,8 +501,8 @@ $ SCIENCE &lt;dbl&gt; 15, 16, 16, 31, 25, 16, 25, 27, 15, 37, 42, 22, 32, 36, 35
 <div id="tabset-4-1" class="tab-pane active" role="tabpanel" aria-labelledby="tabset-4-1-tab">
 <div class="cell">
 <div class="cell-output-display">
-<div class="datatables html-widget html-fill-item" id="htmlwidget-16fec925867bd2229265" style="width:100%;height:auto;"></div>
-<script type="application/json" data-for="htmlwidget-16fec925867bd2229265">{"x":{"filter":"none","vertical":false,"data":[["ENGLISH","MATHS","SCIENCE"],[67.18322981366455,69.33229813664599,61.16149068322976],[70,74,65],[14.69250656073918,19.97533089954585,18.17718285618374],[21,9,15],[96,99,96]],"container":"<table class=\"compact stripe hover\">\n  <thead>\n    <tr>\n      <th>Subject<\/th>\n      <th>mean<\/th>\n      <th>median<\/th>\n      <th>sd<\/th>\n      <th>min<\/th>\n      <th>max<\/th>\n    <\/tr>\n  <\/thead>\n<\/table>","options":{"pageLength":5,"dom":"t","columnDefs":[{"className":"dt-right","targets":[1,2,3,4,5]},{"name":"Subject","targets":0},{"name":"mean","targets":1},{"name":"median","targets":2},{"name":"sd","targets":3},{"name":"min","targets":4},{"name":"max","targets":5}],"order":[],"autoWidth":false,"orderClasses":false,"lengthMenu":[5,10,25,50,100]}},"evals":[],"jsHooks":[]}</script>
+<div class="datatables html-widget html-fill-item" id="htmlwidget-22342ffc1c8c6e0aeb58" style="width:100%;height:auto;"></div>
+<script type="application/json" data-for="htmlwidget-22342ffc1c8c6e0aeb58">{"x":{"filter":"none","vertical":false,"data":[["ENGLISH","MATHS","SCIENCE"],[67.18322981366455,69.33229813664599,61.16149068322976],[70,74,65],[14.69250656073918,19.97533089954585,18.17718285618374],[21,9,15],[96,99,96]],"container":"<table class=\"compact stripe hover\">\n  <thead>\n    <tr>\n      <th>Subject<\/th>\n      <th>mean<\/th>\n      <th>median<\/th>\n      <th>sd<\/th>\n      <th>min<\/th>\n      <th>max<\/th>\n    <\/tr>\n  <\/thead>\n<\/table>","options":{"pageLength":5,"dom":"t","columnDefs":[{"className":"dt-right","targets":[1,2,3,4,5]},{"name":"Subject","targets":0},{"name":"mean","targets":1},{"name":"median","targets":2},{"name":"sd","targets":3},{"name":"min","targets":4},{"name":"max","targets":5}],"order":[],"autoWidth":false,"orderClasses":false,"lengthMenu":[5,10,25,50,100]}},"evals":[],"jsHooks":[]}</script>
 </div>
 </div>
 </div>
@@ -1182,6 +1195,14 @@ $ SCIENCE &lt;dbl&gt; 15, 16, 16, 31, 25, 16, 25, 27, 15, 37, 42, 22, 32, 36, 35
 <li><code>cut()</code> for converting numerical scores into categorical bands,</li>
 <li><code>summarise()</code> and <code>across()</code> for quick descriptive summaries.</li>
 </ul>
+<section id="portfolio-note" class="level3 vaa-exercise-footer">
+<h3 class="anchored" data-anchor-id="portfolio-note">Portfolio note</h3>
+<p><strong>Key takeaway.</strong> Statistical graphics are strongest when the result and the evidence are shown together.</p>
+<p><strong>Practical use.</strong> Use it when statistical comparison needs both visual intuition and inferential support.</p>
+<div class="vaa-footer-nav">
+<p><a href="../../hands-on-gallery.html">Back to Gallery</a> <a href="../Hands-on_Ex04a/Hands-on_Ex04a.html">Previous: Exercise 4a</a> <a href="../Hands-on_Ex04c/Hands-on_Ex04c.html">Next: Exercise 4c</a></p>
+</div>
+</section>
 
 
 </section>

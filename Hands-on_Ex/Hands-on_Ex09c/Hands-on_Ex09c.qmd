@@ -657,3 +657,16 @@ In this exercise:
 - [R4VA Chapter 23: Analytical Mapping](https://r4va.netlify.app/chap23)
 - [tmap: Thematic Maps in R](https://cran.r-project.org/package=tmap)
 - [sf: Simple Features for R](https://cran.r-project.org/package=sf)
+
+::: vaa-exercise-footer
+### Portfolio note
+
+**Key takeaway.** Analytical mapping combines spatial data with statistical reasoning.
+
+**Practical use.** Use it when spatial relationships need to be interpreted beyond simple location display.
+
+::: vaa-footer-nav
+[Back to Gallery](../../hands-on-gallery.html) [Previous: Exercise 9b](../Hands-on_Ex09b/Hands-on_Ex09b.html) [Next: Exercise 10](../Hands-on_Ex10/Hands-on_Ex10.html)
+:::
+:::
+

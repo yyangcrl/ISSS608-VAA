@@ -1429,3 +1429,16 @@ This exercise covered:
 -   creating ggplot-style treemaps using `treemapify`,
 -   creating an interactive treemap using `plotly`,
 -   adding a simple top planning area ranking as a small extension.
+
+::: vaa-exercise-footer
+### Portfolio note
+
+**Key takeaway.** Treemaps use space efficiently for hierarchical part-to-whole patterns.
+
+**Practical use.** Use it when category size and hierarchy need to be read together.
+
+::: vaa-footer-nav
+[Back to Gallery](../../hands-on-gallery.html) [Previous: Exercise 5d](../Hands-on_Ex05d/Hands-on_Ex05d.html) [Next: Exercise 7a](../Hands-on_Ex07a/Hands-on_Ex07a.html)
+:::
+:::
+

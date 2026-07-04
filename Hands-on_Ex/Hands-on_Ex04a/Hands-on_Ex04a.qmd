@@ -1205,3 +1205,16 @@ ggplot(
 -   Raincloud plots combine density, summary statistics and raw observations in one chart.
 -   `ggridges` is used for ridgeline plots.
 -   `ggdist` is used for half-eye and dot-based distribution visualisations.
+
+::: vaa-exercise-footer
+### Portfolio note
+
+**Key takeaway.** Animated statistical graphics connect numerical comparison with visual change.
+
+**Practical use.** Use it when a statistical comparison becomes clearer through ordered movement or change over time.
+
+::: vaa-footer-nav
+[Back to Gallery](../../hands-on-gallery.html) [Previous: Exercise 3b](../Hands-on_Ex03b/Hands-on_Ex03b.html) [Next: Exercise 4b](../Hands-on_Ex04b/Hands-on_Ex04b.html)
+:::
+:::
+

@@ -973,3 +973,16 @@ This exercise covered:
 -   using supporting charts to improve interpretation.
 
 The main interpretation principle is simple: a ternary plot shows **composition**, not absolute population size.
+
+::: vaa-exercise-footer
+### Portfolio note
+
+**Key takeaway.** Ternary plots reveal how three components trade off within a whole.
+
+**Practical use.** Use it when the data describes a three-part composition or proportional balance.
+
+::: vaa-footer-nav
+[Back to Gallery](../../hands-on-gallery.html) [Previous: Exercise 4d](../Hands-on_Ex04d/Hands-on_Ex04d.html) [Next: Exercise 5b](../Hands-on_Ex05b/Hands-on_Ex05b.html)
+:::
+:::
+

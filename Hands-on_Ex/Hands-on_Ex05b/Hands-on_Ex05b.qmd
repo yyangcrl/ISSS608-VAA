@@ -1590,3 +1590,16 @@ This exercise covered:
 - correlation matrix reordering,
 - interactive correlation heatmap using `plotly`,
 - extensions on wine quality drivers and strongest correlation pairs.
+
+::: vaa-exercise-footer
+### Portfolio note
+
+**Key takeaway.** Correlation views make relationships between variables easier to scan.
+
+**Practical use.** Use it when the analysis depends on association patterns across several measures.
+
+::: vaa-footer-nav
+[Back to Gallery](../../hands-on-gallery.html) [Previous: Exercise 5a](../Hands-on_Ex05a/Hands-on_Ex05a.html) [Next: Exercise 5c](../Hands-on_Ex05c/Hands-on_Ex05c.html)
+:::
+:::
+
